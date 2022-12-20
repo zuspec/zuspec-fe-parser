@@ -46,7 +46,7 @@ add_executable(zsp_testmain ${TEST_SRCS})
 set_property(TARGET zsp_testmain PROPERTY
   MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-add_dependencies(zsp_testmain GTEST ZuspecParser)
+add_dependencies(zsp_testmain GTEST ZuspecParser LibARL)
 target_include_directories(zsp_testmain PRIVATE
 	${CMAKE_BINARY_DIR}
 	${CMAKE_BINARY_DIR}/gtest/include
