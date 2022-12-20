@@ -1,0 +1,69 @@
+cmake_minimum_required (VERSION 3.11)
+
+project(zuspec-fe-parser)
+
+include(ExternalProject)
+
+if (NOT PACKAGES_DIR)
+  set(PACKAGES_DIR ${CMAKE_SOURCE_DIR}/packages)
+
+  enable_testing()
+  add_subdirectory(tests)
+endif()
+
+message("PSSParser: PACKAGES_DIR=${PACKAGES_DIR}")
+
+set(ZUSPEC_PARSER_DIR "${PACKAGES_DIR}/zuspec-parser")
+
+
+ExternalProject_Add(ZuspecParser
+  PREFIX zuspec-parser
+  SOURCE_DIR ${ZUSPEC_PARSER_DIR}
+  CMAKE_CACHE_ARGS
+    -DPACKAGES_DIR:PATH=${PACKAGES_DIR}
+    -DCMAKE_INTERPROCEDURAL_OPTIMIZATION:BOOL=${CMAKE_INTERPROCEDURAL_OPTIMIZATION}
+    -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=${CMAKE_POSITION_INDEPENDENT_CODE}
+    -DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}
+    -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
+    -DCMAKE_C_FLAGS:STRING=${CMAKE_C_FLAGS}
+    -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
+    -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
+    -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_CURRENT_BINARY_DIR}
+    -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+    -DTESTING:BOOL=OFF
+  )
+
+if (WIN32)
+  set(PYTHON ${PACKAGES_DIR}/python/Scripts/python.exe)
+else()
+  set(PYTHON ${PACKAGES_DIR}/python/bin/python)
+endif()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set(ANTLR_CXXFLAGS "-Wno-attributes -fPIC")
+else()
+  set(ANTLR_CXXFLAGS -DANTLR4CPP_STATIC)
+endif()
+
+set(CompilerFlags
+        CMAKE_CXX_FLAGS
+        CMAKE_CXX_FLAGS_DEBUG
+        CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_C_FLAGS
+        CMAKE_C_FLAGS_DEBUG
+        CMAKE_C_FLAGS_RELEASE
+        "-fPIC"
+        )
+foreach(CompilerFlag ${CompilerFlags})
+  string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+  string(REPLACE "/MDd" "/MTd" ${CompilerFlag} "${${CompilerFlag}}")
+endforeach()
+
+
+add_subdirectory(src)
+
+
+

@@ -16,6 +16,8 @@ package:
        url: https://github.com/zuspec/zuspec-parser.git
      - name: libarl
        url: https://github.com/vsc-tools/libarl.git
+     - name: gtest
+       url: https://github.com/google/googletest/archive/release-1.10.0.tar.gz
      - name: ninja
        src: pypi
      - name: cython

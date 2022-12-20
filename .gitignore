@@ -33,3 +33,4 @@
 
 packages/
 *.code-workspace
+build/
