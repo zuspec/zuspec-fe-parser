@@ -34,6 +34,19 @@ TestBase::~TestBase() {
 
 }
 
+extern "C" zsp::IFactory *zsp_parser_getFactory();
+extern "C" zsp::fe::parser::IFactory *zsp_fe_parser_getFactory();
+
+void TestBase::SetUp() {
+    m_factory = zsp_fe_parser_getFactory();
+    m_zsp_factory = zsp_parser_getFactory();
+
+}
+
+void TestBase::TearDown() {
+
+}
+
 }
 }
 }

@@ -20,6 +20,9 @@
  */
 #pragma once
 #include "gtest/gtest.h"
+#include "zsp/IFactory.h"
+#include "zsp/ast/IFactory.h"
+#include "zsp/fe/parser/IFactory.h"
 
 namespace zsp {
 namespace fe {
@@ -32,6 +35,14 @@ public:
     TestBase();
 
     virtual ~TestBase();
+
+    virtual void SetUp() override;
+
+    virtual void TearDown() override;
+
+private:
+    IFactory                    *m_factory;
+    zsp::IFactory               *m_zsp_factory;
 
 };
 

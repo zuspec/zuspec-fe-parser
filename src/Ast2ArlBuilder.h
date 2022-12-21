@@ -1,5 +1,5 @@
 /**
- * Factory.h
+ * Ast2ArlBuilder.h
  *
  * Copyright 2022 Matthew Ballance and Contributors
  *
@@ -19,30 +19,31 @@
  *     Author: 
  */
 #pragma once
-#include "zsp/fe/parser/IFactory.h"
+#include "zsp/IFactory.h"
+#include "zsp/IMarker.h"
 #include "zsp/fe/parser/IAst2ArlBuilder.h"
 
 namespace zsp {
 namespace fe {
 namespace parser {
 
-class Factory;
-using FactoryUP=std::unique_ptr<Factory>;
-class Factory : public virtual IFactory {
+
+
+class Ast2ArlBuilder : public virtual IAst2ArlBuilder {
 public:
-    Factory();
+    Ast2ArlBuilder(zsp::IFactory *factory);
 
-    virtual ~Factory();
+    virtual ~Ast2ArlBuilder();
 
-    virtual void init(zsp::IFactory *factory) override;
-
-    virtual IAst2ArlBuilder *mkAst2ArlBuilder() override;
-
-    static Factory *inst();
+    virtual void build(
+        IMarkerListener         *marker_l,
+        ast::ISymbolScope       *root,
+        arl::IContext           *ctxt) override;
 
 private:
-    static FactoryUP            m_inst;
     zsp::IFactory               *m_factory;
+    IMarkerListener             *m_marker_l;
+    IMarkerUP                   m_marker;
 
 };
 

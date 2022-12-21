@@ -41,28 +41,32 @@ endforeach()
 #********************************************************************
 #* GoogleTest unit tests
 #********************************************************************
-add_executable(zsp_testmain ${TEST_SRCS})
+add_executable(zuspec-fe-parser-testmain ${TEST_SRCS})
 
-set_property(TARGET zsp_testmain PROPERTY
+set_property(TARGET zuspec-fe-parser-testmain PROPERTY
   MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-add_dependencies(zsp_testmain GTEST ZuspecParser LibARL)
-target_include_directories(zsp_testmain PRIVATE
+add_dependencies(zuspec-fe-parser-testmain GTEST ZuspecParser LibARL)
+target_include_directories(zuspec-fe-parser-testmain PRIVATE
 	${CMAKE_BINARY_DIR}
 	${CMAKE_BINARY_DIR}/gtest/include
 	${PACKAGES_DIR}/gtest/googletest/include
 	${CMAKE_BINARY_DIR}/zsp_ast/src/include
 	${CMAKE_CURRENT_SOURCE_DIR}/../src
 	${CMAKE_CURRENT_SOURCE_DIR}/../src/include
+    ${ZUSPEC_PARSER_DIR}/src/include
+    ${CMAKE_BINARY_DIR}/zuspec-parser/src/ZuspecParser-build/zsp_ast/src/include
+    ${LIBARL_DIR}/src/include
+    ${LIBVSC_DIR}/src/include
 )
 
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message(STATUS "Taking debug libs")
-    list(APPEND ZSP_TESTMAIN_LIBS gtestd gtest_maind zuspec-parser zsp_ast)
+    list(APPEND ZSP_TESTMAIN_LIBS gtestd gtest_maind zuspec-fe-parser zuspec-parser zsp_ast)
 else()
     message(STATUS "Taking release libs")
-    list(APPEND ZSP_TESTMAIN_LIBS gtest gtest_main zuspec-parser zsp_ast)
+    list(APPEND ZSP_TESTMAIN_LIBS gtest gtest_main zuspec-fe-parser zuspec-parser zsp_ast)
 endif()
 
 if (WIN32)
@@ -77,10 +81,10 @@ endif()
 
 
 
-target_link_libraries(zsp_testmain ${ZSP_TESTMAIN_LIBS})
+target_link_libraries(zuspec-fe-parser-testmain ${ZSP_TESTMAIN_LIBS})
 
 add_test(
 	NAME unit
-	COMMAND ${CMAKE_BINARY_DIR}/tests/zsp_testmain)
+	COMMAND ${CMAKE_BINARY_DIR}/tests/zuspec-fe-parser-testmain)
 
 

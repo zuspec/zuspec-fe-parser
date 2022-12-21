@@ -12,6 +12,10 @@ include_directories(
     ${CMAKE_BINARY_DIR}/zsp_ast/src/include
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${ZUSPEC_PARSER_DIR}/src/include
+    ${CMAKE_BINARY_DIR}/zuspec-parser/src/ZuspecParser-build/zsp_ast/src/include
+    ${LIBARL_DIR}/src/include
+    ${LIBVSC_DIR}/src/include
     )
 
 link_directories(

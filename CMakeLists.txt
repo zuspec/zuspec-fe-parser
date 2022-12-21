@@ -7,14 +7,13 @@ include(ExternalProject)
 if (NOT PACKAGES_DIR)
   set(PACKAGES_DIR ${CMAKE_SOURCE_DIR}/packages)
 
-  enable_testing()
-  add_subdirectory(tests)
+  set(ENABLE_TESTS True)
+
 endif()
 
 message("PSSParser: PACKAGES_DIR=${PACKAGES_DIR}")
 
 set(ZUSPEC_PARSER_DIR "${PACKAGES_DIR}/zuspec-parser")
-
 
 ExternalProject_Add(ZuspecParser
   PREFIX zuspec-parser
@@ -34,6 +33,7 @@ ExternalProject_Add(ZuspecParser
   )
 
 set(LIBARL_DIR "${PACKAGES_DIR}/libarl")
+set(LIBVSC_DIR "${PACKAGES_DIR}/libvsc")
 
 ExternalProject_Add(LibARL
   PREFIX libarl
@@ -83,6 +83,11 @@ endforeach()
 
 
 add_subdirectory(src)
+
+if (ENABLE_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
 
 
 
