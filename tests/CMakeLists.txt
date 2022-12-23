@@ -23,6 +23,9 @@ link_directories(
 	${CMAKE_BINARY_DIR}/zuspec-parser/src/ZuspecParser-build/antlr4/lib64
 	${CMAKE_BINARY_DIR}/zuspec-parser/src/ZuspecParser-build/zsp_ast/lib
 	${CMAKE_BINARY_DIR}/zuspec-parser/src/ZuspecParser-build/zsp_ast/lib64
+	${CMAKE_BINARY_DIR}/libarl/src/LibARL-build/src
+	${CMAKE_BINARY_DIR}/libarl/src/LibARL-build/lib
+	${CMAKE_BINARY_DIR}/libarl/src/LibARL-build/libvsc/src/LibVSC-build/gmp/lib
 	)
 
 set(CompilerFlags
@@ -63,11 +66,13 @@ target_include_directories(zuspec-fe-parser-testmain PRIVATE
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message(STATUS "Taking debug libs")
-    list(APPEND ZSP_TESTMAIN_LIBS gtestd gtest_maind zuspec-fe-parser zuspec-parser zsp_ast)
+    list(APPEND ZSP_TESTMAIN_LIBS gtestd gtest_maind)
 else()
     message(STATUS "Taking release libs")
-    list(APPEND ZSP_TESTMAIN_LIBS gtest gtest_main zuspec-fe-parser zuspec-parser zsp_ast)
+    list(APPEND ZSP_TESTMAIN_LIBS gtest gtest_main)
 endif()
+
+list(APPEND ZSP_TESTMAIN_LIBS zuspec-fe-parser zuspec-parser zsp_ast arl vsc gmp)
 
 if (WIN32)
 	if (BUILD_SHARED_LIBS)

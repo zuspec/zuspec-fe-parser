@@ -19,8 +19,11 @@
  *     Author: 
  */
 #pragma once
+#include "arl/IContext.h"
+#include "vsc/IDataTypeStruct.h"
 #include "zsp/IFactory.h"
 #include "zsp/IMarker.h"
+#include "zsp/ast/impl/VisitorBase.h"
 #include "zsp/fe/parser/IAst2ArlBuilder.h"
 
 namespace zsp {
@@ -29,7 +32,9 @@ namespace parser {
 
 
 
-class Ast2ArlBuilder : public virtual IAst2ArlBuilder {
+class Ast2ArlBuilder : 
+    public virtual IAst2ArlBuilder,
+    public virtual ast::VisitorBase {
 public:
     Ast2ArlBuilder(zsp::IFactory *factory);
 
@@ -40,10 +45,30 @@ public:
         ast::ISymbolScope       *root,
         arl::IContext           *ctxt) override;
 
+    virtual void visitSymbolScope(ast::ISymbolScope *i) override;
+
+    virtual void visitSymbolEnumScope(ast::ISymbolEnumScope *i) override;
+
+    virtual void visitSymbolTypeScope(ast::ISymbolTypeScope *i) override;
+
 private:
-    zsp::IFactory               *m_factory;
-    IMarkerListener             *m_marker_l;
-    IMarkerUP                   m_marker;
+
+    vsc::IDataTypeStruct *findType(ast::IScopeChild *ast_t);
+
+    std::string getNamespacePrefix();
+
+    void visitSymbolScopeChildren(ast::ISymbolScope *i);
+
+    ast::IScopeChild *resolvePath(ast::ISymbolRefPath *ref);
+
+private:
+    zsp::IFactory                                           *m_factory;
+    IMarkerListener                                         *m_marker_l;
+    arl::IContext                                           *m_ctxt;
+    IMarkerUP                                               m_marker;
+    std::vector<ast::ISymbolScope *>                        m_scope_s;
+    std::map<ast::IScopeChild *, vsc::IDataTypeStruct *>    m_datatype_m;
+//    std::vector<vsc::IDataTypeStruct *>                     m_type_s;
 
 };
 
