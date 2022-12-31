@@ -14,8 +14,9 @@ package:
    dev-deps:
      - name: zuspec-parser
        url: https://github.com/zuspec/zuspec-parser.git
-     - name: libarl
-       url: https://github.com/vsc-tools/libarl.git
+     - name: zuspec-arl-dm
+       url: https://github.com/zuspec/zuspec-arl-dm.git
+       branch: dm-refactor
      - name: gtest
        url: https://github.com/google/googletest/archive/release-1.10.0.tar.gz
      - name: ninja
