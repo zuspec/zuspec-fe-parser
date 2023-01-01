@@ -18,33 +18,22 @@
  * Created on:
  *     Author:
  */
+#include "dmgr/impl/DebugMacros.h"
 #include "Ast2ArlBuilder.h"
 #include "TaskBuildDataType.h"
 #include "TaskBuildEnumType.h"
-
-#define DEBUG_ENTER(fmt, ...) \
-	fprintf(stdout, "--> Ast2ArlBuilder::"); \
-	fprintf(stdout, fmt, ##__VA_ARGS__); \
-	fprintf(stdout, "\n")
-
-#define DEBUG(fmt, ...) \
-	fprintf(stdout, "Ast2ArlBuilder: "); \
-	fprintf(stdout, fmt, ##__VA_ARGS__); \
-	fprintf(stdout, "\n")
-
-#define DEBUG_LEAVE(fmt, ...) \
-	fprintf(stdout, "<-- Ast2ArlBuilder::"); \
-	fprintf(stdout, fmt, ##__VA_ARGS__); \
-	fprintf(stdout, "\n")
 
 namespace zsp {
 namespace fe {
 namespace parser {
 
 
-Ast2ArlBuilder::Ast2ArlBuilder(zsp::IFactory *factory) :
+Ast2ArlBuilder::Ast2ArlBuilder(
+    dmgr::IDebugMgr         *dmgr,
+    zsp::parser::IFactory   *factory) :
     m_factory(factory), m_marker(
-        factory->mkMarker("", MarkerSeverityE::Error, ast::Location())) {
+        factory->mkMarker("", zsp::parser::MarkerSeverityE::Error, ast::Location())) {
+    DEBUG_INIT("Ast2ArlBuilder", dmgr);
     m_marker_l = 0;
     m_ctxt = 0;
 
@@ -55,9 +44,9 @@ Ast2ArlBuilder::~Ast2ArlBuilder() {
 }
 
 void Ast2ArlBuilder::build(
-        IMarkerListener         *marker_l,
-        ast::ISymbolScope       *root,
-        arl::IContext           *ctxt) {
+        zsp::parser::IMarkerListener    *marker_l,
+        ast::ISymbolScope               *root,
+        arl::dm::IContext               *ctxt) {
     m_marker_l = marker_l;
     m_ctxt = ctxt;
 
@@ -79,7 +68,7 @@ void Ast2ArlBuilder::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
     if (!findType(i->getTarget())) {
         DEBUG("Need to build type");
         // We haven't defined this type yet, so go build it
-        vsc::IDataTypeStruct *type = TaskBuildDataType(
+        vsc::dm::IDataTypeStruct *type = TaskBuildDataType(
             m_ctxt, &m_datatype_m).build(
                 m_scope_s,
                 i
@@ -97,8 +86,8 @@ void Ast2ArlBuilder::visitSymbolEnumScope(ast::ISymbolEnumScope *i) {
     DEBUG_LEAVE("visitSymbolEnumScope");
 }
 
-vsc::IDataTypeStruct *Ast2ArlBuilder::findType(ast::IScopeChild *ast_t) {
-    std::map<ast::IScopeChild *,vsc::IDataTypeStruct *>::const_iterator it;
+vsc::dm::IDataTypeStruct *Ast2ArlBuilder::findType(ast::IScopeChild *ast_t) {
+    std::map<ast::IScopeChild *,vsc::dm::IDataTypeStruct *>::const_iterator it;
 
     if ((it=m_datatype_m.find(ast_t)) != m_datatype_m.end()) {
         return it->second;
@@ -142,6 +131,8 @@ ast::IScopeChild *Ast2ArlBuilder::resolvePath(ast::ISymbolRefPath *ref) {
 
     return ret;
 }
+
+dmgr::IDebug *Ast2ArlBuilder::m_dbg = 0;
 
 }
 }

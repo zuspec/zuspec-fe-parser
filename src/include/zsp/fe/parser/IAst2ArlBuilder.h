@@ -20,9 +20,9 @@
  */
 #pragma once
 #include <memory>
+#include "zsp/arl/dm/IContext.h"
 #include "zsp/ast/ISymbolScope.h"
-#include "zsp/IMarkerListener.h"
-#include "arl/IContext.h"
+#include "zsp/parser/IMarkerListener.h"
 
 namespace zsp {
 namespace fe {
@@ -37,9 +37,9 @@ public:
     virtual ~IAst2ArlBuilder() { }
 
     virtual void build(
-        IMarkerListener         *marker_l,
-        ast::ISymbolScope       *root,
-        arl::IContext           *ctxt) = 0;
+        zsp::parser::IMarkerListener    *marker_l,
+        ast::ISymbolScope               *root,
+        arl::dm::IContext               *ctxt) = 0;
 
 };
 

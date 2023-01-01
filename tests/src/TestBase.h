@@ -20,8 +20,8 @@
  */
 #pragma once
 #include "gtest/gtest.h"
-#include "arl/IContext.h"
-#include "zsp/IFactory.h"
+#include "zsp/arl/dm/IContext.h"
+#include "zsp/parser/IFactory.h"
 #include "zsp/ast/IFactory.h"
 #include "zsp/fe/parser/IFactory.h"
 
@@ -42,23 +42,23 @@ public:
     virtual void TearDown() override;
 
     ast::IGlobalScope *parse(
-        IMarkerListener         *marker_l,
-        const std::string       &content,
-        const std::string       &name);
+        zsp::parser::IMarkerListener        *marker_l,
+        const std::string                   &content,
+        const std::string                   &name);
 
     ast::ISymbolScope *link(
-        IMarkerListener                         *marker_l,
+        zsp::parser::IMarkerListener            *marker_l,
         const std::vector<ast::IGlobalScopeUP>  &files);
 
     void ast2Arl(
-        IMarkerListener                         *marker_l,
+        zsp::parser::IMarkerListener            *marker_l,
         ast::ISymbolScope                       *root,
-        arl::IContext                           *ctxt);
+        arl::dm::IContext                       *ctxt);
 
 protected:
     IFactory                    *m_factory;
-    zsp::IFactory               *m_zsp_factory;
-    arl::IContextUP             m_ctxt;
+    zsp::parser::IFactory       *m_zsp_factory;
+    arl::dm::IContextUP          m_ctxt;
 
 };
 

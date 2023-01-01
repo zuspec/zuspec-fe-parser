@@ -32,12 +32,13 @@ ExternalProject_Add(ZuspecParser
     -DTESTING:BOOL=OFF
   )
 
-set(LIBARL_DIR "${PACKAGES_DIR}/libarl")
-set(LIBVSC_DIR "${PACKAGES_DIR}/libvsc")
+set(ZUSPEC_ARL_DM_DIR "${PACKAGES_DIR}/zuspec-arl-dm")
+set(LIBVSC_DM_DIR "${PACKAGES_DIR}/libvsc-dm")
+set(DEBUG_MGR_DIR "${PACKAGES_DIR}/debug-mgr")
 
-ExternalProject_Add(LibARL
-  PREFIX libarl
-  SOURCE_DIR ${LIBARL_DIR}
+ExternalProject_Add(ZuspecArl-DM
+  PREFIX zuspec-arl-dm
+  SOURCE_DIR ${ZUSPEC_ARL_DM_DIR}
   CMAKE_CACHE_ARGS
     -DPACKAGES_DIR:PATH=${PACKAGES_DIR}
     -DCMAKE_INTERPROCEDURAL_OPTIMIZATION:BOOL=${CMAKE_INTERPROCEDURAL_OPTIMIZATION}

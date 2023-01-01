@@ -20,7 +20,7 @@
  */
 #pragma once
 #include <map>
-#include "vsc/IDataTypeStruct.h"
+#include "vsc/dm/IDataTypeStruct.h"
 #include "zsp/ast/IScopeChild.h"
 
 namespace zsp {
@@ -36,7 +36,7 @@ public:
     virtual ~Ast2ArlContext();
 
 private:
-    std::map<ast::IScopeChild *, vsc::IDataTypeStruct *>        m_type_m;
+    std::map<ast::IScopeChild *, vsc::dm::IDataTypeStruct *>        m_type_m;
 
 };
 

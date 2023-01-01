@@ -19,6 +19,7 @@
  *     Author:
  */
 #include "Factory.h"
+#include "zsp/fe/parser/FactoryExt.h"
 #include "Ast2ArlBuilder.h"
 
 
@@ -27,7 +28,7 @@ namespace fe {
 namespace parser {
 
 
-Factory::Factory() : m_factory(0) {
+Factory::Factory() : m_dmgr(0), m_factory(0) {
 
 }
 
@@ -35,12 +36,19 @@ Factory::~Factory() {
 
 }
 
-void Factory::init(zsp::IFactory *factory) {
+void Factory::init(
+    dmgr::IDebugMgr         *dmgr,
+    zsp::parser::IFactory   *factory) {
+    m_dmgr = dmgr;
     m_factory = factory;
 }
 
+dmgr::IDebugMgr *Factory::getDebugMgr() {
+    return m_dmgr;
+}
+
 IAst2ArlBuilder *Factory::mkAst2ArlBuilder() {
-    return new Ast2ArlBuilder(m_factory);
+    return new Ast2ArlBuilder(m_dmgr, m_factory);
 }
 
 Factory *Factory::inst() {
@@ -52,10 +60,11 @@ Factory *Factory::inst() {
 
 FactoryUP Factory::m_inst;
 
-extern "C" IFactory *zsp_fe_parser_getFactory() {
-    return Factory::inst();
-}
 
 }
 }
+}
+
+extern "C" zsp::fe::parser::IFactory *zsp_fe_parser_getFactory() {
+    return zsp::fe::parser::Factory::inst();
 }

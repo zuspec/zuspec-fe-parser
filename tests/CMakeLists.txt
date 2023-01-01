@@ -23,9 +23,9 @@ link_directories(
 	${CMAKE_BINARY_DIR}/zuspec-parser/src/ZuspecParser-build/antlr4/lib64
 	${CMAKE_BINARY_DIR}/zuspec-parser/src/ZuspecParser-build/zsp_ast/lib
 	${CMAKE_BINARY_DIR}/zuspec-parser/src/ZuspecParser-build/zsp_ast/lib64
-	${CMAKE_BINARY_DIR}/libarl/src/LibARL-build/src
-	${CMAKE_BINARY_DIR}/libarl/src/LibARL-build/lib
-	${CMAKE_BINARY_DIR}/libarl/src/LibARL-build/libvsc/src/LibVSC-build/gmp/lib
+	${CMAKE_BINARY_DIR}/zuspec-arl-dm/src/ZuspecArl-DM-build/src
+	${CMAKE_BINARY_DIR}/zuspec-arl-dm/src/ZuspecArl-DM-build/lib
+#	${CMAKE_BINARY_DIR}/zuspec-arl-dm/src/ZuspecArl-DM-build/libvsc-dm/src/LibVSC-build/gmp/lib
 	)
 
 set(CompilerFlags
@@ -49,7 +49,7 @@ add_executable(zuspec-fe-parser-testmain ${TEST_SRCS})
 set_property(TARGET zuspec-fe-parser-testmain PROPERTY
   MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-add_dependencies(zuspec-fe-parser-testmain GTEST ZuspecParser LibARL)
+add_dependencies(zuspec-fe-parser-testmain GTEST ZuspecParser ZuspecArl-DM)
 target_include_directories(zuspec-fe-parser-testmain PRIVATE
 	${CMAKE_BINARY_DIR}
 	${CMAKE_BINARY_DIR}/gtest/include
@@ -59,8 +59,9 @@ target_include_directories(zuspec-fe-parser-testmain PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/../src/include
     ${ZUSPEC_PARSER_DIR}/src/include
     ${CMAKE_BINARY_DIR}/zuspec-parser/src/ZuspecParser-build/zsp_ast/src/include
-    ${LIBARL_DIR}/src/include
-    ${LIBVSC_DIR}/src/include
+    ${ZUSPEC_ARL_DM_DIR}/src/include
+    ${LIBVSC_DM_DIR}/src/include
+    ${DEBUG_MGR_DIR}/src/include
 )
 
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
@@ -72,7 +73,7 @@ else()
     list(APPEND ZSP_TESTMAIN_LIBS gtest gtest_main)
 endif()
 
-list(APPEND ZSP_TESTMAIN_LIBS zuspec-fe-parser zuspec-parser zsp_ast arl vsc gmp)
+list(APPEND ZSP_TESTMAIN_LIBS zuspec-fe-parser zuspec-parser ast zuspec-arl-dm vsc-dm debug-mgr)
 
 if (WIN32)
 	if (BUILD_SHARED_LIBS)

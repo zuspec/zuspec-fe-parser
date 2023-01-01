@@ -34,7 +34,11 @@ public:
 
     virtual ~Factory();
 
-    virtual void init(zsp::IFactory *factory) override;
+    virtual void init(
+        dmgr::IDebugMgr         *dmgr,
+        zsp::parser::IFactory   *factory) override;
+
+    virtual dmgr::IDebugMgr *getDebugMgr() override;
 
     virtual IAst2ArlBuilder *mkAst2ArlBuilder() override;
 
@@ -42,7 +46,8 @@ public:
 
 private:
     static FactoryUP            m_inst;
-    zsp::IFactory               *m_factory;
+    dmgr::IDebugMgr             *m_dmgr;
+    zsp::parser::IFactory       *m_factory;
 
 };
 

@@ -20,6 +20,7 @@
  */
 #include "TestAst2ArlBasics.h"
 
+using namespace zsp::parser;
 
 namespace zsp {
 namespace fe {

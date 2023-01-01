@@ -19,10 +19,11 @@
  *     Author: 
  */
 #pragma once
-#include "arl/IContext.h"
-#include "vsc/IDataTypeStruct.h"
-#include "zsp/IFactory.h"
-#include "zsp/IMarker.h"
+#include "dmgr/IDebugMgr.h"
+#include "zsp/arl/dm/IContext.h"
+#include "vsc/dm/IDataTypeStruct.h"
+#include "zsp/parser/IFactory.h"
+#include "zsp/parser/IMarker.h"
 #include "zsp/ast/impl/VisitorBase.h"
 #include "zsp/fe/parser/IAst2ArlBuilder.h"
 
@@ -36,14 +37,16 @@ class Ast2ArlBuilder :
     public virtual IAst2ArlBuilder,
     public virtual ast::VisitorBase {
 public:
-    Ast2ArlBuilder(zsp::IFactory *factory);
+    Ast2ArlBuilder(
+        dmgr::IDebugMgr             *dmgr,
+        zsp::parser::IFactory       *factory);
 
     virtual ~Ast2ArlBuilder();
 
     virtual void build(
-        IMarkerListener         *marker_l,
-        ast::ISymbolScope       *root,
-        arl::IContext           *ctxt) override;
+        zsp::parser::IMarkerListener    *marker_l,
+        ast::ISymbolScope               *root,
+        arl::dm::IContext               *ctxt) override;
 
     virtual void visitSymbolScope(ast::ISymbolScope *i) override;
 
@@ -53,7 +56,7 @@ public:
 
 private:
 
-    vsc::IDataTypeStruct *findType(ast::IScopeChild *ast_t);
+    vsc::dm::IDataTypeStruct *findType(ast::IScopeChild *ast_t);
 
     std::string getNamespacePrefix();
 
@@ -62,12 +65,13 @@ private:
     ast::IScopeChild *resolvePath(ast::ISymbolRefPath *ref);
 
 private:
-    zsp::IFactory                                           *m_factory;
-    IMarkerListener                                         *m_marker_l;
-    arl::IContext                                           *m_ctxt;
-    IMarkerUP                                               m_marker;
-    std::vector<ast::ISymbolScope *>                        m_scope_s;
-    std::map<ast::IScopeChild *, vsc::IDataTypeStruct *>    m_datatype_m;
+    static dmgr::IDebug                                       *m_dbg;
+    zsp::parser::IFactory                                     *m_factory;
+    zsp::parser::IMarkerListener                              *m_marker_l;
+    arl::dm::IContext                                         *m_ctxt;
+    zsp::parser::IMarkerUP                                    m_marker;
+    std::vector<ast::ISymbolScope *>                          m_scope_s;
+    std::map<ast::IScopeChild *, vsc::dm::IDataTypeStruct *>  m_datatype_m;
 //    std::vector<vsc::IDataTypeStruct *>                     m_type_s;
 
 };

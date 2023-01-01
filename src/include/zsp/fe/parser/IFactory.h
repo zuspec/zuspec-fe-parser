@@ -19,7 +19,8 @@
  *     Author: 
  */
 #pragma once
-#include "zsp/IFactory.h"
+#include "dmgr/IDebugMgr.h"
+#include "zsp/parser/IFactory.h"
 #include "zsp/fe/parser/IAst2ArlBuilder.h"
 
 namespace zsp {
@@ -31,7 +32,11 @@ public:
 
     virtual ~IFactory() { }
 
-    virtual void init(zsp::IFactory *factory) = 0;
+    virtual void init(
+        dmgr::IDebugMgr         *dmgr,
+        zsp::parser::IFactory   *factory) = 0;
+
+    virtual dmgr::IDebugMgr *getDebugMgr() = 0;
 
     virtual IAst2ArlBuilder *mkAst2ArlBuilder() = 0;
 

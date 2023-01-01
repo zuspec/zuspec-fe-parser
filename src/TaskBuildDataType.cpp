@@ -18,7 +18,8 @@
  * Created on:
  *     Author:
  */
-#include "vsc/IDataTypeStruct.h"
+#include "dmgr/impl/DebugMacros.h"
+#include "vsc/dm/IDataTypeStruct.h"
 #include "TaskBuildDataType.h"
 
 
@@ -26,25 +27,11 @@ namespace zsp {
 namespace fe {
 namespace parser {
 
-#define DEBUG_ENTER(fmt, ...) \
-	fprintf(stdout, "--> TaskBuildDataType::"); \
-	fprintf(stdout, fmt, ##__VA_ARGS__); \
-	fprintf(stdout, "\n")
-
-#define DEBUG(fmt, ...) \
-	fprintf(stdout, "TaskBuildDataType: "); \
-	fprintf(stdout, fmt, ##__VA_ARGS__); \
-	fprintf(stdout, "\n")
-
-#define DEBUG_LEAVE(fmt, ...) \
-	fprintf(stdout, "<-- TaskBuildDataType::"); \
-	fprintf(stdout, fmt, ##__VA_ARGS__); \
-	fprintf(stdout, "\n")
-
 TaskBuildDataType::TaskBuildDataType(
-    arl::IContext                                            *ctxt,
-    std::map<ast::IScopeChild *, vsc::IDataTypeStruct *>     *datatype_m) :
+    arl::dm::IContext                                        *ctxt,
+    std::map<ast::IScopeChild *, vsc::dm::IDataTypeStruct *> *datatype_m) :
         m_ctxt(ctxt), m_depth(0), m_datatype_m(datatype_m) {
+    DEBUG_INIT("TaskBuildDataType", ctxt->getDebugMgr());
 
 }
 
@@ -52,7 +39,7 @@ TaskBuildDataType::~TaskBuildDataType() {
 
 }
 
-vsc::IDataTypeStruct *TaskBuildDataType::build(
+vsc::dm::IDataTypeStruct *TaskBuildDataType::build(
         const std::vector<ast::ISymbolScope *>  &scope_s,
         ast::ISymbolTypeScope                   *type) {
     DEBUG_ENTER("build");
@@ -78,7 +65,7 @@ void TaskBuildDataType::visitAction(ast::IAction *i) {
     
         std::string fullname = getNamespacePrefix() + i->getName()->getId();
         DEBUG("Building Action Type: %s", fullname.c_str());
-        arl::IDataTypeAction *action_t = m_ctxt->mkDataTypeAction(fullname);
+        arl::dm::IDataTypeAction *action_t = m_ctxt->mkDataTypeAction(fullname);
         m_ctxt->addDataTypeAction(action_t);
 
         buildType(action_t, dynamic_cast<ast::ISymbolTypeScope *>(m_scope_s.back()));
@@ -96,7 +83,7 @@ void TaskBuildDataType::visitComponent(ast::IComponent *i) {
     
             std::string fullname = getNamespacePrefix() + i->getName()->getId();
             DEBUG("Building Component Type: %s", fullname.c_str());
-            arl::IDataTypeComponent *comp_t = m_ctxt->mkDataTypeComponent(fullname);
+            arl::dm::IDataTypeComponent *comp_t = m_ctxt->mkDataTypeComponent(fullname);
             m_ctxt->addDataTypeComponent(comp_t);
 
             buildType(comp_t, dynamic_cast<ast::ISymbolTypeScope *>(m_scope_s.back()));
@@ -118,7 +105,7 @@ void TaskBuildDataType::visitStruct(ast::IStruct *i) {
         // We're at top level and the type doesn't exist yet, so let's do it!
     
         std::string fullname = getNamespacePrefix() + i->getName()->getId();
-        vsc::IDataTypeStruct *struct_t = m_ctxt->mkDataTypeStruct(fullname);
+        vsc::dm::IDataTypeStruct *struct_t = m_ctxt->mkDataTypeStruct(fullname);
 
         buildType(struct_t, dynamic_cast<ast::ISymbolTypeScope *>(m_scope_s.back()));
     }
@@ -129,8 +116,8 @@ void TaskBuildDataType::visitStruct(ast::IStruct *i) {
 }
 
 void TaskBuildDataType::buildType(
-        vsc::IDataTypeStruct    *arl_type,
-        ast::ISymbolTypeScope   *ast_type) {
+        vsc::dm::IDataTypeStruct    *arl_type,
+        ast::ISymbolTypeScope       *ast_type) {
     DEBUG_ENTER("buildType");
     m_depth++;
 
@@ -151,7 +138,7 @@ void TaskBuildDataType::buildType(
 
 void TaskBuildDataType::buildTypeFields(
     std::vector<int32_t>                &off_l,
-    vsc::IDataTypeStruct                *arl_type,
+    vsc::dm::IDataTypeStruct            *arl_type,
     ast::ISymbolTypeScope               *ast_type) {
         
     // Recurse first
@@ -180,8 +167,8 @@ std::string TaskBuildDataType::getNamespacePrefix() {
     return ret;
 }
 
-vsc::IDataTypeStruct *TaskBuildDataType::findType(ast::IScopeChild *ast_t) {
-    std::map<ast::IScopeChild *,vsc::IDataTypeStruct *>::const_iterator it;
+vsc::dm::IDataTypeStruct *TaskBuildDataType::findType(ast::IScopeChild *ast_t) {
+    std::map<ast::IScopeChild *,vsc::dm::IDataTypeStruct *>::const_iterator it;
 
     if ((it=m_datatype_m->find(ast_t)) != m_datatype_m->end()) {
         return it->second;
@@ -205,6 +192,7 @@ ast::IScopeChild *TaskBuildDataType::resolvePath(ast::ISymbolRefPath *ref) {
     return ret;
 }
 
+dmgr::IDebug *TaskBuildDataType::m_dbg = 0;
 
 }
 }
