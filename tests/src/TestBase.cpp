@@ -58,9 +58,9 @@ void TestBase::SetUp() {
         m_zsp_factory);
 
     vsc::dm::IContext *vsc_ctxt = vsc_dm_f->mkContext();
-    zsp::arl::dm::IFactory *zsp_arl_f = zsp_arl_dm_getFactory();
-    zsp_arl_f->init(dmgr_f->getDebugMgr());
-    m_ctxt = zsp::arl::dm::IContextUP(zsp_arl_f->mkContext(vsc_dm_f->mkContext()));
+    m_arl_dm_factory = zsp_arl_dm_getFactory();
+    m_arl_dm_factory->init(dmgr_f->getDebugMgr());
+    m_ctxt = zsp::arl::dm::IContextUP(m_arl_dm_factory->mkContext(vsc_dm_f->mkContext()));
 
     arl::dm::IFactory *arl_dm_factory = zsp_arl_dm_getFactory();
 
@@ -120,6 +120,20 @@ void TestBase::ast2Arl(
         root,
         ctxt
     );
+}
+
+void TestBase::dumpJSON(const std::vector<vsc::dm::IAccept *> &elems) {
+    fprintf(stdout, "JSON:\n%s\n", toJsonStr(elems).c_str());
+
+}
+
+std::string TestBase::toJsonStr(const std::vector<vsc::dm::IAccept *> &elems) {
+    std::stringstream s;
+    arl::dm::ITypeModelDumperUP dumper(m_arl_dm_factory->mkTypeModelDumperJSON(&s, 4));
+    dumper->dumpTypeModel(elems);
+    s.flush();
+
+    return s.str();
 }
 
 }

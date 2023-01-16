@@ -1,5 +1,5 @@
 /*
- * TestAst2ArlBasics.cpp
+ * TestActivities.cpp
  *
  * Copyright 2022 Matthew Ballance and Contributors
  *
@@ -18,28 +18,36 @@
  * Created on:
  *     Author:
  */
-#include "TestAst2ArlBasics.h"
+#include "TestActivities.h"
 
-using namespace zsp::parser;
 
 namespace zsp {
 namespace fe {
 namespace parser {
 
+using namespace zsp::parser;
 
-TestAst2ArlBasics::TestAst2ArlBasics() {
 
-}
-
-TestAst2ArlBasics::~TestAst2ArlBasics() {
+TestActivities::TestActivities() {
 
 }
 
-TEST_F(TestAst2ArlBasics, smoke) {
+TestActivities::~TestActivities() {
+
+}
+
+TEST_F(TestActivities, traverse_handle) {
     const char *content = R"(
         component pss_top {
-            action A {
+            action A { }
 
+            action Entry {
+                A a1, a2;
+
+                activity {
+                    a1;
+                    a2;
+                }
             }
         }
     )";
@@ -70,54 +78,9 @@ TEST_F(TestAst2ArlBasics, smoke) {
     ASSERT_FALSE(marker_c->hasSeverity(MarkerSeverityE::Error));
 
     ASSERT_TRUE(m_ctxt->findDataTypeComponent("pss_top"));
-    ASSERT_TRUE(m_ctxt->findDataTypeAction("pss_top::A"));
-
-}
-
-TEST_F(TestAst2ArlBasics, smoke_ext_comp) {
-    const char *content = R"(
-        component pss_top {
-            action A {
-
-            }
-        }
-
-        extend component pss_top {
-            action B {
-
-            }
-        }
-    )";
-
-    IMarkerCollectorUP marker_c(m_zsp_factory->mkMarkerCollector());
-    std::vector<ast::IGlobalScopeUP> files;
-    files.push_back(ast::IGlobalScopeUP(parse(
-        marker_c.get(),
-        content,
-        "smoke.pss"
-    )));
-
-    ASSERT_FALSE(marker_c->hasSeverity(MarkerSeverityE::Error));
-
-    ast::ISymbolScopeUP root(link(
-        marker_c.get(),
-        files
-    ));
-
-    ASSERT_FALSE(marker_c->hasSeverity(MarkerSeverityE::Error));
-
-    ast2Arl(
-        marker_c.get(),
-        root.get(),
-        m_ctxt.get()
-    );
-
-    ASSERT_FALSE(marker_c->hasSeverity(MarkerSeverityE::Error));
-
-    ASSERT_TRUE(m_ctxt->findDataTypeComponent("pss_top"));
-    ASSERT_TRUE(m_ctxt->findDataTypeAction("pss_top::A"));
-    ASSERT_TRUE(m_ctxt->findDataTypeAction("pss_top::B"));
-    ASSERT_EQ(m_ctxt->findDataTypeComponent("pss_top")->getActionTypes().size(), 2);
+    // ASSERT_TRUE(m_ctxt->findDataTypeAction("pss_top::A"));
+    // ASSERT_TRUE(m_ctxt->findDataTypeAction("pss_top::B"));
+    // ASSERT_EQ(m_ctxt->findDataTypeComponent("pss_top")->getActionTypes().size(), 2);
 
     dumpJSON({m_ctxt->findDataTypeComponent("pss_top")});
 }

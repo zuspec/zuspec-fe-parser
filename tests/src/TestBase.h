@@ -21,6 +21,7 @@
 #pragma once
 #include "gtest/gtest.h"
 #include "zsp/arl/dm/IContext.h"
+#include "zsp/arl/dm/IFactory.h"
 #include "zsp/parser/IFactory.h"
 #include "zsp/ast/IFactory.h"
 #include "zsp/fe/parser/IFactory.h"
@@ -55,9 +56,14 @@ public:
         ast::ISymbolScope                       *root,
         arl::dm::IContext                       *ctxt);
 
+    void dumpJSON(const std::vector<vsc::dm::IAccept *> &elems);
+
+    std::string toJsonStr(const std::vector<vsc::dm::IAccept *> &elems);
+
 protected:
     IFactory                    *m_factory;
     zsp::parser::IFactory       *m_zsp_factory;
+    arl::dm::IFactory           *m_arl_dm_factory;
     arl::dm::IContextUP          m_ctxt;
 
 };

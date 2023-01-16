@@ -69,6 +69,10 @@ private:
 
     vsc::dm::IDataTypeStruct *findType(ast::IScopeChild *ast_t);
 
+    template <class T> T *findTypeT(ast::IScopeChild *ast_t) {
+        return dynamic_cast<T *>(findType(ast_t));
+    }
+
     ast::IScopeChild *resolvePath(ast::ISymbolRefPath *ref);
 
 private:

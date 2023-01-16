@@ -69,6 +69,12 @@ void TaskBuildDataType::visitAction(ast::IAction *i) {
         m_ctxt->addDataTypeAction(action_t);
 
         buildType(action_t, dynamic_cast<ast::ISymbolTypeScope *>(m_scope_s.back()));
+
+        // Get the created type and connect up to its component
+        if (m_type_s.size()) {
+            arl::dm::IDataTypeComponent *comp_t = dynamic_cast<arl::dm::IDataTypeComponent *>(m_type_s.back());
+            comp_t->addActionType(action_t);
+        }
     }
 
     // Note: there won't be any other types declared inside an action
@@ -78,23 +84,26 @@ void TaskBuildDataType::visitAction(ast::IAction *i) {
 void TaskBuildDataType::visitComponent(ast::IComponent *i) {
     DEBUG_ENTER("visitComponent");
     if (!m_depth) {
+        arl::dm::IDataTypeComponent *comp_t = 0;
         if (!findType(i)) {
             // We're at top level and the type doesn't exist yet, so let's do it!
     
             std::string fullname = getNamespacePrefix() + i->getName()->getId();
             DEBUG("Building Component Type: %s", fullname.c_str());
-            arl::dm::IDataTypeComponent *comp_t = m_ctxt->mkDataTypeComponent(fullname);
+            comp_t = m_ctxt->mkDataTypeComponent(fullname);
             m_ctxt->addDataTypeComponent(comp_t);
 
             buildType(comp_t, dynamic_cast<ast::ISymbolTypeScope *>(m_scope_s.back()));
         }
 
         // Now, back at depth 0, visit children to build out other types
+        m_type_s.push_back(comp_t);
         for (std::vector<ast::IScopeChild *>::const_iterator
             it=m_scope_s.at(m_scope_s.size()-1)->getChildren().begin();
             it!=m_scope_s.at(m_scope_s.size()-1)->getChildren().end(); it++) {
             (*it)->accept(this);
         }
+        m_type_s.pop_back();
     }
     DEBUG_LEAVE("visitComponent");
 }
