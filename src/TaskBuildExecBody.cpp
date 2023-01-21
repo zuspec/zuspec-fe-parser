@@ -20,6 +20,7 @@
  */
 #include "dmgr/impl/DebugMacros.h"
 #include "TaskBuildExecBody.h"
+#include "TaskBuildExpr.h"
 
 
 namespace zsp {
@@ -27,8 +28,8 @@ namespace fe {
 namespace parser {
 
 
-TaskBuildExecBody::TaskBuildExecBody(dmgr::IDebugMgr *dmgr) {
-    DEBUG_INIT("TaskBuildExecBody", dmgr);
+TaskBuildExecBody::TaskBuildExecBody(IAst2ArlContext *ctxt) : m_ctxt(ctxt) {
+    DEBUG_INIT("TaskBuildExecBody", ctxt->getDebugMgr());
     m_root = 0;
 }
 
@@ -37,45 +38,114 @@ TaskBuildExecBody::~TaskBuildExecBody() {
 }
 
 void TaskBuildExecBody::build(
-        IAst2ArlContext                 *ctxt,
         arl::dm::ITypeProcStmtScope     *scope,
         ast::IExecStmt                  *stmt) {
-    m_ctxt = ctxt;
+    DEBUG_ENTER("build");
     m_root = stmt;
     m_scope_s.push_back(scope);
     stmt->accept(m_this);
     m_scope_s.pop_back();
+    DEBUG_LEAVE("build");
 }
 
-void TaskBuildExecBody::visitProceduralStmtAssignment(ast::IProceduralStmtAssignment *i) { }
+static std::map<ast::AssignOp, arl::dm::TypeProcStmtAssignOp> assign_op_m = {
+    { ast::AssignOp::AssignOp_Eq, arl::dm::TypeProcStmtAssignOp::Eq }
+};
+
+void TaskBuildExecBody::visitProceduralStmtAssignment(ast::IProceduralStmtAssignment *i) { 
+    DEBUG_ENTER("visitProceduralStmtAssignment");
+    vsc::dm::ITypeExpr *lhs = TaskBuildExpr(m_ctxt).build(i->getLhs());
+    vsc::dm::ITypeExpr *rhs = TaskBuildExpr(m_ctxt).build(i->getRhs());
+    arl::dm::TypeProcStmtAssignOp op = arl::dm::TypeProcStmtAssignOp::Eq;
+
+    vsc::dm::ITypeExprFieldRef *lhs_lv = dynamic_cast<vsc::dm::ITypeExprFieldRef *>(lhs);
+
+    m_scope_s.back()->addStatement(m_ctxt->ctxt()->mkTypeProcStmtAssign(lhs_lv, op, rhs));
+
+    DEBUG_LEAVE("visitProceduralStmtAssignment");
+}
     
-void TaskBuildExecBody::visitProceduralStmtExpr(ast::IProceduralStmtExpr *i) { }
+void TaskBuildExecBody::visitProceduralStmtExpr(ast::IProceduralStmtExpr *i) { 
+
+}
     
-void TaskBuildExecBody::visitProceduralStmtFunctionCall(ast::IProceduralStmtFunctionCall *i) { }
+void TaskBuildExecBody::visitProceduralStmtFunctionCall(ast::IProceduralStmtFunctionCall *i) { 
+
+}
     
-void TaskBuildExecBody::visitProceduralStmtReturn(ast::IProceduralStmtReturn *i) { }
+void TaskBuildExecBody::visitProceduralStmtReturn(ast::IProceduralStmtReturn *i) { 
+
+}
     
-void TaskBuildExecBody::visitProceduralStmtRepeat(ast::IProceduralStmtRepeat *i) { }
+void TaskBuildExecBody::visitProceduralStmtRepeat(ast::IProceduralStmtRepeat *i) { 
+
+}
     
-void TaskBuildExecBody::visitProceduralStmtRepeatWhile(ast::IProceduralStmtRepeatWhile *i) { }
+void TaskBuildExecBody::visitProceduralStmtRepeatWhile(ast::IProceduralStmtRepeatWhile *i) { 
+
+}
     
-void TaskBuildExecBody::visitProceduralStmtWhile(ast::IProceduralStmtWhile *i) { }
+void TaskBuildExecBody::visitProceduralStmtWhile(ast::IProceduralStmtWhile *i) { 
+
+}
     
-void TaskBuildExecBody::visitProceduralStmtForeach(ast::IProceduralStmtForeach *i) { }
+void TaskBuildExecBody::visitProceduralStmtForeach(ast::IProceduralStmtForeach *i) { 
+
+}
     
-void TaskBuildExecBody::visitProceduralStmtIfElse(ast::IProceduralStmtIfElse *i) { }
+void TaskBuildExecBody::visitProceduralStmtIfElse(ast::IProceduralStmtIfElse *i) { 
+    DEBUG_ENTER("visitProceduralStmtIfElse");
+    vsc::dm::ITypeExpr *cond = 0;
+
+    arl::dm::ITypeProcStmtScope *true_s = m_ctxt->ctxt()->mkTypeProcStmtScope();
+    m_scope_s.push_back(true_s);
+    i->getTrue_s()->accept(m_this);
+    m_scope_s.pop_back();
+
+    arl::dm::ITypeProcStmtScope *false_s = 0;
+    if (i->getFalse_s()) {
+        false_s = m_ctxt->ctxt()->mkTypeProcStmtScope();
+        m_scope_s.push_back(false_s);
+        i->getFalse_s()->accept(m_this);
+        m_scope_s.pop_back();
+    }
+
+    arl::dm::ITypeProcStmtIfElse *stmt = m_ctxt->ctxt()->mkTypeProcStmtIfElse(
+        cond,
+        true_s,
+        false_s);
+
+    m_scope_s.back()->addStatement(stmt);
+
+    DEBUG_LEAVE("visitProceduralStmtIfElse");
+}
     
-void TaskBuildExecBody::visitProceduralStmtMatch(ast::IProceduralStmtMatch *i) { }
+void TaskBuildExecBody::visitProceduralStmtMatch(ast::IProceduralStmtMatch *i) { 
+
+}
     
-void TaskBuildExecBody::visitProceduralStmtMatchChoice(ast::IProceduralStmtMatchChoice *i) { }
+void TaskBuildExecBody::visitProceduralStmtMatchChoice(ast::IProceduralStmtMatchChoice *i) { 
+
+}
     
-void TaskBuildExecBody::visitProceduralStmtBreak(ast::IProceduralStmtBreak *i) { }
+void TaskBuildExecBody::visitProceduralStmtBreak(ast::IProceduralStmtBreak *i) { 
+    DEBUG_ENTER("visitProceduralStmtBreak");
+    m_scope_s.back()->addStatement(m_ctxt->ctxt()->mkTypeProcStmtBreak());
+    DEBUG_LEAVE("visitProceduralStmtBreak");
+}
     
-void TaskBuildExecBody::visitProceduralStmtContinue(ast::IProceduralStmtContinue *i) { }
+void TaskBuildExecBody::visitProceduralStmtContinue(ast::IProceduralStmtContinue *i) { 
+    DEBUG_ENTER("visitProceduralStmtContinue");
+    m_scope_s.back()->addStatement(m_ctxt->ctxt()->mkTypeProcStmtContinue());
+    DEBUG_LEAVE("visitProceduralStmtContinue");
+}
     
-void TaskBuildExecBody::visitProceduralStmtDataDeclaration(ast::IProceduralStmtDataDeclaration *i) { }
+void TaskBuildExecBody::visitProceduralStmtDataDeclaration(ast::IProceduralStmtDataDeclaration *i) { 
+
+}
 
 void TaskBuildExecBody::visitProceduralStmtSequenceBlock(ast::IProceduralStmtSequenceBlock *i) {
+    // If this *is* the root block, don't create a duplicate scope
     if (m_root != i) {
         m_scope_s.push_back(m_ctxt->ctxt()->mkTypeProcStmtScope());
     }

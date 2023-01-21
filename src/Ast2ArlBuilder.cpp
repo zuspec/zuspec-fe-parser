@@ -22,6 +22,7 @@
 #include "Ast2ArlBuilder.h"
 #include "TaskBuildDataType.h"
 #include "TaskBuildEnumType.h"
+#include "TaskBuildExecBody.h"
 
 namespace zsp {
 namespace fe {
@@ -89,6 +90,10 @@ void Ast2ArlBuilder::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
             false);
 
             // TODO: body
+        TaskBuildExecBody(m_ctxt).build(
+            func->getBody(),
+            i->getDefinition()->getBody()
+        );
 
         m_ctxt->ctxt()->addDataTypeFunction(func);
     } else {

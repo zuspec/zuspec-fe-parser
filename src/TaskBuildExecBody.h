@@ -22,6 +22,7 @@
 #include <vector>
 #include "dmgr/IDebugMgr.h"
 #include "zsp/fe/parser/IAst2ArlContext.h"
+#include "vsc/dm/ITypeExpr.h"
 #include "zsp/arl/dm/ITypeProcStmt.h"
 #include "zsp/arl/dm/ITypeProcStmtScope.h"
 #include "zsp/ast/impl/VisitorBase.h"
@@ -34,12 +35,11 @@ namespace parser {
 
 class TaskBuildExecBody : public ast::VisitorBase {
 public:
-    TaskBuildExecBody(dmgr::IDebugMgr *dmgr);
+    TaskBuildExecBody(IAst2ArlContext *ctxt);
 
     virtual ~TaskBuildExecBody();
 
     virtual void build(
-        IAst2ArlContext                 *ctxt,
         arl::dm::ITypeProcStmtScope     *scope,
         ast::IExecStmt                  *stmt);
 
