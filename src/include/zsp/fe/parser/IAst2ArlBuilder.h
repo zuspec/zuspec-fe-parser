@@ -22,6 +22,7 @@
 #include <memory>
 #include "zsp/arl/dm/IContext.h"
 #include "zsp/ast/ISymbolScope.h"
+#include "zsp/fe/parser/IAst2ArlContext.h"
 #include "zsp/parser/IMarkerListener.h"
 
 namespace zsp {
@@ -37,9 +38,8 @@ public:
     virtual ~IAst2ArlBuilder() { }
 
     virtual void build(
-        zsp::parser::IMarkerListener    *marker_l,
         ast::ISymbolScope               *root,
-        arl::dm::IContext               *ctxt) = 0;
+        IAst2ArlContext                 *ctxt) = 0;
 
 };
 

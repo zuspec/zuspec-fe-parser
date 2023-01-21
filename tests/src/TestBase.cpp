@@ -113,13 +113,15 @@ void TestBase::ast2Arl(
         zsp::parser::IMarkerListener            *marker_l,
         ast::ISymbolScope                       *root,
         arl::dm::IContext                       *ctxt) {
+    IAst2ArlContextUP build_ctxt(m_factory->mkAst2ArlContext(
+        ctxt, marker_l));
     IAst2ArlBuilderUP builder(m_factory->mkAst2ArlBuilder());
 
-    builder->build(
-        marker_l,
-        root,
-        ctxt
-    );
+    builder->build(root, build_ctxt.get());
+}
+
+void TestBase::enableDebug(bool en) {
+    m_arl_dm_factory->getDebugMgr()->enable(en);
 }
 
 void TestBase::dumpJSON(const std::vector<vsc::dm::IAccept *> &elems) {

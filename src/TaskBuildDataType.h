@@ -27,6 +27,7 @@
 #include "zsp/ast/ISymbolScope.h"
 #include "zsp/ast/ISymbolTypeScope.h"
 #include "zsp/ast/impl/VisitorBase.h"
+#include "zsp/fe/parser/IAst2ArlContext.h"
 #include "vsc/dm/IDataTypeStruct.h"
 
 namespace zsp {
@@ -37,15 +38,13 @@ namespace parser {
 
 class TaskBuildDataType : public ast::VisitorBase {
 public:
-    TaskBuildDataType(
-        arl::dm::IContext                                         *ctxt,
-        std::map<ast::IScopeChild *, vsc::dm::IDataTypeStruct *>  *type_m);
+    TaskBuildDataType(dmgr::IDebugMgr *dmgr);
 
     virtual ~TaskBuildDataType();
 
     vsc::dm::IDataTypeStruct *build(
-        const std::vector<ast::ISymbolScope *>  &scope_s,
-        ast::ISymbolTypeScope                   *type);
+        IAst2ArlContext         *ctxt,
+        ast::IScopeChild        *type);
 
     virtual void visitSymbolTypeScope(ast::ISymbolTypeScope *i) override;
 
@@ -77,10 +76,9 @@ private:
 
 private:
     static dmgr::IDebug                                         *m_dbg;
-    arl::dm::IContext                                           *m_ctxt;
+    IAst2ArlContext                                             *m_ctxt;
     uint32_t                                                    m_depth;
     std::vector<vsc::dm::IDataTypeStruct *>                     m_type_s;
-    std::vector<ast::ISymbolScope *>                            m_scope_s;
     std::map<ast::IScopeChild *, vsc::dm::IDataTypeStruct *>    *m_datatype_m;
     uint32_t                                                    m_field_off;
 

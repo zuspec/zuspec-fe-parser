@@ -19,6 +19,7 @@
  *     Author: 
  */
 #pragma once
+#include "Ast2ArlContext.h"
 #include "dmgr/IDebugMgr.h"
 #include "zsp/arl/dm/IContext.h"
 #include "vsc/dm/IDataTypeStruct.h"
@@ -44,19 +45,18 @@ public:
     virtual ~Ast2ArlBuilder();
 
     virtual void build(
-        zsp::parser::IMarkerListener    *marker_l,
         ast::ISymbolScope               *root,
-        arl::dm::IContext               *ctxt) override;
+        IAst2ArlContext                 *ctxt) override;
 
     virtual void visitSymbolScope(ast::ISymbolScope *i) override;
 
     virtual void visitSymbolEnumScope(ast::ISymbolEnumScope *i) override;
 
+    virtual void visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) override;
+
     virtual void visitSymbolTypeScope(ast::ISymbolTypeScope *i) override;
 
 private:
-
-    vsc::dm::IDataTypeStruct *findType(ast::IScopeChild *ast_t);
 
     std::string getNamespacePrefix();
 
@@ -66,13 +66,8 @@ private:
 
 private:
     static dmgr::IDebug                                       *m_dbg;
-    zsp::parser::IFactory                                     *m_factory;
-    zsp::parser::IMarkerListener                              *m_marker_l;
-    arl::dm::IContext                                         *m_ctxt;
-    zsp::parser::IMarkerUP                                    m_marker;
-    std::vector<ast::ISymbolScope *>                          m_scope_s;
-    std::map<ast::IScopeChild *, vsc::dm::IDataTypeStruct *>  m_datatype_m;
-//    std::vector<vsc::IDataTypeStruct *>                     m_type_s;
+    dmgr::IDebugMgr                                           *m_dmgr;
+    IAst2ArlContext                                           *m_ctxt;
 
 };
 

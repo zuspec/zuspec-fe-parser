@@ -42,6 +42,10 @@ public:
 
     virtual IAst2ArlBuilder *mkAst2ArlBuilder() override;
 
+    virtual IAst2ArlContext *mkAst2ArlContext(
+        arl::dm::IContext               *ctxt,
+        zsp::parser::IMarkerListener    *marker_l) override;
+
     static Factory *inst();
 
 private:

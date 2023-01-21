@@ -26,12 +26,36 @@ namespace fe {
 namespace parser {
 
 
-Ast2ArlContext::Ast2ArlContext() {
+Ast2ArlContext::Ast2ArlContext(
+    dmgr::IDebugMgr                         *dmgr,
+    zsp::parser::IFactory                   *factory,
+    zsp::parser::IMarkerListener            *marker_l,
+    arl::dm::IContext                       *ctxt) :
+        m_dmgr(dmgr), m_factory(factory), m_marker_l(marker_l),
+        m_ctxt(ctxt), m_marker(
+            factory->mkMarker(
+                "", 
+                zsp::parser::MarkerSeverityE::Error,
+                {})) { 
 
 }
 
 Ast2ArlContext::~Ast2ArlContext() {
 
+}
+
+vsc::dm::IDataTypeStruct *Ast2ArlContext::findType(ast::IScopeChild *t) {
+    std::map<ast::IScopeChild *, vsc::dm::IDataTypeStruct *>::const_iterator it;
+    
+    if ((it=m_type_m.find(t)) != m_type_m.end()) {
+        return it->second;
+    } else {
+        return 0;
+    }
+}
+
+void Ast2ArlContext::addType(ast::IScopeChild *t, vsc::dm::IDataTypeStruct *dmt) {
+    m_type_m.insert({t, dmt});
 }
 
 }

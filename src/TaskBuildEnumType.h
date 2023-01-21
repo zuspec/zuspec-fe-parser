@@ -22,6 +22,7 @@
 #include "dmgr/IDebug.h"
 #include "zsp/arl/dm/IContext.h"
 #include "zsp/ast/impl/VisitorBase.h"
+#include "zsp/fe/parser/IAst2ArlContext.h"
 
 namespace zsp {
 namespace fe {
@@ -31,7 +32,7 @@ namespace parser {
 
 class TaskBuildEnumType : public ast::VisitorBase {
 public:
-    TaskBuildEnumType(arl::dm::IContext *ctxt);
+    TaskBuildEnumType(IAst2ArlContext *ctxt);
 
     virtual ~TaskBuildEnumType();
 
@@ -43,7 +44,7 @@ public:
 
 private:
     static dmgr::IDebug         *m_dbg;
-    arl::dm::IContext           *m_ctxt;
+    IAst2ArlContext             *m_ctxt;
     std::string                 m_ns_prefix;
     vsc::dm::IDataTypeEnum      *m_dt_enum;
 

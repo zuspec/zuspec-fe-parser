@@ -60,6 +60,8 @@ public:
 
     std::string toJsonStr(const std::vector<vsc::dm::IAccept *> &elems);
 
+    void enableDebug(bool en);
+
 protected:
     IFactory                    *m_factory;
     zsp::parser::IFactory       *m_zsp_factory;

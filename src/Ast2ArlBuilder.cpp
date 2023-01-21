@@ -30,11 +30,8 @@ namespace parser {
 
 Ast2ArlBuilder::Ast2ArlBuilder(
     dmgr::IDebugMgr         *dmgr,
-    zsp::parser::IFactory   *factory) :
-    m_factory(factory), m_marker(
-        factory->mkMarker("", zsp::parser::MarkerSeverityE::Error, ast::Location())) {
+    zsp::parser::IFactory   *factory) : m_dmgr(dmgr) {
     DEBUG_INIT("Ast2ArlBuilder", dmgr);
-    m_marker_l = 0;
     m_ctxt = 0;
 
 }
@@ -44,35 +41,28 @@ Ast2ArlBuilder::~Ast2ArlBuilder() {
 }
 
 void Ast2ArlBuilder::build(
-        zsp::parser::IMarkerListener    *marker_l,
         ast::ISymbolScope               *root,
-        arl::dm::IContext               *ctxt) {
-    m_marker_l = marker_l;
+        IAst2ArlContext                 *ctxt) {
     m_ctxt = ctxt;
 
     root->accept(this);
 
-    m_marker_l = 0;
     m_ctxt = 0;
-
 }
 
 void Ast2ArlBuilder::visitSymbolScope(ast::ISymbolScope *i) {
-    m_scope_s.push_back(i);
+    m_ctxt->pushSymScope(i);
     visitSymbolScopeChildren(i);
-    m_scope_s.pop_back();
+    m_ctxt->popSymScope();
 }
 
 void Ast2ArlBuilder::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
     DEBUG_ENTER("visitSymbolTypeScope %s", i->getName().c_str());
-    if (!findType(i->getTarget())) {
+    if (!m_ctxt->findType(i->getTarget())) {
         DEBUG("Need to build type");
         // We haven't defined this type yet, so go build it
-        vsc::dm::IDataTypeStruct *type = TaskBuildDataType(
-            m_ctxt, &m_datatype_m).build(
-                m_scope_s,
-                i
-            );
+        vsc::dm::IDataTypeStruct *type = TaskBuildDataType(m_dmgr).build(
+            m_ctxt, i);
     }
     DEBUG_LEAVE("visitSymbolTypeScope %s", i->getName().c_str());
 }
@@ -86,21 +76,34 @@ void Ast2ArlBuilder::visitSymbolEnumScope(ast::ISymbolEnumScope *i) {
     DEBUG_LEAVE("visitSymbolEnumScope");
 }
 
-vsc::dm::IDataTypeStruct *Ast2ArlBuilder::findType(ast::IScopeChild *ast_t) {
-    std::map<ast::IScopeChild *,vsc::dm::IDataTypeStruct *>::const_iterator it;
+void Ast2ArlBuilder::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
+    DEBUG_ENTER("visitSymbolFunctionScope \"%s\"", i->getName().c_str());
 
-    if ((it=m_datatype_m.find(ast_t)) != m_datatype_m.end()) {
-        return it->second;
+    if (i->getDefinition()) {
+        // Local implementation
+        DEBUG("PSS-native function");
+        ast::IScopeChild *rtype = i->getDefinition()->getProto()->getRtype();
+        arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->mkDataTypeFunction(
+            i->getName(),
+            rtype?TaskBuildDataType(m_dmgr).build(m_ctxt, rtype):0,
+            false);
+
+            // TODO: body
+
+        m_ctxt->ctxt()->addDataTypeFunction(func);
     } else {
-        return 0;
+        // 
+        DEBUG("Import function");
     }
+
+    DEBUG_LEAVE("visitSymbolFunctionScope %s", i->getName().c_str());
 }
 
 std::string Ast2ArlBuilder::getNamespacePrefix() {
     std::string ret;
     for (std::vector<ast::ISymbolScope *>::const_iterator
-        it=m_scope_s.begin();
-        it+1!=m_scope_s.end(); it++) {
+        it=m_ctxt->symScopes().begin();
+        it+1!=m_ctxt->symScopes().end(); it++) {
         if ((*it)->getName() != "") {
             ret += (*it)->getName();
             ret += "::";
@@ -119,7 +122,7 @@ void Ast2ArlBuilder::visitSymbolScopeChildren(ast::ISymbolScope *i) {
 
 ast::IScopeChild *Ast2ArlBuilder::resolvePath(ast::ISymbolRefPath *ref) {
     ast::IScopeChild *ret = 0;
-    ast::ISymbolScope *scope = m_scope_s.back();
+    ast::ISymbolScope *scope = m_ctxt->symScope();
 
     for (uint32_t i=0; i<ref->getPath().size(); i++) {
         ret = scope->getChildren().at(i);

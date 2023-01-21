@@ -21,6 +21,7 @@
 #include "Factory.h"
 #include "zsp/fe/parser/FactoryExt.h"
 #include "Ast2ArlBuilder.h"
+#include "Ast2ArlContext.h"
 
 
 namespace zsp {
@@ -49,6 +50,16 @@ dmgr::IDebugMgr *Factory::getDebugMgr() {
 
 IAst2ArlBuilder *Factory::mkAst2ArlBuilder() {
     return new Ast2ArlBuilder(m_dmgr, m_factory);
+}
+
+IAst2ArlContext *Factory::mkAst2ArlContext(
+    arl::dm::IContext               *ctxt,
+    zsp::parser::IMarkerListener    *marker_l) {
+    return new Ast2ArlContext(
+        m_dmgr,
+        m_factory,
+        marker_l,
+        ctxt);
 }
 
 Factory *Factory::inst() {

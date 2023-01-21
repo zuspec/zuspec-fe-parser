@@ -20,7 +20,12 @@
  */
 #pragma once
 #include <map>
+#include "dmgr/IDebugMgr.h"
 #include "vsc/dm/IDataTypeStruct.h"
+#include "zsp/fe/parser/IAst2ArlContext.h"
+#include "zsp/parser/IFactory.h"
+#include "zsp/parser/IMarkerListener.h"
+#include "zsp/arl/dm/IContext.h"
 #include "zsp/ast/IScopeChild.h"
 
 namespace zsp {
@@ -29,13 +34,58 @@ namespace parser {
 
 
 
-class Ast2ArlContext {
+class Ast2ArlContext : public virtual IAst2ArlContext {
 public:
-    Ast2ArlContext();
+    Ast2ArlContext(
+        dmgr::IDebugMgr                     *dmgr,
+        zsp::parser::IFactory               *factory,
+        zsp::parser::IMarkerListener        *marker_l,
+        arl::dm::IContext                   *ctxt
+    );
 
     virtual ~Ast2ArlContext();
 
+    virtual dmgr::IDebugMgr *getDebugMgr() const override {
+        return m_dmgr;
+    }
+
+    virtual zsp::parser::IFactory *factory() const override { 
+        return m_factory; 
+    }
+
+    virtual arl::dm::IContext *ctxt() const override {
+        return m_ctxt;
+    }
+
+    virtual ast::ISymbolScope *symScope() const override {
+        return m_scope_s.back();
+    }
+
+    virtual const std::vector<ast::ISymbolScope *> &symScopes() const override {
+        return m_scope_s;
+    }
+
+    virtual void pushSymScope(ast::ISymbolScope *s) override {
+        m_scope_s.push_back(s);
+    }
+
+    virtual void popSymScope() override {
+        m_scope_s.pop_back();
+    }
+
+    virtual vsc::dm::IDataTypeStruct *findType(ast::IScopeChild *t) override;
+
+    virtual void addType(ast::IScopeChild *t, vsc::dm::IDataTypeStruct *dmt) override;
+    
+
 private:
+    static dmgr::IDebug                                             *m_dbg;
+    dmgr::IDebugMgr                                                 *m_dmgr;
+    zsp::parser::IFactory                                           *m_factory;
+    zsp::parser::IMarkerListener                                    *m_marker_l;
+    arl::dm::IContext                                               *m_ctxt;
+    zsp::parser::IMarkerUP                                          m_marker;
+    std::vector<ast::ISymbolScope *>                                m_scope_s;
     std::map<ast::IScopeChild *, vsc::dm::IDataTypeStruct *>        m_type_m;
 
 };
