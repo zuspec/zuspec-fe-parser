@@ -77,6 +77,8 @@ public:
     virtual void visitExprOpenRangeValue(ast::IExprOpenRangeValue *i) override;
     
     virtual void visitExprRefPath(ast::IExprRefPath *i) override;
+
+    virtual void visitExprRefPathId(ast::IExprRefPathId *i) override;
     
     virtual void visitExprRefPathContext(ast::IExprRefPathContext *i) override;
     

@@ -115,6 +115,12 @@ void TaskBuildExpr::visitExprRefPath(ast::IExprRefPath *i) {
 
     DEBUG_LEAVE("visitExprRefPath");
 }
+
+void TaskBuildExpr::visitExprRefPathId(ast::IExprRefPathId *i) {
+    DEBUG_ENTER("visitExprRefPathId");
+
+    DEBUG_LEAVE("visitExprRefPathId");
+}
     
 void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) { 
     DEBUG_ENTER("visitExprRefPathContext");
