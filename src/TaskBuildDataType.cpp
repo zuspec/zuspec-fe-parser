@@ -27,23 +27,23 @@ namespace zsp {
 namespace fe {
 namespace parser {
 
-TaskBuildDataType::TaskBuildDataType(dmgr::IDebugMgr *dmgr) {
-    DEBUG_INIT("TaskBuildDataType", dmgr);
-    m_ctxt = 0;
+TaskBuildDataType::TaskBuildDataType(IAst2ArlContext *ctxt) : m_ctxt(ctxt) {
+    DEBUG_INIT("TaskBuildDataType", ctxt->getDebugMgr());
+    m_type = 0;
 }
 
 TaskBuildDataType::~TaskBuildDataType() {
 
 }
 
-vsc::dm::IDataTypeStruct *TaskBuildDataType::build(
-        IAst2ArlContext         *ctxt,
-        ast::IScopeChild        *type) {
+vsc::dm::IDataType *TaskBuildDataType::build(ast::IScopeChild *type) {
     DEBUG_ENTER("build");
-    m_ctxt = ctxt;
+    m_type = 0;
 
     type->accept(this);
     DEBUG_LEAVE("build");
+
+    return m_type;
 }
 
 void TaskBuildDataType::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
@@ -102,6 +102,62 @@ void TaskBuildDataType::visitComponent(ast::IComponent *i) {
         m_type_s.pop_back();
     }
     DEBUG_LEAVE("visitComponent");
+}
+
+void TaskBuildDataType::visitDataTypeBool(ast::IDataTypeBool *i) { 
+    DEBUG_ENTER("visitDataTypeBool");
+
+    DEBUG_LEAVE("visitDataTypeBool");
+}
+
+void TaskBuildDataType::visitDataTypeChandle(ast::IDataTypeChandle *i) { 
+    DEBUG_ENTER("visitDataTypeChandle");
+
+    DEBUG_LEAVE("visitDataTypeChandle");
+}
+
+void TaskBuildDataType::visitDataTypeEnum(ast::IDataTypeEnum *i) { 
+    DEBUG_ENTER("visitDataTypeEnum");
+
+    DEBUG_LEAVE("visitDataTypeEnum");
+}
+
+void TaskBuildDataType::visitDataTypeInt(ast::IDataTypeInt *i) { 
+    DEBUG_ENTER("visitDataTypeInt");
+    // TODO:
+    int32_t width = i->getIs_signed()?32:1;
+
+    vsc::dm::IDataTypeInt *t = m_ctxt->ctxt()->findDataTypeInt(
+        i->getIs_signed(),
+        width);
+
+    if (!t) {
+        DEBUG("Create int signed=%d width=%d (ctxt=%p %p)", 
+            i->getIs_signed(),
+            width,
+            m_ctxt,
+            m_ctxt->ctxt());
+        t = m_ctxt->ctxt()->mkDataTypeInt(
+            i->getIs_signed(),
+            width);
+        m_ctxt->ctxt()->addDataTypeInt(t);
+    }
+
+    m_type = t;
+
+    DEBUG_LEAVE("visitDataTypeInt");
+}
+
+void TaskBuildDataType::visitDataTypeString(ast::IDataTypeString *i) {
+    DEBUG_ENTER("visitDataTypeString");
+
+    DEBUG_LEAVE("visitDataTypeString");
+}
+
+void TaskBuildDataType::visitDataTypeUserDefined(ast::IDataTypeUserDefined *i) { 
+    DEBUG_ENTER("visitDataTypeUserDefined");
+
+    DEBUG_LEAVE("visitDataTypeUserDefined");
 }
 
 void TaskBuildDataType::visitStruct(ast::IStruct *i) {
@@ -172,14 +228,8 @@ std::string TaskBuildDataType::getNamespacePrefix() {
     return ret;
 }
 
-vsc::dm::IDataTypeStruct *TaskBuildDataType::findType(ast::IScopeChild *ast_t) {
-    std::map<ast::IScopeChild *,vsc::dm::IDataTypeStruct *>::const_iterator it;
-
-    if ((it=m_datatype_m->find(ast_t)) != m_datatype_m->end()) {
-        return it->second;
-    } else {
-        return 0;
-    }
+vsc::dm::IDataType *TaskBuildDataType::findType(ast::IScopeChild *ast_t) {
+    return m_ctxt->findType(ast_t);
 }
 
 ast::IScopeChild *TaskBuildDataType::resolvePath(ast::ISymbolRefPath *ref) {

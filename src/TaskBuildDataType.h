@@ -38,19 +38,29 @@ namespace parser {
 
 class TaskBuildDataType : public ast::VisitorBase {
 public:
-    TaskBuildDataType(dmgr::IDebugMgr *dmgr);
+    TaskBuildDataType(IAst2ArlContext *ctxt);
 
     virtual ~TaskBuildDataType();
 
-    vsc::dm::IDataTypeStruct *build(
-        IAst2ArlContext         *ctxt,
-        ast::IScopeChild        *type);
+    vsc::dm::IDataType *build(ast::IScopeChild *type);
 
     virtual void visitSymbolTypeScope(ast::ISymbolTypeScope *i) override;
 
     virtual void visitAction(ast::IAction *i) override;
 
     virtual void visitComponent(ast::IComponent *i) override;
+
+    virtual void visitDataTypeBool(ast::IDataTypeBool *i) override;
+
+    virtual void visitDataTypeChandle(ast::IDataTypeChandle *i) override;
+
+    virtual void visitDataTypeEnum(ast::IDataTypeEnum *i) override;
+
+    virtual void visitDataTypeInt(ast::IDataTypeInt *i) override;
+
+    virtual void visitDataTypeString(ast::IDataTypeString *i) override;
+
+    virtual void visitDataTypeUserDefined(ast::IDataTypeUserDefined *i) override;
 
     virtual void visitStruct(ast::IStruct *i) override;
 
@@ -66,7 +76,7 @@ private:
 
     std::string getNamespacePrefix();
 
-    vsc::dm::IDataTypeStruct *findType(ast::IScopeChild *ast_t);
+    vsc::dm::IDataType *findType(ast::IScopeChild *ast_t);
 
     template <class T> T *findTypeT(ast::IScopeChild *ast_t) {
         return dynamic_cast<T *>(findType(ast_t));
@@ -78,8 +88,8 @@ private:
     static dmgr::IDebug                                         *m_dbg;
     IAst2ArlContext                                             *m_ctxt;
     uint32_t                                                    m_depth;
+    vsc::dm::IDataType                                          *m_type;
     std::vector<vsc::dm::IDataTypeStruct *>                     m_type_s;
-    std::map<ast::IScopeChild *, vsc::dm::IDataTypeStruct *>    *m_datatype_m;
     uint32_t                                                    m_field_off;
 
 };

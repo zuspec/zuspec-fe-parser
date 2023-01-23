@@ -23,6 +23,7 @@
 #include "TaskBuildDataType.h"
 #include "TaskBuildEnumType.h"
 #include "TaskBuildExecBody.h"
+#include "TaskBuildExpr.h"
 
 namespace zsp {
 namespace fe {
@@ -62,8 +63,7 @@ void Ast2ArlBuilder::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
     if (!m_ctxt->findType(i->getTarget())) {
         DEBUG("Need to build type");
         // We haven't defined this type yet, so go build it
-        vsc::dm::IDataTypeStruct *type = TaskBuildDataType(m_dmgr).build(
-            m_ctxt, i);
+        vsc::dm::IDataType *type = TaskBuildDataType(m_ctxt).build(i);
     }
     DEBUG_LEAVE("visitSymbolTypeScope %s", i->getName().c_str());
 }
@@ -77,6 +77,13 @@ void Ast2ArlBuilder::visitSymbolEnumScope(ast::ISymbolEnumScope *i) {
     DEBUG_LEAVE("visitSymbolEnumScope");
 }
 
+static std::map<ast::ParamDir, arl::dm::ParamDir> param_dir_m = {
+    {ast::ParamDir::ParamDir_Default, arl::dm::ParamDir::In},
+    {ast::ParamDir::ParamDir_In, arl::dm::ParamDir::In},
+    {ast::ParamDir::ParamDir_Out, arl::dm::ParamDir::Out},
+    {ast::ParamDir::ParamDir_InOut, arl::dm::ParamDir::InOut} 
+};
+
 void Ast2ArlBuilder::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
     DEBUG_ENTER("visitSymbolFunctionScope \"%s\"", i->getName().c_str());
 
@@ -86,10 +93,29 @@ void Ast2ArlBuilder::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
         ast::IScopeChild *rtype = i->getDefinition()->getProto()->getRtype();
         arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->mkDataTypeFunction(
             i->getName(),
-            rtype?TaskBuildDataType(m_dmgr).build(m_ctxt, rtype):0,
+            rtype?TaskBuildDataType(m_ctxt).build(rtype):0,
             false);
 
-            // TODO: body
+        // Bring across the function parameters
+        for (std::vector<ast::IFunctionParamDeclUP>::const_iterator
+            it=i->getDefinition()->getProto()->getParameters().begin();
+            it!=i->getDefinition()->getProto()->getParameters().end(); it++) {
+            std::string name = (*it)->getName()->getId();
+            arl::dm::ParamDir dir = param_dir_m.find((*it)->getDir())->second;
+            vsc::dm::IDataType *type = TaskBuildDataType(m_ctxt).build((*it)->getType());
+            vsc::dm::ITypeExpr *dflt = ((*it)->getDflt())?TaskBuildExpr(m_ctxt).build((*it)->getDflt()):0;
+            arl::dm::IDataTypeFunctionParamDecl *param = 
+            m_ctxt->ctxt()->mkDataTypeFunctionParamDecl(
+                name,
+                dir,
+                type,
+                false,
+                dflt
+            );
+            func->addParameter(param);
+        }
+
+        // Build the function body
         TaskBuildExecBody(m_ctxt).build(
             func->getBody(),
             i->getDefinition()->getBody()
