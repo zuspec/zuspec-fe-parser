@@ -66,11 +66,15 @@ void TaskBuildExecBody::visitProceduralStmtAssignment(ast::IProceduralStmtAssign
 }
     
 void TaskBuildExecBody::visitProceduralStmtExpr(ast::IProceduralStmtExpr *i) { 
-
+    DEBUG_ENTER("visitProceduralStmtExpr");
+    vsc::dm::ITypeExpr *expr = TaskBuildExpr(m_ctxt).build(i->getExpr());
+    DEBUG_LEAVE("visitProceduralStmtExpr");
 }
     
 void TaskBuildExecBody::visitProceduralStmtFunctionCall(ast::IProceduralStmtFunctionCall *i) { 
+    DEBUG_ENTER("visitProceduralStmtFunctionCall");
 
+    DEBUG_LEAVE("visitProceduralStmtFunctionCall");
 }
     
 void TaskBuildExecBody::visitProceduralStmtReturn(ast::IProceduralStmtReturn *i) { 

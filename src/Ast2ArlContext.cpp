@@ -18,6 +18,7 @@
  * Created on:
  *     Author:
  */
+#include "dmgr/impl/DebugMacros.h"
 #include "Ast2ArlContext.h"
 
 
@@ -36,12 +37,36 @@ Ast2ArlContext::Ast2ArlContext(
             factory->mkMarker(
                 "", 
                 zsp::parser::MarkerSeverityE::Error,
-                {})) { 
-
+                {})) {
+    DEBUG_INIT("Ast2ArlContext", dmgr); 
+    m_type_s_idx = -1;
 }
 
 Ast2ArlContext::~Ast2ArlContext() {
 
+}
+
+void Ast2ArlContext::pushSymScope(ast::ISymbolScope *s) {
+    if (dynamic_cast<ast::ISymbolTypeScope *>(s) || dynamic_cast<ast::ISymbolFunctionScope *>(s)) {
+        m_type_s_idx = m_scope_s.size();
+        DEBUG("PUSH: m_type_s_idx=%d", m_type_s_idx);
+    }
+
+    m_scope_s.push_back(s);
+}
+
+void Ast2ArlContext::popSymScope() {
+    m_scope_s.pop_back();
+
+    if (m_scope_s.size() && (
+            dynamic_cast<ast::ISymbolTypeScope *>(m_scope_s.back()) ||
+            dynamic_cast<ast::ISymbolFunctionScope *>(m_scope_s.back()))) {
+        m_type_s_idx = m_scope_s.size()-1;
+        DEBUG("POP: m_type_s_idx=%d", m_type_s_idx);
+    } else {
+        m_type_s_idx = -1;
+        DEBUG("POP: m_type_s_idx=%d", m_type_s_idx);
+    }
 }
 
 vsc::dm::IDataTypeStruct *Ast2ArlContext::findType(ast::IScopeChild *t) {
@@ -57,6 +82,8 @@ vsc::dm::IDataTypeStruct *Ast2ArlContext::findType(ast::IScopeChild *t) {
 void Ast2ArlContext::addType(ast::IScopeChild *t, vsc::dm::IDataTypeStruct *dmt) {
     m_type_m.insert({t, dmt});
 }
+
+dmgr::IDebug *Ast2ArlContext::m_dbg = 0;
 
 }
 }

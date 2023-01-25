@@ -87,9 +87,13 @@ static std::map<ast::ParamDir, arl::dm::ParamDir> param_dir_m = {
 void Ast2ArlBuilder::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
     DEBUG_ENTER("visitSymbolFunctionScope \"%s\"", i->getName().c_str());
 
+
     if (i->getDefinition()) {
         // Local implementation
         DEBUG("PSS-native function");
+
+        m_ctxt->pushSymScope(i);
+
         ast::IScopeChild *rtype = i->getDefinition()->getProto()->getRtype();
         arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->mkDataTypeFunction(
             i->getName(),
@@ -115,12 +119,15 @@ void Ast2ArlBuilder::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
             func->addParameter(param);
         }
 
+        m_ctxt->pushSymScope(i->getBody());
         // Build the function body
         TaskBuildExecBody(m_ctxt).build(
             func->getBody(),
             i->getDefinition()->getBody()
         );
 
+        m_ctxt->popSymScope();
+        m_ctxt->popSymScope();
         m_ctxt->ctxt()->addDataTypeFunction(func);
     } else {
         // 

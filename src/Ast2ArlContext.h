@@ -65,12 +65,12 @@ public:
         return m_scope_s;
     }
 
-    virtual void pushSymScope(ast::ISymbolScope *s) override {
-        m_scope_s.push_back(s);
-    }
+    virtual void pushSymScope(ast::ISymbolScope *s) override;
 
-    virtual void popSymScope() override {
-        m_scope_s.pop_back();
+    virtual void popSymScope() override;
+
+    virtual ast::ISymbolScope *typeScope() const override {
+        return (m_type_s_idx >= 0 && m_type_s_idx < m_scope_s.size())?m_scope_s.at(m_type_s_idx):0;
     }
 
     virtual vsc::dm::IDataTypeStruct *findType(ast::IScopeChild *t) override;
@@ -87,6 +87,7 @@ private:
     zsp::parser::IMarkerUP                                          m_marker;
     std::vector<ast::ISymbolScope *>                                m_scope_s;
     std::map<ast::IScopeChild *, vsc::dm::IDataTypeStruct *>        m_type_m;
+    int32_t                                                         m_type_s_idx;
 
 };
 
