@@ -40,10 +40,10 @@ add_dependencies(zuspec-fe-parser ZuspecParser)
 #target_link_libraries(zuspec-fe-parser ${ZUSPEC_PARSER_LIBS})
 set_target_properties(zuspec-fe-parser PROPERTIES SKIP_BUILD_RPATH TRUE)
 
-add_library(zuspec-fe-parser_static STATIC
-	${zuspec_fe_parser_SRC}
-	)
+# add_library(zuspec-fe-parser_static STATIC
+# 	${zuspec_fe_parser_SRC}
+# 	)
 
-add_dependencies(zuspec-fe-parser_static ZuspecParser)
+# add_dependencies(zuspec-fe-parser_static ZuspecParser)
 	
 

@@ -106,6 +106,7 @@ private:
     static dmgr::IDebug             *m_dbg;
     IAst2ArlContext                 *m_ctxt;
     vsc::dm::ITypeExpr              *m_expr;
+    vsc::dm::IModelValUP            m_val;
 
 };
 

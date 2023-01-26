@@ -84,6 +84,8 @@ ast::IGlobalScope *TestBase::parse(
 
 	zsp::parser::IAstBuilderUP ast_builder(m_zsp_factory->mkAstBuilder(marker_l));
 
+    m_zsp_factory->loadStandardLibrary(ast_builder.get(), global.get());
+
 	ast_builder->build(global.get(), &s);
 
 	return global.release();
@@ -118,6 +120,17 @@ void TestBase::ast2Arl(
     IAst2ArlBuilderUP builder(m_factory->mkAst2ArlBuilder());
 
     builder->build(root, build_ctxt.get());
+}
+
+void TestBase::checkNoErrors(
+        const std::string                   &phase,
+        zsp::parser::IMarkerCollector       *collector) {
+    for (std::vector<zsp::parser::IMarkerUP>::const_iterator
+        it=collector->markers().begin();
+        it!=collector->markers().end(); it++) {
+        fprintf(stdout, "Error: in phase %s: %s\n", phase.c_str(), (*it)->msg().c_str());
+    }
+    ASSERT_FALSE(collector->hasSeverity(zsp::parser::MarkerSeverityE::Error));
 }
 
 void TestBase::enableDebug(bool en) {

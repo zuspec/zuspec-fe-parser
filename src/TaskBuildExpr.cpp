@@ -27,7 +27,8 @@ namespace fe {
 namespace parser {
 
 
-TaskBuildExpr::TaskBuildExpr(IAst2ArlContext *ctxt) : m_ctxt(ctxt) {
+TaskBuildExpr::TaskBuildExpr(IAst2ArlContext *ctxt) : m_ctxt(ctxt),
+    m_val(ctxt->ctxt()->mkModelValU(0, 32)) {
     DEBUG_INIT("TaskBuildExpr", ctxt->getDebugMgr());
 }
 
@@ -226,12 +227,18 @@ void TaskBuildExpr::visitConstraintScope(ast::IConstraintScope *i) {
     
 void TaskBuildExpr::visitExprSignedNumber(ast::IExprSignedNumber *i) { 
     DEBUG_ENTER("visitExprSignedNumber");
+    m_val->setBits(i->getWidth());
+    m_val->set_val_u(i->getValue());
+    m_expr = m_ctxt->ctxt()->mkTypeExprVal(m_val.get());
 
     DEBUG_LEAVE("visitExprSignedNumber");
 }
 
 void TaskBuildExpr::visitExprUnsignedNumber(ast::IExprUnsignedNumber *i) { 
     DEBUG_ENTER("visitExprUnsignedNumber");
+    m_val->setBits(i->getWidth());
+    m_val->set_val_i(i->getValue());
+    m_expr = m_ctxt->ctxt()->mkTypeExprVal(m_val.get());
 
     DEBUG_LEAVE("visitExprUnsignedNumber");
 }

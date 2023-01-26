@@ -197,14 +197,14 @@ TEST_F(TestFunctions, call_global_pass_typescope_context) {
         "smoke.pss"
     )));
 
-    ASSERT_FALSE(marker_c->hasSeverity(MarkerSeverityE::Error));
+    checkNoErrors("Parse", marker_c.get());
 
     ast::ISymbolScopeUP root(link(
         marker_c.get(),
         files
     ));
 
-    ASSERT_FALSE(marker_c->hasSeverity(MarkerSeverityE::Error));
+    checkNoErrors("Link", marker_c.get());
 
     ast2Arl(
         marker_c.get(),
@@ -212,7 +212,7 @@ TEST_F(TestFunctions, call_global_pass_typescope_context) {
         m_ctxt.get()
     );
 
-    ASSERT_FALSE(marker_c->hasSeverity(MarkerSeverityE::Error));
+    checkNoErrors("Ast2Arl", marker_c.get());
 
     ASSERT_TRUE(m_ctxt->findDataTypeFunction("doit"));
     ASSERT_TRUE(m_ctxt->findDataTypeComponent("pss_top"));

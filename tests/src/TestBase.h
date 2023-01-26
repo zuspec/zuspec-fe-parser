@@ -23,6 +23,7 @@
 #include "zsp/arl/dm/IContext.h"
 #include "zsp/arl/dm/IFactory.h"
 #include "zsp/parser/IFactory.h"
+#include "zsp/parser/IMarkerCollector.h"
 #include "zsp/ast/IFactory.h"
 #include "zsp/fe/parser/IFactory.h"
 
@@ -61,6 +62,10 @@ public:
     std::string toJsonStr(const std::vector<vsc::dm::IAccept *> &elems);
 
     void enableDebug(bool en);
+
+    void checkNoErrors(
+        const std::string                   &phase,
+        zsp::parser::IMarkerCollector       *collector);
 
 protected:
     IFactory                    *m_factory;
