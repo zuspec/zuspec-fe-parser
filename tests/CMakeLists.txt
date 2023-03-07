@@ -21,11 +21,10 @@ link_directories(
 	${CMAKE_BINARY_DIR}/lib64
 	${CMAKE_BINARY_DIR}/zuspec-parser/src/ZuspecParser-build/antlr4/lib
 	${CMAKE_BINARY_DIR}/zuspec-parser/src/ZuspecParser-build/antlr4/lib64
-	${CMAKE_BINARY_DIR}/zuspec-parser/src/ZuspecParser-build/zsp_ast/lib
-	${CMAKE_BINARY_DIR}/zuspec-parser/src/ZuspecParser-build/zsp_ast/lib64
-	${CMAKE_BINARY_DIR}/zuspec-arl-dm/src/ZuspecArl-DM-build/src
-	${CMAKE_BINARY_DIR}/zuspec-arl-dm/src/ZuspecArl-DM-build/lib
-#	${CMAKE_BINARY_DIR}/zuspec-arl-dm/src/ZuspecArl-DM-build/libvsc-dm/src/LibVSC-build/gmp/lib
+    "${zsp_parser_LIBDIR}"
+    "${zsp_arl_dm_LIBDIR}"
+    "${vsc_dm_LIBDIR}"
+    "${debug_mgr_LIBDIR}"
 	)
 
 set(CompilerFlags
@@ -44,24 +43,21 @@ endforeach()
 #********************************************************************
 #* GoogleTest unit tests
 #********************************************************************
-add_executable(zuspec-fe-parser-testmain ${TEST_SRCS})
+add_executable(zsp-fe-parser-testmain ${TEST_SRCS})
 
-set_property(TARGET zuspec-fe-parser-testmain PROPERTY
+set_property(TARGET zsp-fe-parser-testmain PROPERTY
   MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-add_dependencies(zuspec-fe-parser-testmain GTEST ZuspecParser ZuspecArl-DM)
-target_include_directories(zuspec-fe-parser-testmain PRIVATE
+target_include_directories(zsp-fe-parser-testmain PRIVATE
 	${CMAKE_BINARY_DIR}
 	${CMAKE_BINARY_DIR}/gtest/include
 	${PACKAGES_DIR}/gtest/googletest/include
-	${CMAKE_BINARY_DIR}/zsp_ast/src/include
 	${CMAKE_CURRENT_SOURCE_DIR}/../src
 	${CMAKE_CURRENT_SOURCE_DIR}/../src/include
-    ${ZUSPEC_PARSER_DIR}/src/include
-    ${CMAKE_BINARY_DIR}/zuspec-parser/src/ZuspecParser-build/zsp_ast/src/include
-    ${ZUSPEC_ARL_DM_DIR}/src/include
-    ${LIBVSC_DM_DIR}/src/include
-    ${DEBUG_MGR_DIR}/src/include
+    "${zsp_parser_INCDIR}"
+    "${zsp_arl_dm_INCDIR}"
+    "${vsc_dm_INCDIR}"
+    "${debug_mgr_INCDIR}"
 )
 
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
@@ -73,7 +69,7 @@ else()
     list(APPEND ZSP_TESTMAIN_LIBS gtest gtest_main)
 endif()
 
-list(APPEND ZSP_TESTMAIN_LIBS zuspec-fe-parser zuspec-parser ast zuspec-arl-dm vsc-dm debug-mgr)
+list(APPEND ZSP_TESTMAIN_LIBS zsp-fe-parser zsp-parser ast zsp-arl-dm vsc-dm debug-mgr)
 
 if (WIN32)
 	if (BUILD_SHARED_LIBS)
@@ -87,10 +83,11 @@ endif()
 
 
 
-target_link_libraries(zuspec-fe-parser-testmain ${ZSP_TESTMAIN_LIBS})
+target_link_libraries(zsp-fe-parser-testmain ${ZSP_TESTMAIN_LIBS})
+add_dependencies(zsp-fe-parser-testmain GTEST)
 
 add_test(
 	NAME unit
-	COMMAND ${CMAKE_BINARY_DIR}/tests/zuspec-fe-parser-testmain)
+	COMMAND ${CMAKE_BINARY_DIR}/tests/zsp-fe-parser-testmain)
 
 

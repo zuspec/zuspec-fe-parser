@@ -16,9 +16,12 @@ package:
        url: https://github.com/zuspec/zuspec-parser.git
      - name: zuspec-arl-dm
        url: https://github.com/zuspec/zuspec-arl-dm.git
-       branch: dm-refactor
+     - name: ciostream
+       url: https://github.com/mballance-utils/ciostream.git
      - name: gtest
        url: https://github.com/google/googletest/archive/release-1.10.0.tar.gz
+     - name: ivpm
+       url: https://github.com/fvutils/ivpm.git
      - name: ninja
        src: pypi
      - name: cython

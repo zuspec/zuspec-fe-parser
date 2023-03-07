@@ -158,7 +158,7 @@ void TaskBuildExpr::visitExprRefPathId(ast::IExprRefPathId *i) {
     for (uint32_t ii=0; ii<i->getTarget()->getPath().size(); ii++) {
         DEBUG("Scope: %s ;   ii=%d", scope->getName().c_str(), i->getTarget()->getPath().at(ii));
         ast::IScopeChild *c = scope->getChildren().at(
-            i->getTarget()->getPath().at(ii));
+            i->getTarget()->getPath().at(ii).idx);
 
         if (c == m_ctxt->typeScope()) {
             type_scope_idx = ii;
@@ -178,7 +178,7 @@ void TaskBuildExpr::visitExprRefPathId(ast::IExprRefPathId *i) {
                 vsc::dm::ITypeExprFieldRef::RootRefKind::TopDownScope,
                 0);
             for (uint32_t ii=type_scope_idx+1; ii<i->getTarget()->getPath().size(); ii++) {
-                ref->addPathElem(i->getTarget()->getPath().at(ii));
+                ref->addPathElem(i->getTarget()->getPath().at(ii).idx);
             }
             m_expr = ref;
 
@@ -188,7 +188,7 @@ void TaskBuildExpr::visitExprRefPathId(ast::IExprRefPathId *i) {
             vsc::dm::ITypeExprFieldRef *ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
                 vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope,
                 (m_ctxt->symScopes().size()-i->getTarget()->getPath().size()));
-            ref->addPathElem(i->getTarget()->getPath().back());
+            ref->addPathElem(i->getTarget()->getPath().back().idx);
             m_expr = ref;
         }
     } else {
