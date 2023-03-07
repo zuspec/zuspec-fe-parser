@@ -18,30 +18,17 @@
  * Created on:
  *     Author:
  */
+#include "dmgr/impl/DebugMacros.h"
 #include "zsp/ast/IEnumDecl.h"
 #include "TaskBuildEnumType.h"
-
-#define DEBUG_ENTER(fmt, ...) \
-	fprintf(stdout, "--> TaskBuildEnumType::"); \
-	fprintf(stdout, fmt, ##__VA_ARGS__); \
-	fprintf(stdout, "\n")
-
-#define DEBUG(fmt, ...) \
-	fprintf(stdout, "TaskBuildEnumType: "); \
-	fprintf(stdout, fmt, ##__VA_ARGS__); \
-	fprintf(stdout, "\n")
-
-#define DEBUG_LEAVE(fmt, ...) \
-	fprintf(stdout, "<-- TaskBuildEnumType::"); \
-	fprintf(stdout, fmt, ##__VA_ARGS__); \
-	fprintf(stdout, "\n")
 
 namespace zsp {
 namespace fe {
 namespace parser {
 
 
-TaskBuildEnumType::TaskBuildEnumType(arl::IContext *ctxt) : m_ctxt(ctxt) {
+TaskBuildEnumType::TaskBuildEnumType(IAst2ArlContext *ctxt) : m_ctxt(ctxt) {
+    DEBUG_INIT("TaskBuildEnumType", ctxt->getDebugMgr());
 
 }
 
@@ -49,13 +36,13 @@ TaskBuildEnumType::~TaskBuildEnumType() {
 
 }
 
-vsc::IDataTypeEnum *TaskBuildEnumType::build(
+vsc::dm::IDataTypeEnum *TaskBuildEnumType::build(
     std::string             &ns_prefix,
     ast::ISymbolEnumScope   *ast_enum) {
     DEBUG_ENTER("build");
     m_ns_prefix = ns_prefix;
-    m_dt_enum = m_ctxt->mkDataTypeEnum(ns_prefix + ast_enum->getName(), true);
-    m_ctxt->addDataTypeEnum(m_dt_enum);
+    m_dt_enum = m_ctxt->ctxt()->mkDataTypeEnum(ns_prefix + ast_enum->getName(), true);
+    m_ctxt->ctxt()->addDataTypeEnum(m_dt_enum);
     for (std::vector<ast::IScopeChild *>::const_iterator
         it=ast_enum->getChildren().begin();
         it!=ast_enum->getChildren().end(); it++) {
@@ -73,6 +60,8 @@ void TaskBuildEnumType::visitEnumItem(ast::IEnumItem *i) {
     );
     DEBUG_LEAVE("visitEnumItem");
 }
+
+dmgr::IDebug *TaskBuildEnumType::m_dbg = 0;
 
 }
 }

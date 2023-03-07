@@ -19,8 +19,11 @@
  *     Author:
  */
 #include <sstream>
-#include "arl/IArl.h"
-#include "vsc/IVsc.h"
+#include "dmgr/FactoryExt.h"
+#include "vsc/dm/FactoryExt.h"
+#include "zsp/arl/dm/FactoryExt.h"
+#include "zsp/fe/parser/FactoryExt.h"
+#include "zsp/parser/FactoryExt.h"
 #include "TestBase.h"
 
 
@@ -37,22 +40,29 @@ TestBase::~TestBase() {
 
 }
 
-extern "C" zsp::IFactory *zsp_parser_getFactory();
-extern "C" zsp::ast::IFactory *zsp_ast_getFactory();
-extern "C" zsp::fe::parser::IFactory *zsp_fe_parser_getFactory();
-extern "C" arl::IArl *iarl();
-extern "C" vsc::IVsc *ivsc();
+extern "C" zsp::ast::IFactory *ast_getFactory();
 
 void TestBase::SetUp() {
+    dmgr::IFactory *dmgr_f = dmgr_getFactory();
+    vsc::dm::IFactory *vsc_dm_f = vsc_dm_getFactory();
+    vsc_dm_f->init(dmgr_f->getDebugMgr());
+
     m_factory = zsp_fe_parser_getFactory();
     m_zsp_factory = zsp_parser_getFactory();
 
-    m_zsp_factory->init(zsp_ast_getFactory());
-    m_factory->init(m_zsp_factory);
+    m_zsp_factory->init(
+        dmgr_f->getDebugMgr(),
+        ast_getFactory());
+    m_factory->init(
+        dmgr_f->getDebugMgr(),
+        m_zsp_factory);
 
-    vsc::IContext *vsc_ctxt = ivsc()->mkContext();
-    iarl()->init(vsc_ctxt->getDebugMgr());
-    m_ctxt = arl::IContextUP(iarl()->mkContext(vsc_ctxt));
+    vsc::dm::IContext *vsc_ctxt = vsc_dm_f->mkContext();
+    m_arl_dm_factory = zsp_arl_dm_getFactory();
+    m_arl_dm_factory->init(dmgr_f->getDebugMgr());
+    m_ctxt = zsp::arl::dm::IContextUP(m_arl_dm_factory->mkContext(vsc_dm_f->mkContext()));
+
+    arl::dm::IFactory *arl_dm_factory = zsp_arl_dm_getFactory();
 
     fprintf(stdout, "TestBase::SetUp m_factory=%p m_zsp_factory=%p\n",
         m_factory, m_zsp_factory);
@@ -65,14 +75,16 @@ void TestBase::TearDown() {
 }
 
 ast::IGlobalScope *TestBase::parse(
-        IMarkerListener         *marker_l,
-        const std::string       &content,
-        const std::string       &name) {
+        zsp::parser::IMarkerListener        *marker_l,
+        const std::string                   &content,
+        const std::string                   &name) {
 	std::stringstream s(content);
 
 	zsp::ast::IGlobalScopeUP global(m_zsp_factory->getAstFactory()->mkGlobalScope(0));
 
-	zsp::IAstBuilderUP ast_builder(m_zsp_factory->mkAstBuilder(marker_l));
+	zsp::parser::IAstBuilderUP ast_builder(m_zsp_factory->mkAstBuilder(marker_l));
+
+    m_zsp_factory->loadStandardLibrary(ast_builder.get(), global.get());
 
 	ast_builder->build(global.get(), &s);
 
@@ -80,7 +92,7 @@ ast::IGlobalScope *TestBase::parse(
 }
 
 ast::ISymbolScope *TestBase::link(
-        IMarkerListener                         *marker_l,
+        zsp::parser::IMarkerListener            *marker_l,
         const std::vector<ast::IGlobalScopeUP>  &files) {
 	std::vector<zsp::ast::IGlobalScope *> files_p;
 
@@ -90,7 +102,7 @@ ast::ISymbolScope *TestBase::link(
 		files_p.push_back(it->get());
 	}
 
-	zsp::ILinkerUP linker(m_zsp_factory->mkAstLinker());
+	zsp::parser::ILinkerUP linker(m_zsp_factory->mkAstLinker());
 	zsp::ast::ISymbolScopeUP root(linker->link(
 		marker_l,
 		files_p
@@ -100,16 +112,43 @@ ast::ISymbolScope *TestBase::link(
 }
 
 void TestBase::ast2Arl(
-        IMarkerListener                         *marker_l,
+        zsp::parser::IMarkerListener            *marker_l,
         ast::ISymbolScope                       *root,
-        arl::IContext                           *ctxt) {
+        arl::dm::IContext                       *ctxt) {
+    IAst2ArlContextUP build_ctxt(m_factory->mkAst2ArlContext(
+        ctxt, marker_l));
     IAst2ArlBuilderUP builder(m_factory->mkAst2ArlBuilder());
 
-    builder->build(
-        marker_l,
-        root,
-        ctxt
-    );
+    builder->build(root, build_ctxt.get());
+}
+
+void TestBase::checkNoErrors(
+        const std::string                   &phase,
+        zsp::parser::IMarkerCollector       *collector) {
+    for (std::vector<zsp::parser::IMarkerUP>::const_iterator
+        it=collector->markers().begin();
+        it!=collector->markers().end(); it++) {
+        fprintf(stdout, "Error: in phase %s: %s\n", phase.c_str(), (*it)->msg().c_str());
+    }
+    ASSERT_FALSE(collector->hasSeverity(zsp::parser::MarkerSeverityE::Error));
+}
+
+void TestBase::enableDebug(bool en) {
+    m_arl_dm_factory->getDebugMgr()->enable(en);
+}
+
+void TestBase::dumpJSON(const std::vector<vsc::dm::IAccept *> &elems) {
+    fprintf(stdout, "JSON:\n%s\n", toJsonStr(elems).c_str());
+
+}
+
+std::string TestBase::toJsonStr(const std::vector<vsc::dm::IAccept *> &elems) {
+    std::stringstream s;
+    arl::dm::ITypeModelDumperUP dumper(m_arl_dm_factory->mkTypeModelDumperJSON(&s, 4));
+    dumper->dumpTypeModel(elems);
+    s.flush();
+
+    return s.str();
 }
 
 }

@@ -1,5 +1,5 @@
 /**
- * IFactory.h
+ * IAst2ArlContext.h
  *
  * Copyright 2022 Matthew Ballance and Contributors
  *
@@ -19,32 +19,43 @@
  *     Author: 
  */
 #pragma once
+#include <memory>
 #include "dmgr/IDebugMgr.h"
 #include "zsp/parser/IFactory.h"
-#include "zsp/parser/IMarkerListener.h"
-#include "zsp/fe/parser/IAst2ArlBuilder.h"
-#include "zsp/fe/parser/IAst2ArlContext.h"
+#include "zsp/arl/dm/IContext.h"
+#include "zsp/ast/IScopeChild.h"
 
 namespace zsp {
 namespace fe {
 namespace parser {
 
-class IFactory {
+
+class IAst2ArlContext;
+using IAst2ArlContextUP=std::unique_ptr<IAst2ArlContext>;
+class IAst2ArlContext {
 public:
 
-    virtual ~IFactory() { }
+    virtual ~IAst2ArlContext() { }
 
-    virtual void init(
-        dmgr::IDebugMgr         *dmgr,
-        zsp::parser::IFactory   *factory) = 0;
+    virtual dmgr::IDebugMgr *getDebugMgr() const = 0;
 
-    virtual dmgr::IDebugMgr *getDebugMgr() = 0;
+    virtual zsp::parser::IFactory *factory() const = 0;
 
-    virtual IAst2ArlBuilder *mkAst2ArlBuilder() = 0;
+    virtual arl::dm::IContext *ctxt() const = 0;
 
-    virtual IAst2ArlContext *mkAst2ArlContext(
-        arl::dm::IContext               *ctxt,
-        zsp::parser::IMarkerListener    *marker_l) = 0;
+    virtual ast::ISymbolScope *symScope() const = 0;
+
+    virtual const std::vector<ast::ISymbolScope *> &symScopes() const = 0;
+
+    virtual void pushSymScope(ast::ISymbolScope *s) = 0;
+
+    virtual void popSymScope() = 0;
+
+    virtual ast::ISymbolScope *typeScope() const = 0;
+
+    virtual vsc::dm::IDataTypeStruct *findType(ast::IScopeChild *t) = 0;
+
+    virtual void addType(ast::IScopeChild *t, vsc::dm::IDataTypeStruct *dmt) = 0;
 
 };
 

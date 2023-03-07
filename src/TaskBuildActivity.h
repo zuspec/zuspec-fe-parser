@@ -1,5 +1,5 @@
 /**
- * IFactory.h
+ * TaskBuildActivity.h
  *
  * Copyright 2022 Matthew Ballance and Contributors
  *
@@ -19,37 +19,22 @@
  *     Author: 
  */
 #pragma once
-#include "dmgr/IDebugMgr.h"
-#include "zsp/parser/IFactory.h"
-#include "zsp/parser/IMarkerListener.h"
-#include "zsp/fe/parser/IAst2ArlBuilder.h"
-#include "zsp/fe/parser/IAst2ArlContext.h"
 
 namespace zsp {
 namespace fe {
 namespace parser {
 
-class IFactory {
+
+
+class TaskBuildActivity {
 public:
+    TaskBuildActivity();
 
-    virtual ~IFactory() { }
-
-    virtual void init(
-        dmgr::IDebugMgr         *dmgr,
-        zsp::parser::IFactory   *factory) = 0;
-
-    virtual dmgr::IDebugMgr *getDebugMgr() = 0;
-
-    virtual IAst2ArlBuilder *mkAst2ArlBuilder() = 0;
-
-    virtual IAst2ArlContext *mkAst2ArlContext(
-        arl::dm::IContext               *ctxt,
-        zsp::parser::IMarkerListener    *marker_l) = 0;
+    virtual ~TaskBuildActivity();
 
 };
 
-} /* namespace parser */
-} /* namespace fe */
-} /* namespace zsp */
-
+}
+}
+}
 

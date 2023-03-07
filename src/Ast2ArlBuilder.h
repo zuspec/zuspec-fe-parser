@@ -19,10 +19,12 @@
  *     Author: 
  */
 #pragma once
-#include "arl/IContext.h"
-#include "vsc/IDataTypeStruct.h"
-#include "zsp/IFactory.h"
-#include "zsp/IMarker.h"
+#include "Ast2ArlContext.h"
+#include "dmgr/IDebugMgr.h"
+#include "zsp/arl/dm/IContext.h"
+#include "vsc/dm/IDataTypeStruct.h"
+#include "zsp/parser/IFactory.h"
+#include "zsp/parser/IMarker.h"
 #include "zsp/ast/impl/VisitorBase.h"
 #include "zsp/fe/parser/IAst2ArlBuilder.h"
 
@@ -36,24 +38,25 @@ class Ast2ArlBuilder :
     public virtual IAst2ArlBuilder,
     public virtual ast::VisitorBase {
 public:
-    Ast2ArlBuilder(zsp::IFactory *factory);
+    Ast2ArlBuilder(
+        dmgr::IDebugMgr             *dmgr,
+        zsp::parser::IFactory       *factory);
 
     virtual ~Ast2ArlBuilder();
 
     virtual void build(
-        IMarkerListener         *marker_l,
-        ast::ISymbolScope       *root,
-        arl::IContext           *ctxt) override;
+        ast::ISymbolScope               *root,
+        IAst2ArlContext                 *ctxt) override;
 
     virtual void visitSymbolScope(ast::ISymbolScope *i) override;
 
     virtual void visitSymbolEnumScope(ast::ISymbolEnumScope *i) override;
 
+    virtual void visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) override;
+
     virtual void visitSymbolTypeScope(ast::ISymbolTypeScope *i) override;
 
 private:
-
-    vsc::IDataTypeStruct *findType(ast::IScopeChild *ast_t);
 
     std::string getNamespacePrefix();
 
@@ -62,13 +65,9 @@ private:
     ast::IScopeChild *resolvePath(ast::ISymbolRefPath *ref);
 
 private:
-    zsp::IFactory                                           *m_factory;
-    IMarkerListener                                         *m_marker_l;
-    arl::IContext                                           *m_ctxt;
-    IMarkerUP                                               m_marker;
-    std::vector<ast::ISymbolScope *>                        m_scope_s;
-    std::map<ast::IScopeChild *, vsc::IDataTypeStruct *>    m_datatype_m;
-//    std::vector<vsc::IDataTypeStruct *>                     m_type_s;
+    static dmgr::IDebug                                       *m_dbg;
+    dmgr::IDebugMgr                                           *m_dmgr;
+    IAst2ArlContext                                           *m_ctxt;
 
 };
 

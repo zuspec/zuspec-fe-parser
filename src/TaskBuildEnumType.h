@@ -19,8 +19,10 @@
  *     Author: 
  */
 #pragma once
-#include "arl/IContext.h"
+#include "dmgr/IDebug.h"
+#include "zsp/arl/dm/IContext.h"
 #include "zsp/ast/impl/VisitorBase.h"
+#include "zsp/fe/parser/IAst2ArlContext.h"
 
 namespace zsp {
 namespace fe {
@@ -30,20 +32,21 @@ namespace parser {
 
 class TaskBuildEnumType : public ast::VisitorBase {
 public:
-    TaskBuildEnumType(arl::IContext *ctxt);
+    TaskBuildEnumType(IAst2ArlContext *ctxt);
 
     virtual ~TaskBuildEnumType();
 
-    vsc::IDataTypeEnum *build(
+    vsc::dm::IDataTypeEnum *build(
         std::string             &ns_prefix,
         ast::ISymbolEnumScope   *ast_enum);
 
     virtual void visitEnumItem(ast::IEnumItem *i) override;
 
 private:
-    arl::IContext           *m_ctxt;
-    std::string             m_ns_prefix;
-    vsc::IDataTypeEnum      *m_dt_enum;
+    static dmgr::IDebug         *m_dbg;
+    IAst2ArlContext             *m_ctxt;
+    std::string                 m_ns_prefix;
+    vsc::dm::IDataTypeEnum      *m_dt_enum;
 
 };
 

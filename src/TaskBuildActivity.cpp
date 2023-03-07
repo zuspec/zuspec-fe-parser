@@ -1,5 +1,5 @@
-/**
- * IAst2ArlBuilder.h
+/*
+ * TaskBuildActivity.cpp
  *
  * Copyright 2022 Matthew Ballance and Contributors
  *
@@ -16,35 +16,24 @@
  * limitations under the License.
  *
  * Created on:
- *     Author: 
+ *     Author:
  */
-#pragma once
-#include <memory>
-#include "zsp/arl/dm/IContext.h"
-#include "zsp/ast/ISymbolScope.h"
-#include "zsp/fe/parser/IAst2ArlContext.h"
-#include "zsp/parser/IMarkerListener.h"
+#include "TaskBuildActivity.h"
+
 
 namespace zsp {
 namespace fe {
 namespace parser {
 
 
-class IAst2ArlBuilder;
-using IAst2ArlBuilderUP=std::unique_ptr<IAst2ArlBuilder>;
-class IAst2ArlBuilder {
-public:
+TaskBuildActivity::TaskBuildActivity() {
 
-    virtual ~IAst2ArlBuilder() { }
+}
 
-    virtual void build(
-        ast::ISymbolScope               *root,
-        IAst2ArlContext                 *ctxt) = 0;
+TaskBuildActivity::~TaskBuildActivity() {
 
-};
+}
 
-} /* namespace parser */
-} /* namespace fe */
-} /* namespace zsp */
-
-
+}
+}
+}
