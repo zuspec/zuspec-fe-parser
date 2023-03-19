@@ -30,6 +30,7 @@ namespace parser {
 TaskBuildDataType::TaskBuildDataType(IAst2ArlContext *ctxt) : m_ctxt(ctxt) {
     DEBUG_INIT("TaskBuildDataType", ctxt->getDebugMgr());
     m_type = 0;
+    m_depth = 0;
 }
 
 TaskBuildDataType::~TaskBuildDataType() {
@@ -39,6 +40,7 @@ TaskBuildDataType::~TaskBuildDataType() {
 vsc::dm::IDataType *TaskBuildDataType::build(ast::IScopeChild *type) {
     DEBUG_ENTER("build");
     m_type = 0;
+    m_depth = 0;
 
     type->accept(this);
     DEBUG_LEAVE("build");
@@ -48,9 +50,13 @@ vsc::dm::IDataType *TaskBuildDataType::build(ast::IScopeChild *type) {
 
 void TaskBuildDataType::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
     DEBUG_ENTER("visitSymbolTypeScope");
-    m_ctxt->pushSymScope(i);
-    i->getTarget()->accept(this);
-    m_ctxt->popSymScope();
+    if (i->getPlist()) {
+        DEBUG("Note: this is an unspecialized template type ; not building");
+    } else {
+        m_ctxt->pushSymScope(i);
+        i->getTarget()->accept(this);
+        m_ctxt->popSymScope();
+    }
     DEBUG_LEAVE("visitSymbolTypeScope");
 }
 
@@ -78,7 +84,7 @@ void TaskBuildDataType::visitAction(ast::IAction *i) {
 }
 
 void TaskBuildDataType::visitComponent(ast::IComponent *i) {
-    DEBUG_ENTER("visitComponent");
+    DEBUG_ENTER("visitComponent m_depth=%d", m_depth);
     if (!m_depth) {
         arl::dm::IDataTypeComponent *comp_t = 0;
         if (!findType(i)) {
