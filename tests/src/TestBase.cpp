@@ -43,6 +43,8 @@ TestBase::~TestBase() {
 extern "C" zsp::ast::IFactory *ast_getFactory();
 
 void TestBase::SetUp() {
+    m_load_stdlib = true;
+
     dmgr::IFactory *dmgr_f = dmgr_getFactory();
     vsc::dm::IFactory *vsc_dm_f = vsc_dm_getFactory();
     vsc_dm_f->init(dmgr_f->getDebugMgr());
@@ -84,7 +86,9 @@ ast::IGlobalScope *TestBase::parse(
 
 	zsp::parser::IAstBuilderUP ast_builder(m_zsp_factory->mkAstBuilder(marker_l));
 
-    m_zsp_factory->loadStandardLibrary(ast_builder.get(), global.get());
+    if (m_load_stdlib) {
+        m_zsp_factory->loadStandardLibrary(ast_builder.get(), global.get());
+    }
 
 	ast_builder->build(global.get(), &s);
 

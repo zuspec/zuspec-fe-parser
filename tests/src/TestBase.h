@@ -63,6 +63,8 @@ public:
 
     void enableDebug(bool en);
 
+    void setLoadStdLib(bool load) { m_load_stdlib = load; }
+
     void checkNoErrors(
         const std::string                   &phase,
         zsp::parser::IMarkerCollector       *collector);
@@ -72,6 +74,7 @@ protected:
     zsp::parser::IFactory       *m_zsp_factory;
     arl::dm::IFactory           *m_arl_dm_factory;
     arl::dm::IContextUP          m_ctxt;
+    bool                        m_load_stdlib;
 
 };
 

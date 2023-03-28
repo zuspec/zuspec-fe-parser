@@ -48,6 +48,8 @@ public:
 
     virtual void visitAction(ast::IAction *i) override;
 
+    virtual void visitActivityDecl(ast::IActivityDecl *i) override;
+
     virtual void visitComponent(ast::IComponent *i) override;
 
     virtual void visitDataTypeBool(ast::IDataTypeBool *i) override;
@@ -64,6 +66,17 @@ public:
 
     virtual void visitStruct(ast::IStruct *i) override;
 
+    /**
+     * Build body elements
+     */
+    virtual void visitField(ast::IField *i) override;
+
+    virtual void visitFieldCompRef(ast::IFieldCompRef *i) override;
+
+    virtual void visitFieldRef(ast::IFieldRef *i) override;
+
+    virtual void visitFieldClaim(ast::IFieldClaim *i) override;
+    
 private:
     void buildType(
         vsc::dm::IDataTypeStruct    *arl_type,

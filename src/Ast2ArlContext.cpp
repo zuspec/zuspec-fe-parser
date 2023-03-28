@@ -20,6 +20,7 @@
  */
 #include "dmgr/impl/DebugMacros.h"
 #include "Ast2ArlContext.h"
+#include "zsp/parser/impl/TaskResolveSymbolPathRef.h"
 
 
 namespace zsp {
@@ -69,6 +70,21 @@ void Ast2ArlContext::popSymScope() {
     }
 }
 
+ast::IScopeChild *Ast2ArlContext::resolveRefPath(const ast::ISymbolRefPath *ref) {
+    DEBUG_ENTER("resolveRefPath");
+    for (std::vector<ast::SymbolRefPathElem>::const_iterator
+        it=ref->getPath().begin();
+        it!=ref->getPath().end(); it++) {
+        DEBUG("IT: kind=%d idx=%d", it->kind, it->idx);
+    }
+
+    ast::IScopeChild *ret = zsp::parser::TaskResolveSymbolPathRef(
+        m_factory->getDebugMgr(),
+        m_scope_s.front()).resolve(ref);
+    DEBUG_ENTER("resolveRefPath");
+    return ret;
+}
+
 vsc::dm::IDataTypeStruct *Ast2ArlContext::findType(ast::IScopeChild *t) {
     std::map<ast::IScopeChild *, vsc::dm::IDataTypeStruct *>::const_iterator it;
     
@@ -81,6 +97,24 @@ vsc::dm::IDataTypeStruct *Ast2ArlContext::findType(ast::IScopeChild *t) {
 
 void Ast2ArlContext::addType(ast::IScopeChild *t, vsc::dm::IDataTypeStruct *dmt) {
     m_type_m.insert({t, dmt});
+}
+
+vsc::dm::IDataTypeStruct *Ast2ArlContext::getType(ast::IScopeChild *t) {
+    std::map<ast::IScopeChild *, vsc::dm::IDataTypeStruct *>::const_iterator it;
+    vsc::dm::IDataTypeStruct *ret = 0;
+    it = m_type_m.find(t);
+
+    if (it == m_type_m.end()) {
+        // Failed to find
+        DEBUG("TODO: failed to find type %p", t);
+        for (it=m_type_m.begin(); it!=m_type_m.end(); it++) {
+            DEBUG("  Type: %p %s", it->first, it->second->name().c_str());
+        }
+    } else {
+        ret = it->second;
+    }
+
+    return ret;
 }
 
 dmgr::IDebug *Ast2ArlContext::m_dbg = 0;

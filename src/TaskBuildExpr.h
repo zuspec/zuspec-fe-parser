@@ -36,6 +36,10 @@ public:
 
     virtual vsc::dm::ITypeExpr *build(ast::IExpr *e);
 
+    template <class T> T *buildT(ast::IExpr *e) {
+        return dynamic_cast<T *>(build(e));
+    }
+
     virtual void visitExprStaticRefPath(ast::IExprStaticRefPath *i) override;
 
     virtual void visitExprString(ast::IExprString *i) override;

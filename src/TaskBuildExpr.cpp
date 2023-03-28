@@ -200,6 +200,61 @@ void TaskBuildExpr::visitExprRefPathId(ast::IExprRefPathId *i) {
     
 void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) { 
     DEBUG_ENTER("visitExprRefPathContext");
+    for (std::vector<ast::SymbolRefPathElem>::const_iterator
+        it=i->getTarget()->getPath().begin();
+        it!=i->getTarget()->getPath().end(); it++) {
+        DEBUG("it: kind=%d idx=%d", it->kind, it->idx);
+    }
+
+        // First, is to determine whether we have a:
+    // - Context path (relative to type context)
+    // - Bottom-up path (relative to the activity/exec context)
+    // - Type path (pointer to a constant in a type)
+    DEBUG("Path size=%d ; scope depth=%d", 
+        i->getTarget()->getPath().size(),
+        m_ctxt->symScopes().size());
+    ast::ISymbolScope *scope = m_ctxt->symScopes().at(0);
+    int32_t type_scope_idx = -1;
+    for (uint32_t ii=0; ii<i->getTarget()->getPath().size(); ii++) {
+        DEBUG("Scope: %s ;   ii=%d", scope->getName().c_str(), i->getTarget()->getPath().at(ii));
+        ast::IScopeChild *c = scope->getChildren().at(
+            i->getTarget()->getPath().at(ii).idx);
+
+        if (c == m_ctxt->typeScope()) {
+            type_scope_idx = ii;
+        }
+
+        if (ii+1 < i->getTarget()->getPath().size()) {
+            scope = dynamic_cast<ast::ISymbolScope *>(c);
+        }
+    }
+
+    DEBUG("type_scope_idx=%d", type_scope_idx);
+
+    if (type_scope_idx != -1) {
+        if (type_scope_idx+1 == (i->getTarget()->getPath().size()-1)) {
+            DEBUG("Type-context reference");
+            vsc::dm::ITypeExprFieldRef *ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
+                vsc::dm::ITypeExprFieldRef::RootRefKind::TopDownScope,
+                0);
+            for (uint32_t ii=type_scope_idx+1; ii<i->getTarget()->getPath().size(); ii++) {
+                ref->addPathElem(i->getTarget()->getPath().at(ii).idx);
+            }
+            m_expr = ref;
+
+            // TODO: determine if this is actually a static reference
+        } else {
+            DEBUG("Bottom-up scope reference");
+            vsc::dm::ITypeExprFieldRef *ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
+                vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope,
+                (m_ctxt->symScopes().size()-i->getTarget()->getPath().size()));
+            ref->addPathElem(i->getTarget()->getPath().back().idx);
+            m_expr = ref;
+        }
+    } else {
+        DEBUG("Static (type) reference, since we didn't encounter the type context");
+    }
+
 
     DEBUG_LEAVE("visitExprRefPathContext");
 }

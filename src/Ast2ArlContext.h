@@ -69,6 +69,8 @@ public:
 
     virtual void popSymScope() override;
 
+    virtual ast::IScopeChild *resolveRefPath(const ast::ISymbolRefPath *ref) override;
+
     virtual ast::ISymbolScope *typeScope() const override {
         return (m_type_s_idx >= 0 && m_type_s_idx < m_scope_s.size())?m_scope_s.at(m_type_s_idx):0;
     }
@@ -76,7 +78,11 @@ public:
     virtual vsc::dm::IDataTypeStruct *findType(ast::IScopeChild *t) override;
 
     virtual void addType(ast::IScopeChild *t, vsc::dm::IDataTypeStruct *dmt) override;
-    
+
+    vsc::dm::IDataTypeStruct *getType(ast::IScopeChild *t);
+
+private:
+
 
 private:
     static dmgr::IDebug                                             *m_dbg;

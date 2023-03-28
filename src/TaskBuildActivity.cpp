@@ -18,7 +18,11 @@
  * Created on:
  *     Author:
  */
+#include "dmgr/impl/DebugMacros.h"
 #include "TaskBuildActivity.h"
+#include "TaskBuildExpr.h"
+#include "zsp/ast/IActivityDecl.h"
+#include "zsp/parser/impl/TaskResolveSymbolPathRef.h"
 
 
 namespace zsp {
@@ -26,13 +30,156 @@ namespace fe {
 namespace parser {
 
 
-TaskBuildActivity::TaskBuildActivity() {
-
+TaskBuildActivity::TaskBuildActivity(IAst2ArlContext *ctxt) : m_ctxt(ctxt) {
+    DEBUG_INIT("TaskBuildActivity", ctxt->getDebugMgr());
 }
 
 TaskBuildActivity::~TaskBuildActivity() {
 
 }
+
+arl::dm::IDataTypeActivity *TaskBuildActivity::build(ast::IActivityDecl *activity) {
+    DEBUG_ENTER("build");
+    m_activity = m_ctxt->ctxt()->mkDataTypeActivitySequence();
+
+    m_scope_s.push_back(m_activity);
+    activity->accept(this);
+    m_scope_s.pop_back();
+
+    DEBUG_LEAVE("build");
+    return m_activity;
+}
+
+
+void TaskBuildActivity::visitActivityDecl(ast::IActivityDecl *i) { 
+    DEBUG_ENTER("visitActivityDecl");
+    VisitorBase::visitActivityDecl(i);
+    DEBUG_LEAVE("visitActivityDecl");
+}
+
+void TaskBuildActivity::visitActivityBindStmt(ast::IActivityBindStmt *i) { 
+    DEBUG_ENTER("visitActivityBindStmt");
+    DEBUG("TODO: visitActivityBindStmt");
+    DEBUG_LEAVE("visitActivityBindStmt");
+}
+
+void TaskBuildActivity::visitActivityConstraint(ast::IActivityConstraint *i) { 
+    DEBUG_ENTER("visitActivityConstraint");
+    DEBUG("TODO: visitActivityConstraint");
+    DEBUG_LEAVE("visitActivityConstraint");
+}
+
+void TaskBuildActivity::visitActivityLabeledStmt(ast::IActivityLabeledStmt *i) { 
+    DEBUG_ENTER("visitActivityLabeledStmt");
+    DEBUG("TODO: visitActivityLabeledStmt");
+    DEBUG_LEAVE("visitActivityLabeledStmt");
+}
+
+void TaskBuildActivity::visitActivityLabeledScope(ast::IActivityLabeledScope *i) { 
+    DEBUG_ENTER("visitActivityLabeledScope");
+    DEBUG("TODO: visitActivityLabeledScope");
+    DEBUG_LEAVE("visitActivityLabeledScope");
+}
+
+void TaskBuildActivity::visitActivityActionHandleTraversal(ast::IActivityActionHandleTraversal *i) { 
+    DEBUG_ENTER("visitActivityActionHandleTraversal");
+    vsc::dm::ITypeExprFieldRef *ref = 
+        TaskBuildExpr(m_ctxt).buildT<vsc::dm::ITypeExprFieldRef>(i->getTarget());
+    vsc::dm::ITypeConstraint *with_c = 0;
+    DEBUG("  ref=%p with_c=%p", ref, with_c);
+
+    arl::dm::IDataTypeActivityTraverse *t = 
+        m_ctxt->ctxt()->mkDataTypeActivityTraverse(ref, with_c);
+    m_scope_s.back()->addActivity(m_ctxt->ctxt()->mkTypeFieldActivity(
+        "",
+        t,
+        true
+    ));
+
+    DEBUG_LEAVE("visitActivityActionHandleTraversal");
+}
+
+void TaskBuildActivity::visitActivityActionTypeTraversal(ast::IActivityActionTypeTraversal *i) { 
+    DEBUG_ENTER("visitActivityActionTypeTraversal");
+    arl::dm::IDataTypeActivitySequence *seq = 
+        dynamic_cast<arl::dm::IDataTypeActivitySequence *>(m_scope_s.back());
+    vsc::dm::ITypeConstraint *with_c = 0;
+
+    ast::IScopeChild *t = m_ctxt->resolveRefPath(i->getTarget()->getType_id()->getTarget());
+    ast::ISymbolTypeScope *ts = dynamic_cast<ast::ISymbolTypeScope *>(t);
+    DEBUG("ts.name=%s", ts->getName().c_str());
+    DEBUG("t=%p id=%s", t, i->getTarget()->getType_id()->getElems().at(0)->getId()->getId().c_str());
+    for (uint32_t j=0; j<i->getTarget()->getType_id()->getElems().size(); j++) {
+        DEBUG("  Elem: %s", i->getTarget()->getType_id()->getElems().at(j)->getId()->getId().c_str());
+    }
+    vsc::dm::IDataTypeStruct *dt = m_ctxt->getType(t);
+
+    if (dt) {
+        arl::dm::IDataTypeAction *at = dynamic_cast<arl::dm::IDataTypeAction *>(dt);
+        if (!at) {
+            DEBUG("TODO: bad type (%s)", dt->name().c_str());
+        }
+        vsc::dm::ITypeField *f = m_ctxt->ctxt()->mkTypeFieldPhy(
+            "__anonymous",
+            at,
+            false,
+            vsc::dm::TypeFieldAttr::NoAttr,
+            0);
+
+        seq->addField(f);
+        arl::dm::IDataTypeActivityTraverse *dt_t = 
+            m_ctxt->ctxt()->mkDataTypeActivityTraverse(
+                m_ctxt->ctxt()->mkTypeExprFieldRef(
+                    vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope,
+                    0,
+                    {f->getIndex()}
+                ),
+                with_c
+            );
+        seq->addActivity(m_ctxt->ctxt()->mkTypeFieldActivity("", dt_t, true));
+    } else {
+        DEBUG("TODO: failed to find type");
+    }
+
+    DEBUG("TODO: visitActivityActionTypeTraversal t=%p");
+    DEBUG_LEAVE("visitActivityActionTypeTraversal");
+}
+
+void TaskBuildActivity::visitActivitySequence(ast::IActivitySequence *i) { 
+    DEBUG_ENTER("visitActivitySequence");
+    DEBUG("TODO: visitActivitySequence");
+    DEBUG_LEAVE("visitActivitySequence");
+}
+
+void TaskBuildActivity::visitActivityParallel(ast::IActivityParallel *i) { 
+    DEBUG_ENTER("visitActivityParallel");
+    DEBUG("TODO: visitActivityParallel");
+    DEBUG_LEAVE("visitActivityParallel");
+}
+
+void TaskBuildActivity::visitActivitySchedule(ast::IActivitySchedule *i) { 
+    DEBUG_ENTER("visitActivitySchedule");
+    DEBUG("TODO: visitActivitySchedule");
+    DEBUG_LEAVE("visitActivitySchedule");
+}
+
+void TaskBuildActivity::visitActivityRepeatCount(ast::IActivityRepeatCount *i) { }
+
+void TaskBuildActivity::visitActivityRepeatWhile(ast::IActivityRepeatWhile *i) { }
+
+void TaskBuildActivity::visitActivityForeach(ast::IActivityForeach *i) { }
+
+void TaskBuildActivity::visitActivitySelect(ast::IActivitySelect *i) { }
+
+void TaskBuildActivity::visitActivityIfElse(ast::IActivityIfElse *i) { }
+
+void TaskBuildActivity::visitActivityMatch(ast::IActivityMatch *i) { }
+
+void TaskBuildActivity::visitActivityReplicate(ast::IActivityReplicate *i) { }
+
+void TaskBuildActivity::visitActivitySuper(ast::IActivitySuper *i) { }
+
+dmgr::IDebug *TaskBuildActivity::m_dbg = 0;
 
 }
 }

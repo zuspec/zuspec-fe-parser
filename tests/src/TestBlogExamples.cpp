@@ -48,7 +48,7 @@ component memtest_c {
     addr_handle_t       base_addr;
 
     action Write {
-        rand executor_claim_s<core_s> core;
+        rand executor_claim_s<core_s> core1;
         rand bit[64] in [0..0xFFFFFF] offset;
         rand bit[32] in [1..256]      words;
 
@@ -62,7 +62,7 @@ component memtest_c {
     }
 
     action Copy {
-        rand executor_claim_s<core_s> core;
+        rand executor_claim_s<core_s> core2;
         rand bit[64] in [0..0xFFFFFF] src;
         rand bit[64] in [0..0xFFFFFF] dst;
         rand bit[32] in [1..256]      words;
@@ -82,7 +82,7 @@ component memtest_c {
     }
 
     action Check {
-        rand executor_claim_s<core_s> core;
+        rand executor_claim_s<core_s> core3;
         rand bit[64] in [0..0xFFFFFF] offset;
         rand bit[32] in [1..256]      words;
 
@@ -133,6 +133,7 @@ component pss_top {
     executor_group_c<core_s>   cores;
     transparent_addr_space_c<> aspace;
     memtest_c                  memtest;
+
 
     exec init {
         foreach (core[i]) {
@@ -203,7 +204,11 @@ component pss_top {
 
     ASSERT_FALSE(marker_c->hasSeverity(MarkerSeverityE::Error));
 
-    ASSERT_TRUE(m_ctxt->findDataTypeComponent("pss_top"));
+    arl::dm::IDataTypeComponent *pss_top;
+    ASSERT_TRUE((pss_top=m_ctxt->findDataTypeComponent("pss_top")));
+    ASSERT_EQ(pss_top->getFields().size(), 1+4); // always a comp-id
+    arl::dm::IDataTypeComponent *memtest_c;
+    ASSERT_TRUE((memtest_c=m_ctxt->findDataTypeComponent("memtest_c")));
     // ASSERT_TRUE(m_ctxt->findDataTypeAction("pss_top::A"));
     // ASSERT_TRUE(m_ctxt->findDataTypeAction("pss_top::B"));
     // ASSERT_EQ(m_ctxt->findDataTypeComponent("pss_top")->getActionTypes().size(), 2);

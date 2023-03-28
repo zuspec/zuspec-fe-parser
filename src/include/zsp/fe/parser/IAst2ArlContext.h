@@ -51,11 +51,15 @@ public:
 
     virtual void popSymScope() = 0;
 
+    virtual ast::IScopeChild *resolveRefPath(const ast::ISymbolRefPath *ref) = 0;
+
     virtual ast::ISymbolScope *typeScope() const = 0;
 
     virtual vsc::dm::IDataTypeStruct *findType(ast::IScopeChild *t) = 0;
 
     virtual void addType(ast::IScopeChild *t, vsc::dm::IDataTypeStruct *dmt) = 0;
+
+    virtual vsc::dm::IDataTypeStruct *getType(ast::IScopeChild *t) = 0;
 
 };
 
