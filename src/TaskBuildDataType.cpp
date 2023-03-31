@@ -201,6 +201,12 @@ void TaskBuildDataType::visitDataTypeUserDefined(ast::IDataTypeUserDefined *i) {
 
     ast::IScopeChild *target = resolvePath(i->getType_id()->getTarget());
 
+    DEBUG("target=%p", target);
+
+    vsc::dm::IDataType *tt = m_ctxt->getType(target);
+
+    DEBUG("tt=%p", tt);
+
     target->accept(m_this);
 
     DEBUG_LEAVE("visitDataTypeUserDefined");
@@ -209,6 +215,9 @@ void TaskBuildDataType::visitDataTypeUserDefined(ast::IDataTypeUserDefined *i) {
 void TaskBuildDataType::visitStruct(ast::IStruct *i) {
     DEBUG_ENTER("visitStruct %p", i->getParams());
     if (!m_depth && !(m_type=findType(i))) {
+        if (!i->getParams() || i->getParams()->getSpecialized()) {
+
+//        if (!i->getParams() || i->getParams())
         // We're at top level and the type doesn't exist yet, so let's do it!
     
         std::string fullname = getNamespacePrefix() + i->getName()->getId();
@@ -221,6 +230,9 @@ void TaskBuildDataType::visitStruct(ast::IStruct *i) {
         buildType(struct_t, dynamic_cast<ast::ISymbolTypeScope *>(m_ctxt->symScope()));
 
         m_type = struct_t;
+        } else {
+            DEBUG("Skip building type for unspecialized template");
+        }
     }
 
     // Note: there won't be any other types declared inside a struct
