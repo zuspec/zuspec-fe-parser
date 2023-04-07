@@ -21,6 +21,7 @@
 #include "dmgr/impl/DebugMacros.h"
 #include "Ast2ArlContext.h"
 #include "zsp/parser/impl/TaskResolveSymbolPathRef.h"
+#include "zsp/parser/impl/TaskGetName.h"
 
 
 namespace zsp {
@@ -48,26 +49,59 @@ Ast2ArlContext::~Ast2ArlContext() {
 }
 
 void Ast2ArlContext::pushSymScope(ast::ISymbolScope *s) {
+    DEBUG_ENTER("pushSymScope %s -> %d", 
+        s->getName().c_str(),
+        (m_scope_s.size())?m_scope_s.back().size()+1:1);
     if (dynamic_cast<ast::ISymbolTypeScope *>(s) || dynamic_cast<ast::ISymbolFunctionScope *>(s)) {
         m_type_s_idx = m_scope_s.size();
         DEBUG("PUSH: m_type_s_idx=%d", m_type_s_idx);
     }
 
-    m_scope_s.push_back(s);
+    if (!m_scope_s.size()) {
+        m_scope_s.push_back({s});
+    } else {
+        m_scope_s.back().push_back(s);
+    }
+    DEBUG_LEAVE("pushSymScope");
 }
 
 void Ast2ArlContext::popSymScope() {
-    m_scope_s.pop_back();
+    DEBUG_ENTER("popSymScope %s -> %d", 
+        m_scope_s.back().back()->getName().c_str(),
+        (m_scope_s.size())?m_scope_s.back().size()+1:1);
+    m_scope_s.back().pop_back();
+
+    if (m_scope_s.back().size() == 0) {
+        DEBUG("WARNING: size is now zero");
+    }
 
     if (m_scope_s.size() && (
-            dynamic_cast<ast::ISymbolTypeScope *>(m_scope_s.back()) ||
-            dynamic_cast<ast::ISymbolFunctionScope *>(m_scope_s.back()))) {
+            dynamic_cast<ast::ISymbolTypeScope *>(m_scope_s.back().back()) ||
+            dynamic_cast<ast::ISymbolFunctionScope *>(m_scope_s.back().back()))) {
         m_type_s_idx = m_scope_s.size()-1;
         DEBUG("POP: m_type_s_idx=%d", m_type_s_idx);
     } else {
         m_type_s_idx = -1;
         DEBUG("POP: m_type_s_idx=%d", m_type_s_idx);
     }
+
+    DEBUG_LEAVE("popSymScope");
+}
+
+void Ast2ArlContext::pushSymScopeStack(ast::ISymbolScope *s) {
+    DEBUG_ENTER("pushSymScopeStack");
+    if (!s) {
+        s = m_scope_s.back().front();
+    }
+    DEBUG("s=%s", s->getName().c_str());
+    m_scope_s.push_back({s});
+    DEBUG_LEAVE("pushSymScopeStack");
+}
+
+void Ast2ArlContext::popSymScopeStack() {
+    DEBUG_ENTER("popSymStack");
+    m_scope_s.pop_back();
+    DEBUG_LEAVE("popSymStack");
 }
 
 ast::IScopeChild *Ast2ArlContext::resolveRefPath(const ast::ISymbolRefPath *ref) {
@@ -80,7 +114,7 @@ ast::IScopeChild *Ast2ArlContext::resolveRefPath(const ast::ISymbolRefPath *ref)
 
     ast::IScopeChild *ret = zsp::parser::TaskResolveSymbolPathRef(
         m_factory->getDebugMgr(),
-        m_scope_s.front()).resolve(ref);
+        m_scope_s.back().front()).resolve(ref);
     DEBUG_ENTER("resolveRefPath");
     return ret;
 }
@@ -106,7 +140,8 @@ vsc::dm::IDataTypeStruct *Ast2ArlContext::getType(ast::IScopeChild *t) {
 
     if (it == m_type_m.end()) {
         // Failed to find
-        DEBUG("TODO: failed to find type %p", t);
+        DEBUG("TODO: failed to find type %p (%s)", 
+            t, zsp::parser::TaskGetName().get(t).c_str());
         for (it=m_type_m.begin(); it!=m_type_m.end(); it++) {
             DEBUG("  Type: %p %s", it->first, it->second->name().c_str());
         }

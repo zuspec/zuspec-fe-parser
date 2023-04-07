@@ -51,6 +51,10 @@ public:
 
     virtual void popSymScope() = 0;
 
+    virtual void pushSymScopeStack(ast::ISymbolScope *s=0) = 0;
+
+    virtual void popSymScopeStack() = 0;
+
     virtual ast::IScopeChild *resolveRefPath(const ast::ISymbolRefPath *ref) = 0;
 
     virtual ast::ISymbolScope *typeScope() const = 0;

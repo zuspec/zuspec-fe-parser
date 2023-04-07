@@ -47,7 +47,9 @@ void Ast2ArlBuilder::build(
         IAst2ArlContext                 *ctxt) {
     m_ctxt = ctxt;
 
+    m_ctxt->pushSymScopeStack(root);
     root->accept(this);
+    m_ctxt->popSymScopeStack();
 
     m_ctxt = 0;
 }

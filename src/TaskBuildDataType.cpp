@@ -52,18 +52,30 @@ vsc::dm::IDataType *TaskBuildDataType::build(ast::IScopeChild *type) {
 }
 
 void TaskBuildDataType::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
-    DEBUG_ENTER("visitSymbolTypeScope");
-#ifdef UNDEFINED
-    if (i->getPlist()) {
-        DEBUG("Note: this is an unspecialized template type ; not building");
+    DEBUG_ENTER("visitSymbolTypeScope %s", i->getName().c_str());
+    ast::ITypeScope *i_ts = dynamic_cast<ast::ITypeScope *>(i->getTarget());
+
+    if (i_ts->getParams()) {
+        DEBUG("Type has parameters");
+        if (i_ts->getParams()->getSpecialized()) {
+            DEBUG("Type is specialized (%p)", i->getTarget());
+            m_ctxt->pushSymScope(i);
+            i->getTarget()->accept(this);
+            m_ctxt->popSymScope();
+        } else {
+            DEBUG("Type is unspecialized (%d specializations)", i->getSpec_types().size());
+            for (std::vector<ast::ISymbolTypeScopeUP>::const_iterator
+                it=i->getSpec_types().begin();
+                it!=i->getSpec_types().end(); it++) {
+                (*it)->accept(this);
+            }
+        }
     } else {
-#endif
         m_ctxt->pushSymScope(i);
         i->getTarget()->accept(this);
         m_ctxt->popSymScope();
-#ifdef UNDEFINED
     }
-#endif
+
     DEBUG_LEAVE("visitSymbolTypeScope");
 }
 
@@ -199,7 +211,7 @@ void TaskBuildDataType::visitDataTypeUserDefined(ast::IDataTypeUserDefined *i) {
         DEBUG("  Elem: kind=%d idx=%d", it->kind, it->idx);
     }
 
-    ast::IScopeChild *target = resolvePath(i->getType_id()->getTarget());
+    ast::ISymbolTypeScope *target = resolveTypePath(i->getType_id()->getTarget());
 
     DEBUG("target=%p", target);
 
@@ -347,49 +359,16 @@ vsc::dm::IDataType *TaskBuildDataType::findType(ast::IScopeChild *ast_t) {
 
 ast::IScopeChild *TaskBuildDataType::resolvePath(ast::ISymbolRefPath *ref) {
     ast::ISymbolScope *scope = m_ctxt->symScopes().at(0);
-    return zsp::parser::TaskResolveSymbolPathRef(m_ctxt->getDebugMgr(), scope).resolve(ref);
-#ifdef UNDEFINED
-    ast::IScopeChild *ret = 0;
+    return zsp::parser::TaskResolveSymbolPathRef(
+        m_ctxt->getDebugMgr(), 
+        scope).resolve(ref);
+}
+
+ast::ISymbolTypeScope *TaskBuildDataType::resolveTypePath(ast::ISymbolRefPath *ref) {
     ast::ISymbolScope *scope = m_ctxt->symScopes().at(0);
-
-    for (uint32_t i=0; i<ref->getPath().size(); i++) {
-        switch (ref->getPath().at(i).kind) {
-            case ast::SymbolRefPathElemKind::ElemKind_ChildIdx: {
-                ret = scope->getChildren().at(i);
-
-                if (i+1 < ref->getPath().size()) {
-                    scope = dynamic_cast<ast::ISymbolScope *>(ret);
-                }
-            } break;
-
-            case ast::SymbolRefPathElemKind::ElemKind_ParamIdx: {
-                DEBUG("TODO: ElemKind_ParamIdx");
-            } break;
-
-            case ast::SymbolRefPathElemKind::ElemKind_Super: {
-                DEBUG("TODO: ElemKind_Super");
-            } break;
-
-            case ast::SymbolRefPathElemKind::ElemKind_TypeSpec: {
-                ast::ISymbolTypeScope *type_s = dynamic_cast<ast::ISymbolTypeScope *>(scope);
-                DEBUG("TODO: ElemKind_TypeSpec %s (%p)", 
-                    scope->getName().c_str(),
-                    type_s);
-                ret = type_s->getSpec_types().at(ref->getPath().at(i).idx).get();
-
-                if (i+1 < ref->getPath().size()) {
-                    scope = dynamic_cast<ast::ISymbolScope *>(ret);
-                }
-            } break;
-            
-            default: {
-                DEBUG("TODO: Unhandled kind");
-            }
-        }
-    }
-
-    return ret;
-#endif
+    return zsp::parser::TaskResolveSymbolPathRef(
+        m_ctxt->getDebugMgr(), 
+        scope).resolveSymbolTypeScope(ref);
 }
 
 dmgr::IDebug *TaskBuildDataType::m_dbg = 0;

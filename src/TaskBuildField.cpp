@@ -46,7 +46,9 @@ vsc::dm::ITypeField *TaskBuildField::build(ast::IScopeChild *f) {
 
 void TaskBuildField::visitField(ast::IField *i) { 
     DEBUG_ENTER("visitField %s", i->getName()->getId().c_str());
+    m_ctxt->pushSymScopeStack();
     vsc::dm::IDataType *dt = TaskBuildDataType(m_ctxt).build(i->getType());
+    m_ctxt->popSymScopeStack();
     vsc::dm::TypeFieldAttr attr = vsc::dm::TypeFieldAttr::NoAttr;
     vsc::dm::IModelVal *init = 0;
 

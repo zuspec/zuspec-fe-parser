@@ -97,6 +97,8 @@ private:
 
     ast::IScopeChild *resolvePath(ast::ISymbolRefPath *ref);
 
+    ast::ISymbolTypeScope *resolveTypePath(ast::ISymbolRefPath *ref);
+
 private:
     static dmgr::IDebug                                         *m_dbg;
     IAst2ArlContext                                             *m_ctxt;
