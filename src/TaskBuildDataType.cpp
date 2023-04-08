@@ -211,17 +211,24 @@ void TaskBuildDataType::visitDataTypeUserDefined(ast::IDataTypeUserDefined *i) {
         DEBUG("  Elem: kind=%d idx=%d", it->kind, it->idx);
     }
 
-    ast::ISymbolTypeScope *target = resolveTypePath(i->getType_id()->getTarget());
+    zsp::parser::TaskResolveSymbolPathRefResult result = resolveTypePath(i->getType_id()->getTarget());
 
-    DEBUG("target=%p", target);
+    DEBUG("kind=%d", result.kind);
+    fflush(stdout);
 
-    vsc::dm::IDataType *tt = m_ctxt->getType(target);
+    switch (result.kind) {
+        case zsp::parser::TaskResolveSymbolPathRefResult::SymbolTypeScope:
+            result.val.ts->accept(m_this);
+            break;
+        case zsp::parser::TaskResolveSymbolPathRefResult::DataType:
+            result.val.dt->accept(m_this);
+            break;
+        default:
+            DEBUG("Unhandled case");
+            break;
+    }
 
-    DEBUG("tt=%p", tt);
-
-    target->accept(m_this);
-
-    DEBUG_LEAVE("visitDataTypeUserDefined");
+    DEBUG_LEAVE("visitDataTypeUserDefined (%p)", m_type);
 }
 
 void TaskBuildDataType::visitStruct(ast::IStruct *i) {
@@ -364,11 +371,11 @@ ast::IScopeChild *TaskBuildDataType::resolvePath(ast::ISymbolRefPath *ref) {
         scope).resolve(ref);
 }
 
-ast::ISymbolTypeScope *TaskBuildDataType::resolveTypePath(ast::ISymbolRefPath *ref) {
+zsp::parser::TaskResolveSymbolPathRefResult TaskBuildDataType::resolveTypePath(ast::ISymbolRefPath *ref) {
     ast::ISymbolScope *scope = m_ctxt->symScopes().at(0);
     return zsp::parser::TaskResolveSymbolPathRef(
         m_ctxt->getDebugMgr(), 
-        scope).resolveSymbolTypeScope(ref);
+        scope).resolveFull(ref);
 }
 
 dmgr::IDebug *TaskBuildDataType::m_dbg = 0;

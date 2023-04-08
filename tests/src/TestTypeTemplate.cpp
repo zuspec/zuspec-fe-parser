@@ -91,11 +91,9 @@ TEST_F(TestTypeTemplate, smoke) {
     // ASSERT_TRUE(m_ctxt->findDataTypeAction("pss_top::B"));
     // ASSERT_EQ(m_ctxt->findDataTypeComponent("pss_top")->getActionTypes().size(), 2);
 
-/*
     dumpJSON({
         Ext
         });
- */
 }
 
 }

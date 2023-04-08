@@ -29,6 +29,7 @@
 #include "zsp/ast/impl/VisitorBase.h"
 #include "zsp/fe/parser/IAst2ArlContext.h"
 #include "vsc/dm/IDataTypeStruct.h"
+#include "zsp/parser/impl/TaskResolveSymbolPathRefResult.h"
 
 namespace zsp {
 namespace fe {
@@ -97,7 +98,7 @@ private:
 
     ast::IScopeChild *resolvePath(ast::ISymbolRefPath *ref);
 
-    ast::ISymbolTypeScope *resolveTypePath(ast::ISymbolRefPath *ref);
+    zsp::parser::TaskResolveSymbolPathRefResult resolveTypePath(ast::ISymbolRefPath *ref);
 
 private:
     static dmgr::IDebug                                         *m_dbg;
