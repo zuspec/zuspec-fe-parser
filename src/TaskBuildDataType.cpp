@@ -148,7 +148,7 @@ void TaskBuildDataType::visitComponent(ast::IComponent *i) {
 
 void TaskBuildDataType::visitDataTypeBool(ast::IDataTypeBool *i) { 
     DEBUG_ENTER("visitDataTypeBool");
-
+    m_type = m_ctxt->ctxt()->getDataTypeBool();
     DEBUG_LEAVE("visitDataTypeBool");
 }
 
