@@ -37,3 +37,6 @@ build/
 python/core.cpp
 python/core.h
 python/zsp_fe_parser/*.so
+
+__pycache__/
+

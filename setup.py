@@ -149,6 +149,11 @@ include_dirs=[]
 
 include_dirs.append(os.path.join(zuspec_fe_parser_dir, "src/include"))
 include_dirs.append(os.path.join(packages_dir, "debug-mgr/src/include"))
+include_dirs.append(os.path.join(packages_dir, "vsc-dm/src/include"))
+include_dirs.append(os.path.join(packages_dir, "vsc-dm/python"))
+include_dirs.append(os.path.join(packages_dir, "zuspec-arl-dm/src/include"))
+include_dirs.append(os.path.join(packages_dir, "zuspec-parser/build/include"))
+include_dirs.append(os.path.join(packages_dir, "zuspec-parser/python"))
 
 build_dir = os.path.join(zuspec_fe_parser_dir, "build")
 
