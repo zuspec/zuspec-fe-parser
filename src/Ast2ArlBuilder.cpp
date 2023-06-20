@@ -89,6 +89,33 @@ static std::map<ast::ParamDir, arl::dm::ParamDir> param_dir_m = {
 void Ast2ArlBuilder::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
     DEBUG_ENTER("visitSymbolFunctionScope \"%s\"", i->getName().c_str());
 
+    ast::IFunctionPrototype *proto = i->getPrototypes().at(0);
+//    ast::IScopeChild *rtype = i->getDefinition()->getProto()->getRtype();
+    ast::IScopeChild *rtype = proto->getRtype();
+    arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->mkDataTypeFunction(
+        i->getName(),
+        rtype?TaskBuildDataType(m_ctxt).build(rtype):0,
+        false);
+
+    // Bring across the function parameters
+    for (std::vector<ast::IFunctionParamDeclUP>::const_iterator
+        it=proto->getParameters().begin();
+        it!=proto->getParameters().end(); it++) {
+        std::string name = (*it)->getName()->getId();
+        arl::dm::ParamDir dir = param_dir_m.find((*it)->getDir())->second;
+        vsc::dm::IDataType *type = TaskBuildDataType(m_ctxt).build((*it)->getType());
+        vsc::dm::ITypeExpr *dflt = ((*it)->getDflt())?TaskBuildExpr(m_ctxt).build((*it)->getDflt()):0;
+        arl::dm::IDataTypeFunctionParamDecl *param = 
+        m_ctxt->ctxt()->mkDataTypeFunctionParamDecl(
+            name,
+            dir,
+            type,
+            false,
+            dflt
+        );
+        func->addParameter(param);
+    }
+    m_ctxt->ctxt()->addDataTypeFunction(func);
 
     if (i->getDefinition()) {
         // Local implementation
@@ -96,30 +123,6 @@ void Ast2ArlBuilder::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
 
         m_ctxt->pushSymScope(i);
 
-        ast::IScopeChild *rtype = i->getDefinition()->getProto()->getRtype();
-        arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->mkDataTypeFunction(
-            i->getName(),
-            rtype?TaskBuildDataType(m_ctxt).build(rtype):0,
-            false);
-
-        // Bring across the function parameters
-        for (std::vector<ast::IFunctionParamDeclUP>::const_iterator
-            it=i->getDefinition()->getProto()->getParameters().begin();
-            it!=i->getDefinition()->getProto()->getParameters().end(); it++) {
-            std::string name = (*it)->getName()->getId();
-            arl::dm::ParamDir dir = param_dir_m.find((*it)->getDir())->second;
-            vsc::dm::IDataType *type = TaskBuildDataType(m_ctxt).build((*it)->getType());
-            vsc::dm::ITypeExpr *dflt = ((*it)->getDflt())?TaskBuildExpr(m_ctxt).build((*it)->getDflt()):0;
-            arl::dm::IDataTypeFunctionParamDecl *param = 
-            m_ctxt->ctxt()->mkDataTypeFunctionParamDecl(
-                name,
-                dir,
-                type,
-                false,
-                dflt
-            );
-            func->addParameter(param);
-        }
 
         m_ctxt->pushSymScope(i->getBody());
         // Build the function body
@@ -130,10 +133,10 @@ void Ast2ArlBuilder::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
 
         m_ctxt->popSymScope();
         m_ctxt->popSymScope();
-        m_ctxt->ctxt()->addDataTypeFunction(func);
     } else {
         // 
         DEBUG("Import function");
+        func->addImportSpec(m_ctxt->ctxt()->mkDataTypeFunctionImport(""));
     }
 
     DEBUG_LEAVE("visitSymbolFunctionScope %s", i->getName().c_str());
