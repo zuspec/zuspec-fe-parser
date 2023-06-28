@@ -33,9 +33,10 @@ Ast2ArlContext::Ast2ArlContext(
     dmgr::IDebugMgr                         *dmgr,
     zsp::parser::IFactory                   *factory,
     zsp::parser::IMarkerListener            *marker_l,
-    arl::dm::IContext                       *ctxt) :
+    arl::dm::IContext                       *ctxt,
+    ast::ISymbolScope                       *root) :
         m_dmgr(dmgr), m_factory(factory), m_marker_l(marker_l),
-        m_ctxt(ctxt), m_marker(
+        m_ctxt(ctxt), m_root(root), m_marker(
             factory->mkMarker(
                 "", 
                 zsp::parser::MarkerSeverityE::Error,

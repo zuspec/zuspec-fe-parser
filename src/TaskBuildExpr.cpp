@@ -19,7 +19,10 @@
  *     Author:
  */
 #include "dmgr/impl/DebugMacros.h"
+#include "zsp/parser/impl/TaskResolveSymbolPathRef.h"
+#include "zsp/parser/impl/TaskGetName.h"
 #include "TaskBuildExpr.h"
+#include "TaskResolveGlobalRef.h"
 
 
 namespace zsp {
@@ -200,6 +203,7 @@ void TaskBuildExpr::visitExprRefPathId(ast::IExprRefPathId *i) {
     
 void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) { 
     DEBUG_ENTER("visitExprRefPathContext");
+
     for (std::vector<ast::SymbolRefPathElem>::const_iterator
         it=i->getTarget()->getPath().begin();
         it!=i->getTarget()->getPath().end(); it++) {
@@ -251,8 +255,33 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
             ref->addPathElem(i->getTarget()->getPath().back().idx);
             m_expr = ref;
         }
+    } else if (i->getHier_id()->getElems().at(0)->getParams()) {
+        DEBUG("Function call %p", i->getTarget());
+        DEBUG("Function call %p", i->getHier_id()->getElems().at(0)->getTarget());
+
+        zsp::parser::TaskResolveSymbolPathRef resolver(
+            m_ctxt->getDebugMgr(),
+            m_ctxt->getRoot());
+        
+        zsp::ast::IScopeChild *t = resolver.resolve(i->getTarget());
+        std::string fname = zsp::parser::TaskGetName().get(t, true);
+        DEBUG("Function Name: %s", fname.c_str());
+        arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->findDataTypeFunction(fname);
+        arl::dm::ITypeExprMethodCallStaticUP call_e(
+            m_ctxt->ctxt()->mkTypeExprMethodCallStatic(
+                func,
+                {}
+            ));
+        m_expr = call_e.release();
     } else {
         DEBUG("Static (type) reference, since we didn't encounter the type context");
+        // Could be
+        // Package
+        // TypeScope
+        // Function
+        // 
+//        TaskResolveGlobalRef(m_ctxt).resolve(i->getTarget());
+//        vsc::dm::IDataType *type = 
     }
 
 

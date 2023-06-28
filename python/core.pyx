@@ -45,9 +45,11 @@ cdef class Factory:
     cpdef Ast2ArlContext mkAst2ArlContext(
         self,
         arl_dm.Context              ctxt,
+        ast.SymbolScope             root,
         zspp.MarkerListener         marker_l):
         return Ast2ArlContext.mk(self._hndl.mkAst2ArlContext(
             ctxt.asContext(),
+            root.asSymbolScope(),
             marker_l._hndl), True)
 
     @staticmethod

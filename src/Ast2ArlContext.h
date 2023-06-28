@@ -40,7 +40,8 @@ public:
         dmgr::IDebugMgr                     *dmgr,
         zsp::parser::IFactory               *factory,
         zsp::parser::IMarkerListener        *marker_l,
-        arl::dm::IContext                   *ctxt
+        arl::dm::IContext                   *ctxt,
+        ast::ISymbolScope                   *root
     );
 
     virtual ~Ast2ArlContext();
@@ -85,6 +86,10 @@ public:
     virtual void addType(ast::IScopeChild *t, vsc::dm::IDataTypeStruct *dmt) override;
 
     vsc::dm::IDataTypeStruct *getType(ast::IScopeChild *t);
+    
+    virtual ast::ISymbolScope *getRoot() override {
+        return m_root;
+    }
 
 private:
 
@@ -95,6 +100,7 @@ private:
     zsp::parser::IFactory                                           *m_factory;
     zsp::parser::IMarkerListener                                    *m_marker_l;
     arl::dm::IContext                                               *m_ctxt;
+    ast::ISymbolScope                                               *m_root;
     zsp::parser::IMarkerUP                                          m_marker;
     std::vector<std::vector<ast::ISymbolScope *>>                   m_scope_s;
     std::map<ast::IScopeChild *, vsc::dm::IDataTypeStruct *>        m_type_m;

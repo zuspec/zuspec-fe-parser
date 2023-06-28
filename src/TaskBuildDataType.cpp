@@ -23,6 +23,7 @@
 #include "TaskBuildActivity.h"
 #include "TaskBuildDataType.h"
 #include "TaskBuildField.h"
+#include "TaskBuildTypeExecs.h"
 #include "zsp/parser/impl/TaskResolveSymbolPathRef.h"
 
 
@@ -49,6 +50,11 @@ vsc::dm::IDataType *TaskBuildDataType::build(ast::IScopeChild *type) {
     DEBUG_LEAVE("build");
 
     return m_type;
+}
+
+void TaskBuildDataType::visitSymbolExecScope(ast::ISymbolExecScope *i) {
+    DEBUG_ENTER("visitSymbolExecScope (depth=%d)", m_depth);
+    DEBUG_LEAVE("visitSymbolExecScope (depth=%d)", m_depth);
 }
 
 void TaskBuildDataType::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
@@ -231,6 +237,16 @@ void TaskBuildDataType::visitDataTypeUserDefined(ast::IDataTypeUserDefined *i) {
     DEBUG_LEAVE("visitDataTypeUserDefined (%p)", m_type);
 }
 
+void TaskBuildDataType::visitExecBlock(ast::IExecBlock *i) {
+    DEBUG_ENTER("visitExecBlock");
+    DEBUG_LEAVE("visitExecBlock");
+}
+
+void TaskBuildDataType::visitExecScope(ast::IExecScope *i) {
+    DEBUG_ENTER("visitExecScope");
+    DEBUG_LEAVE("visitExecScope");
+}
+
 void TaskBuildDataType::visitStruct(ast::IStruct *i) {
     DEBUG_ENTER("visitStruct %p", i->getParams());
     if (!m_depth && !(m_type=findType(i))) {
@@ -302,7 +318,8 @@ void TaskBuildDataType::visitFieldClaim(ast::IFieldClaim *i) {
 void TaskBuildDataType::buildType(
         vsc::dm::IDataTypeStruct    *arl_type,
         ast::ISymbolTypeScope       *ast_type) {
-    DEBUG_ENTER("buildType %s", arl_type->name().c_str());
+    DEBUG_ENTER("buildType %s (%d)", arl_type->name().c_str(), m_depth);
+
     m_depth++;
 
     m_field_off = 0;
@@ -317,7 +334,12 @@ void TaskBuildDataType::buildType(
     m_type_s.pop_back();
 
     m_depth--;
-    DEBUG_LEAVE("buildType");
+
+    TaskBuildTypeExecs(m_ctxt).build(
+        dynamic_cast<arl::dm::IDataTypeArlStruct *>(arl_type), 
+        ast_type);
+
+    DEBUG_LEAVE("buildType (%d)", m_depth);
 }
 
 void TaskBuildDataType::buildTypeFields(
@@ -345,6 +367,15 @@ void TaskBuildDataType::buildTypeFields(
         (*it)->accept(m_this);
     }
     DEBUG_LEAVE("buildTypeFields %d", m_depth);
+}
+
+void TaskBuildDataType::buildTypeExecs(
+        std::vector<int32_t>        &off_l,
+        vsc::dm::IDataTypeStruct    *arl_type,
+        ast::ISymbolTypeScope       *ast_type) {
+    DEBUG_ENTER("buildTypeExecs");
+
+    DEBUG_LEAVE("buildTypeExecs");
 }
 
 std::string TaskBuildDataType::getNamespacePrefix() {

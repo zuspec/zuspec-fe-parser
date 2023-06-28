@@ -44,6 +44,7 @@ public:
 
     virtual IAst2ArlContext *mkAst2ArlContext(
         arl::dm::IContext               *ctxt,
+        ast::ISymbolScope               *root,
         zsp::parser::IMarkerListener    *marker_l) = 0;
 
 };

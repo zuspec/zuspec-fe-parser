@@ -22,8 +22,8 @@
 #include "Ast2ArlBuilder.h"
 #include "TaskBuildDataType.h"
 #include "TaskBuildEnumType.h"
-#include "TaskBuildExecBody.h"
 #include "TaskBuildExpr.h"
+#include "TaskBuildTypeExecStmt.h"
 
 namespace zsp {
 namespace fe {
@@ -90,12 +90,30 @@ void Ast2ArlBuilder::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
     DEBUG_ENTER("visitSymbolFunctionScope \"%s\"", i->getName().c_str());
 
     ast::IFunctionPrototype *proto = i->getPrototypes().at(0);
+    bool is_target = proto->getIs_target();
+    bool is_solve  = proto->getIs_solve();
+
+    if (!i->getDefinition()) {
+        for (std::vector<ast::IFunctionImport *>::const_iterator
+            it=i->getImport_specs().begin();
+            it!=i->getImport_specs().end(); it++) {
+            is_target |= (*it)->getIs_target();
+            is_solve |= (*it)->getIs_solve();
+        }
+
+        if (is_target && is_solve) {
+            is_target = false;
+            is_solve = false;
+        }
+    }
 //    ast::IScopeChild *rtype = i->getDefinition()->getProto()->getRtype();
     ast::IScopeChild *rtype = proto->getRtype();
     arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->mkDataTypeFunction(
         i->getName(),
         rtype?TaskBuildDataType(m_ctxt).build(rtype):0,
-        false);
+        false,
+        is_target,
+        is_solve);
 
     // Bring across the function parameters
     for (std::vector<ast::IFunctionParamDeclUP>::const_iterator
@@ -125,18 +143,20 @@ void Ast2ArlBuilder::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
 
 
         m_ctxt->pushSymScope(i->getBody());
-        // Build the function body
-        TaskBuildExecBody(m_ctxt).build(
-            func->getBody(),
-            i->getDefinition()->getBody()
-        );
+        for (std::vector<ast::IExecStmtUP>::const_iterator
+            it=i->getDefinition()->getBody()->getChildren().begin();
+            it!= i->getDefinition()->getBody()->getChildren().end(); it++) {
+            TaskBuildTypeExecStmt(m_ctxt).build(
+                func->getBody(),
+                it->get());
+        }
 
         m_ctxt->popSymScope();
         m_ctxt->popSymScope();
     } else {
-        // 
         DEBUG("Import function");
-        func->addImportSpec(m_ctxt->ctxt()->mkDataTypeFunctionImport(""));
+        func->addImportSpec(m_ctxt->ctxt()->mkDataTypeFunctionImport(
+            "", is_target, is_solve));
     }
 
     DEBUG_LEAVE("visitSymbolFunctionScope %s", i->getName().c_str());

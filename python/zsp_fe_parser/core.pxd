@@ -37,6 +37,7 @@ cdef class Factory:
     cpdef Ast2ArlContext mkAst2ArlContext(
         self,
         arl_dm.Context         ctxt,
+        ast.SymbolScope        root,
         zspp.MarkerListener    marker_l)
 
 cdef class Ast2ArlBuilder:

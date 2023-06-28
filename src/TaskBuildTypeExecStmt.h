@@ -1,5 +1,5 @@
 /**
- * TaskBuildExecBody.h
+ * TaskBuildTypeExecStmt.h
  *
  * Copyright 2022 Matthew Ballance and Contributors
  *
@@ -33,15 +33,15 @@ namespace parser {
 
 
 
-class TaskBuildExecBody : public ast::VisitorBase {
+class TaskBuildTypeExecStmt : public ast::VisitorBase {
 public:
-    TaskBuildExecBody(IAst2ArlContext *ctxt);
+    TaskBuildTypeExecStmt(IAst2ArlContext *ctxt);
 
-    virtual ~TaskBuildExecBody();
+    virtual ~TaskBuildTypeExecStmt();
 
     virtual void build(
         arl::dm::ITypeProcStmtScope     *scope,
-        ast::IExecStmt                  *stmt);
+        ast::IScopeChild                *stmt);
 
     virtual void visitProceduralStmtAssignment(ast::IProceduralStmtAssignment *i) override;
     

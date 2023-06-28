@@ -45,6 +45,8 @@ public:
 
     vsc::dm::IDataType *build(ast::IScopeChild *type);
 
+    virtual void visitSymbolExecScope(ast::ISymbolExecScope *i) override;
+
     virtual void visitSymbolTypeScope(ast::ISymbolTypeScope *i) override;
 
     virtual void visitAction(ast::IAction *i) override;
@@ -65,6 +67,10 @@ public:
 
     virtual void visitDataTypeUserDefined(ast::IDataTypeUserDefined *i) override;
 
+    virtual void visitExecBlock(ast::IExecBlock *i) override;
+
+    virtual void visitExecScope(ast::IExecScope *i) override;
+
     virtual void visitStruct(ast::IStruct *i) override;
 
     /**
@@ -84,6 +90,11 @@ private:
         ast::ISymbolTypeScope   *ast_type);
 
     void buildTypeFields(
+        std::vector<int32_t>        &off_l,
+        vsc::dm::IDataTypeStruct    *arl_type,
+        ast::ISymbolTypeScope       *ast_type);
+
+    void buildTypeExecs(
         std::vector<int32_t>        &off_l,
         vsc::dm::IDataTypeStruct    *arl_type,
         ast::ISymbolTypeScope       *ast_type);

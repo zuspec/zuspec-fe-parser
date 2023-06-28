@@ -37,6 +37,7 @@ cdef extern from "zsp/fe/parser/IFactory.h" namespace "zsp::fe::parser":
 
         IAst2ArlContext *mkAst2ArlContext(
             arl_dm.IContext         *ctxt,
+            ast_decl.ISymbolScope   *root,
             zspp.IMarkerListener    *marker_l)
 
 cdef extern from "zsp/fe/parser/IAst2ArlBuilder.h" namespace "zsp::fe::parser":

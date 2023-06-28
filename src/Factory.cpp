@@ -54,12 +54,14 @@ IAst2ArlBuilder *Factory::mkAst2ArlBuilder() {
 
 IAst2ArlContext *Factory::mkAst2ArlContext(
     arl::dm::IContext               *ctxt,
+    ast::ISymbolScope               *root,
     zsp::parser::IMarkerListener    *marker_l) {
     return new Ast2ArlContext(
         m_dmgr,
         m_factory,
         marker_l,
-        ctxt);
+        ctxt,
+        root);
 }
 
 Factory *Factory::inst() {
