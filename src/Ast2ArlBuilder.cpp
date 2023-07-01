@@ -97,8 +97,12 @@ void Ast2ArlBuilder::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
         for (std::vector<ast::IFunctionImport *>::const_iterator
             it=i->getImport_specs().begin();
             it!=i->getImport_specs().end(); it++) {
-            is_target |= (*it)->getIs_target();
-            is_solve |= (*it)->getIs_solve();
+            if ((*it)->getPlat() == ast::PlatQual::PlatQual_Target) {
+                is_target = true;
+            }
+            if ((*it)->getPlat() == ast::PlatQual::PlatQual_Solve) {
+                is_solve = true;
+            }
         }
 
         if (is_target && is_solve) {

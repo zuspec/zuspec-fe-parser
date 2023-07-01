@@ -31,7 +31,7 @@ namespace parser {
 
 
 TaskBuildActivity::TaskBuildActivity(IAst2ArlContext *ctxt) : m_ctxt(ctxt) {
-    DEBUG_INIT("TaskBuildActivity", ctxt->getDebugMgr());
+    DEBUG_INIT("zsp::fe::parser::TaskBuildActivity", ctxt->getDebugMgr());
 }
 
 TaskBuildActivity::~TaskBuildActivity() {
@@ -140,20 +140,39 @@ void TaskBuildActivity::visitActivityActionTypeTraversal(ast::IActivityActionTyp
     } else {
         DEBUG("TODO: failed to find type");
     }
-
-    DEBUG("TODO: visitActivityActionTypeTraversal t=%p");
     DEBUG_LEAVE("visitActivityActionTypeTraversal");
 }
 
 void TaskBuildActivity::visitActivitySequence(ast::IActivitySequence *i) { 
     DEBUG_ENTER("visitActivitySequence");
-    DEBUG("TODO: visitActivitySequence");
+    arl::dm::IDataTypeActivitySequence *seq = m_ctxt->ctxt()->mkDataTypeActivitySequence();
+    m_scope_s.push_back(seq);
+    m_scope_s.back()->addActivity(m_ctxt->ctxt()->mkTypeFieldActivity("", seq, true));
+    for (std::vector<ast::IScopeChildUP>::const_iterator
+        it=i->getChildren().begin();
+        it!=i->getChildren().end(); it++) {
+        (*it)->accept(m_this);
+    }
+    m_scope_s.pop_back();
     DEBUG_LEAVE("visitActivitySequence");
 }
 
 void TaskBuildActivity::visitActivityParallel(ast::IActivityParallel *i) { 
     DEBUG_ENTER("visitActivityParallel");
-    DEBUG("TODO: visitActivityParallel");
+    arl::dm::IDataTypeActivityParallel *par = m_ctxt->ctxt()->mkDataTypeActivityParallel();
+    m_scope_s.back()->addActivity(m_ctxt->ctxt()->mkTypeFieldActivity("", par, true));
+    for (std::vector<ast::IScopeChildUP>::const_iterator
+        it=i->getChildren().begin();
+        it!=i->getChildren().end(); it++) {
+        arl::dm::IDataTypeActivitySequence *branch = m_ctxt->ctxt()->mkDataTypeActivitySequence();
+
+        m_scope_s.push_back(branch);
+
+        (*it)->accept(m_this);
+
+        par->addActivity(m_ctxt->ctxt()->mkTypeFieldActivity("", branch, true));
+        m_scope_s.pop_back();
+    }
     DEBUG_LEAVE("visitActivityParallel");
 }
 
