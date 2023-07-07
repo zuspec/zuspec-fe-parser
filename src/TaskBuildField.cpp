@@ -18,9 +18,11 @@
  * Created on:
  *     Author:
  */
-#include "dmgr/impl/DebugMacros.h"
 #include "TaskBuildDataType.h"
 #include "TaskBuildField.h"
+#include "TaskGetDataTypeAssocData.h"
+#include "dmgr/impl/DebugMacros.h"
+#include "zsp/fe/parser/IElemFactoryAssocData.h"
 
 
 namespace zsp {
@@ -47,17 +49,30 @@ vsc::dm::ITypeField *TaskBuildField::build(ast::IScopeChild *f) {
 void TaskBuildField::visitField(ast::IField *i) { 
     DEBUG_ENTER("visitField %s", i->getName()->getId().c_str());
     m_ctxt->pushSymScopeStack();
+    zsp::ast::IDataType *adt = i->getType();
+    zsp::ast::IAssocData *assoc_d = TaskGetDataTypeAssocData(m_ctxt).get(adt);
     vsc::dm::IDataType *dt = TaskBuildDataType(m_ctxt).build(i->getType());
     m_ctxt->popSymScopeStack();
     vsc::dm::TypeFieldAttr attr = vsc::dm::TypeFieldAttr::NoAttr;
     vsc::dm::IModelVal *init = 0;
 
-    m_ret = m_ctxt->ctxt()->mkTypeFieldPhy(
-        i->getName()->getId(),
-        dt,
-        false,
-        attr,
-        init);
+    if (assoc_d) {
+        IElemFactoryAssocData *elem_f = 
+            dynamic_cast<IElemFactoryAssocData *>(assoc_d);
+        m_ret = elem_f->mkTypeFieldPhy(
+            m_ctxt,
+            i->getName()->getId(),
+            i->getType(),
+            attr,
+            init);
+    } else {
+        m_ret = m_ctxt->ctxt()->mkTypeFieldPhy(
+            i->getName()->getId(),
+            dt,
+            false,
+            attr,
+            init);
+    }
 
     DEBUG_LEAVE("visitField");
 }

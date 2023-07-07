@@ -53,15 +53,16 @@ void Ast2ArlContext::pushSymScope(ast::ISymbolScope *s) {
     DEBUG_ENTER("pushSymScope %s -> %d", 
         s->getName().c_str(),
         (m_scope_s.size())?m_scope_s.back().size()+1:1);
-    if (dynamic_cast<ast::ISymbolTypeScope *>(s) || dynamic_cast<ast::ISymbolFunctionScope *>(s)) {
-        m_type_s_idx = m_scope_s.size();
-        DEBUG("PUSH: m_type_s_idx=%d", m_type_s_idx);
-    }
 
     if (!m_scope_s.size()) {
         m_scope_s.push_back({s});
     } else {
         m_scope_s.back().push_back(s);
+    }
+
+    if (dynamic_cast<ast::ISymbolTypeScope *>(s) || dynamic_cast<ast::ISymbolFunctionScope *>(s)) {
+        m_type_s_idx = m_scope_s.back().size()-1;
+        DEBUG("PUSH: m_type_s_idx=%d", m_type_s_idx);
     }
     DEBUG_LEAVE("pushSymScope");
 }
@@ -69,7 +70,7 @@ void Ast2ArlContext::pushSymScope(ast::ISymbolScope *s) {
 void Ast2ArlContext::popSymScope() {
     DEBUG_ENTER("popSymScope %s -> %d", 
         m_scope_s.back().back()->getName().c_str(),
-        (m_scope_s.size())?m_scope_s.back().size()+1:1);
+        (m_scope_s.size())?m_scope_s.back().size()-1:0);
     m_scope_s.back().pop_back();
 
     if (m_scope_s.back().size() == 0) {
@@ -79,7 +80,7 @@ void Ast2ArlContext::popSymScope() {
     if (m_scope_s.size() && (
             dynamic_cast<ast::ISymbolTypeScope *>(m_scope_s.back().back()) ||
             dynamic_cast<ast::ISymbolFunctionScope *>(m_scope_s.back().back()))) {
-        m_type_s_idx = m_scope_s.size()-1;
+        m_type_s_idx = m_scope_s.back().size()-1;
         DEBUG("POP: m_type_s_idx=%d", m_type_s_idx);
     } else {
         m_type_s_idx = -1;

@@ -24,6 +24,7 @@
 #include "TaskBuildEnumType.h"
 #include "TaskBuildExpr.h"
 #include "TaskBuildTypeExecStmt.h"
+#include "TaskLinkBuiltinTypeElemFactories.h"
 
 namespace zsp {
 namespace fe {
@@ -46,6 +47,8 @@ void Ast2ArlBuilder::build(
         ast::ISymbolScope               *root,
         IAst2ArlContext                 *ctxt) {
     m_ctxt = ctxt;
+
+    TaskLinkBuiltinTypeElemFactories(ctxt).link(root);
 
     m_ctxt->pushSymScopeStack(root);
     root->accept(this);

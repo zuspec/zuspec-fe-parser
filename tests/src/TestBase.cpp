@@ -120,7 +120,9 @@ void TestBase::ast2Arl(
         ast::ISymbolScope                       *root,
         arl::dm::IContext                       *ctxt) {
     IAst2ArlContextUP build_ctxt(m_factory->mkAst2ArlContext(
-        ctxt, marker_l));
+        ctxt, 
+        root,
+        marker_l));
     IAst2ArlBuilderUP builder(m_factory->mkAst2ArlBuilder());
 
     builder->build(root, build_ctxt.get());

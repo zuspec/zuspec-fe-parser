@@ -1,7 +1,7 @@
 /*
- * TestAst2ArlBasics.cpp
+ * TestRegisters.cpp
  *
- * Copyright 2022 Matthew Ballance and Contributors
+ * Copyright 2023 Matthew Ballance and Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may 
  * not use this file except in compliance with the License.  
@@ -18,7 +18,7 @@
  * Created on:
  *     Author:
  */
-#include "TestAst2ArlBasics.h"
+#include "TestRegisters.h"
 
 using namespace zsp::parser;
 
@@ -27,64 +27,32 @@ namespace fe {
 namespace parser {
 
 
-TestAst2ArlBasics::TestAst2ArlBasics() {
+TestRegisters::TestRegisters() {
 
 }
 
-TestAst2ArlBasics::~TestAst2ArlBasics() {
+TestRegisters::~TestRegisters() {
 
 }
 
-TEST_F(TestAst2ArlBasics, smoke) {
+TEST_F(TestRegisters, field_ctor) {
     const char *content = R"(
-        component pss_top {
-            action A {
-
-            }
-        }
-    )";
-
-    IMarkerCollectorUP marker_c(m_zsp_factory->mkMarkerCollector());
-    std::vector<ast::IGlobalScopeUP> files;
-    files.push_back(ast::IGlobalScopeUP(parse(
-        marker_c.get(),
-        content,
-        "smoke.pss"
-    )));
-
-    ASSERT_FALSE(marker_c->hasSeverity(MarkerSeverityE::Error));
-
-    ast::ISymbolScopeUP root(link(
-        marker_c.get(),
-        files
-    ));
-
-    ASSERT_FALSE(marker_c->hasSeverity(MarkerSeverityE::Error));
-
-    ast2Arl(
-        marker_c.get(),
-        root.get(),
-        m_ctxt.get()
-    );
-
-    ASSERT_FALSE(marker_c->hasSeverity(MarkerSeverityE::Error));
-
-    ASSERT_TRUE(m_ctxt->findDataTypeComponent("pss_top"));
-    ASSERT_TRUE(m_ctxt->findDataTypeAction("pss_top::A"));
-
-}
-
-TEST_F(TestAst2ArlBasics, smoke_ext_comp) {
-    const char *content = R"(
-        component pss_top {
-            action A {
-
-            }
+        import addr_reg_pkg::*;
+        struct MyReg : packed_s<> {
+            bit[16]  v1;
+            bit[16]  v2;
         }
 
-        extend component pss_top {
-            action B {
+        component MyRegs : reg_group_c {
+            reg_c<MyReg>        my_reg1;
+        }
+        component pss_top {
+            MyRegs          regs;
 
+            action Entry {
+                exec body {
+                    comp.regs.my_reg1.write_val(2);
+                }
             }
         }
     )";
@@ -117,9 +85,8 @@ TEST_F(TestAst2ArlBasics, smoke_ext_comp) {
     ASSERT_FALSE(marker_c->hasSeverity(MarkerSeverityE::Error));
 
     ASSERT_TRUE(m_ctxt->findDataTypeComponent("pss_top"));
-    ASSERT_TRUE(m_ctxt->findDataTypeAction("pss_top::A"));
-    ASSERT_TRUE(m_ctxt->findDataTypeAction("pss_top::B"));
-    ASSERT_EQ(m_ctxt->findDataTypeComponent("pss_top")->getActionTypes().size(), 2);
+    ASSERT_TRUE(m_ctxt->findDataTypeAction("pss_top::Entry"));
+    ASSERT_EQ(m_ctxt->findDataTypeComponent("pss_top")->getActionTypes().size(), 1);
 
     dumpJSON({m_ctxt->findDataTypeComponent("pss_top")});
 }

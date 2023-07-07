@@ -77,6 +77,7 @@ void TaskBuildTypeExecs::visitSymbolExecScope(ast::ISymbolExecScope *i) {
 
     if (dynamic_cast<ast::IExecBlock *>(i->getTarget())->getKind() != m_target_kind) {
         DEBUG_LEAVE("visitSymbolExecScope -- not target kind");
+        return;
     }
 
     arl::dm::ExecKindT kind;

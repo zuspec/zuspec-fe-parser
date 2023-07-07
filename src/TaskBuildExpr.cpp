@@ -42,7 +42,7 @@ TaskBuildExpr::~TaskBuildExpr() {
 vsc::dm::ITypeExpr *TaskBuildExpr::build(ast::IExpr *e) {
     DEBUG_ENTER("build");
     vsc::dm::ITypeExpr *e_dm = expr(e);
-    DEBUG_LEAVE("build");
+    DEBUG_LEAVE("build %p", e_dm);
     return e_dm;
 }
 
@@ -210,7 +210,7 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
         DEBUG("it: kind=%d idx=%d", it->kind, it->idx);
     }
 
-        // First, is to determine whether we have a:
+    // First, is to determine whether we have a:
     // - Context path (relative to type context)
     // - Bottom-up path (relative to the activity/exec context)
     // - Type path (pointer to a constant in a type)
@@ -275,6 +275,7 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
         m_expr = call_e.release();
     } else {
         DEBUG("Static (type) reference, since we didn't encounter the type context");
+        DEBUG("  Hier_id.size=%d", i->getHier_id()->getElems().size());
         // Could be
         // Package
         // TypeScope

@@ -25,6 +25,7 @@
 #include "zsp/parser/IFactory.h"
 #include "zsp/parser/IMarkerCollector.h"
 #include "zsp/ast/IFactory.h"
+#include "zsp/ast/IGlobalScope.h"
 #include "zsp/fe/parser/IFactory.h"
 
 namespace zsp {
