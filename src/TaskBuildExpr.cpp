@@ -70,8 +70,40 @@ void TaskBuildExpr::visitExprUnary(ast::IExprUnary *i) {
     DEBUG_LEAVE("visitExprUnary");
 }
 
+static std::map<ast::ExprBinOp, vsc::dm::BinOp> binop_m = {
+    { ast::ExprBinOp::BinOp_Eq, vsc::dm::BinOp::Eq },
+    { ast::ExprBinOp::BinOp_Ne, vsc::dm::BinOp::Ne },
+    { ast::ExprBinOp::BinOp_Gt, vsc::dm::BinOp::Gt },
+    { ast::ExprBinOp::BinOp_Ge, vsc::dm::BinOp::Ge },
+    { ast::ExprBinOp::BinOp_Lt, vsc::dm::BinOp::Lt },
+    { ast::ExprBinOp::BinOp_Le, vsc::dm::BinOp::Le },
+    { ast::ExprBinOp::BinOp_Add, vsc::dm::BinOp::Add },
+    { ast::ExprBinOp::BinOp_Sub, vsc::dm::BinOp::Sub },
+    { ast::ExprBinOp::BinOp_Div, vsc::dm::BinOp::Div },
+    { ast::ExprBinOp::BinOp_Mul, vsc::dm::BinOp::Mul },
+    { ast::ExprBinOp::BinOp_Mod, vsc::dm::BinOp::Mod },
+    { ast::ExprBinOp::BinOp_BitAnd, vsc::dm::BinOp::BinAnd },
+    { ast::ExprBinOp::BinOp_BitOr, vsc::dm::BinOp::BinOr },
+    { ast::ExprBinOp::BinOp_BitXor, vsc::dm::BinOp::BinXor },
+    { ast::ExprBinOp::BinOp_LogAnd, vsc::dm::BinOp::LogAnd },
+    { ast::ExprBinOp::BinOp_LogOr, vsc::dm::BinOp::LogOr },
+    { ast::ExprBinOp::BinOp_Shl, vsc::dm::BinOp::Sll },
+    { ast::ExprBinOp::BinOp_Shr, vsc::dm::BinOp::Srl } /*,
+    { ast::ExprBinOp::BinOp_Xor, vsc::dm::BinOp::Xor },
+    { ast::ExprBinOp::BinOp_Not, vsc::dm::BinOp::Not },
+     */
+};
+
 void TaskBuildExpr::visitExprBin(ast::IExprBin *i) { 
     DEBUG_ENTER("visitExprBin");
+    vsc::dm::ITypeExpr *lhs = expr(i->getLhs());
+    vsc::dm::ITypeExpr *rhs = expr(i->getRhs());
+
+    m_expr = m_ctxt->ctxt()->mkTypeExprBin(
+        lhs,
+        binop_m.find(i->getOp())->second,
+        rhs
+    );
 
     DEBUG_LEAVE("visitExprBin");
 }
@@ -80,8 +112,12 @@ void TaskBuildExpr::visitExprBitSlice(ast::IExprBitSlice *i) {
 
 }
     
-void TaskBuildExpr::visitExprBool(ast::IExprBool *i) { 
-
+void TaskBuildExpr::visitExprBool(ast::IExprBool *i) {
+    DEBUG_ENTER("visitExprBool");
+    m_val->setBits(1);
+    m_val->set_val_u(i->getValue());
+    m_expr = m_ctxt->ctxt()->mkTypeExprVal(m_val.get());
+    DEBUG_LEAVE("visitExprBool");
 }
     
 void TaskBuildExpr::visitExprCast(ast::IExprCast *i) { 
@@ -209,6 +245,9 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
         it!=i->getTarget()->getPath().end(); it++) {
         DEBUG("it: kind=%d idx=%d", it->kind, it->idx);
     }
+    DEBUG("HierId (%p) .size=%d", 
+        i->getHier_id(),
+        i->getHier_id()->getElems().size());
 
     // First, is to determine whether we have a:
     // - Context path (relative to type context)
@@ -220,12 +259,18 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
     ast::ISymbolScope *scope = m_ctxt->symScopes().at(0);
     int32_t type_scope_idx = -1;
     for (uint32_t ii=0; ii<i->getTarget()->getPath().size(); ii++) {
-        DEBUG("Scope: %s ;   ii=%d", scope->getName().c_str(), i->getTarget()->getPath().at(ii));
+        DEBUG("Scope: %s ;   ii=%d", 
+            scope->getName().c_str(), 
+            i->getTarget()->getPath().at(ii).idx);
         ast::IScopeChild *c = scope->getChildren().at(
             i->getTarget()->getPath().at(ii).idx);
 
         if (c == m_ctxt->typeScope()) {
-            type_scope_idx = ii;
+            DEBUG("Found type scope @ %d (%s)", ii,
+                m_ctxt->typeScope()->getName().c_str());
+            // we're looking at the *next* entry, so adjust 
+            // the index accordingly
+            type_scope_idx = ii+1;
         }
 
         if (ii+1 < i->getTarget()->getPath().size()) {
@@ -235,16 +280,27 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
 
     DEBUG("type_scope_idx=%d", type_scope_idx);
 
+    // Determine how to get to the root identifier
+    // - It's a field within the current action
+    // - It's a field relative to where we are
+    //
+    // Then, determine how to proceed
+    // - 
+    vsc::dm::ITypeExpr *expr = 0;
     if (type_scope_idx != -1) {
-        if (type_scope_idx+1 == (i->getTarget()->getPath().size()-1)) {
+        if (type_scope_idx == (i->getTarget()->getPath().size()-1)) {
+            // Reference is to a field within the active type
             DEBUG("Type-context reference");
             vsc::dm::ITypeExprFieldRef *ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
                 vsc::dm::ITypeExprFieldRef::RootRefKind::TopDownScope,
-                0);
-            for (uint32_t ii=type_scope_idx+1; ii<i->getTarget()->getPath().size(); ii++) {
+                -1);
+
+            // This gets us 
+            for (uint32_t ii=type_scope_idx; ii<i->getTarget()->getPath().size(); ii++) {
+                DEBUG("Add path elem %d", i->getTarget()->getPath().at(ii).idx);
                 ref->addPathElem(i->getTarget()->getPath().at(ii).idx);
             }
-            m_expr = ref;
+            expr = ref;
 
             // TODO: determine if this is actually a static reference
         } else {
@@ -253,40 +309,78 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                 vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope,
                 (m_ctxt->symScopes().size()-i->getTarget()->getPath().size()));
             ref->addPathElem(i->getTarget()->getPath().back().idx);
-            m_expr = ref;
+            expr = ref;
         }
-    } else if (i->getHier_id()->getElems().at(0)->getParams()) {
-        DEBUG("Function call %p", i->getTarget());
-        DEBUG("Function call %p", i->getHier_id()->getElems().at(0)->getTarget());
-
-        zsp::parser::TaskResolveSymbolPathRef resolver(
-            m_ctxt->getDebugMgr(),
-            m_ctxt->getRoot());
-        
-        zsp::ast::IScopeChild *t = resolver.resolve(i->getTarget());
-        std::string fname = zsp::parser::TaskGetName().get(t, true);
-        DEBUG("Function Name: %s", fname.c_str());
-        arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->findDataTypeFunction(fname);
-        arl::dm::ITypeExprMethodCallStaticUP call_e(
-            m_ctxt->ctxt()->mkTypeExprMethodCallStatic(
-                func,
-                {}
-            ));
-        m_expr = call_e.release();
-    } else {
-        DEBUG("Static (type) reference, since we didn't encounter the type context");
-        DEBUG("  Hier_id.size=%d", i->getHier_id()->getElems().size());
-        // Could be
-        // Package
-        // TypeScope
-        // Function
-        // 
-//        TaskResolveGlobalRef(m_ctxt).resolve(i->getTarget());
-//        vsc::dm::IDataType *type = 
     }
 
+    zsp::parser::TaskResolveSymbolPathRef resolver(
+            m_ctxt->getDebugMgr(),
+            m_ctxt->getRoot());
+    ast::IScopeChild *ast_scope = resolver.resolve(i->getTarget());
 
-    DEBUG_LEAVE("visitExprRefPathContext");
+    vsc::dm::ITypeExprFieldRef *field_ref = 0;
+    for (uint32_t ii=0; ii<i->getHier_id()->getElems().size(); ii++) {
+        ast::IExprMemberPathElem *elem = i->getHier_id()->getElems().at(ii).get();
+
+        if (elem->getParams()) {
+            // Func
+
+            zsp::ast::IScopeChild *func_t = ast_scope;
+            std::string fname = zsp::parser::TaskGetName().get(func_t, true);
+            arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->findDataTypeFunction(fname);
+
+            std::vector<vsc::dm::ITypeExpr *> params;
+
+            for (std::vector<ast::IExprUP>::const_iterator
+                it=elem->getParams()->getParameters().begin();
+                it!=elem->getParams()->getParameters().end(); it++) {
+                params.push_back(TaskBuildExpr(m_ctxt).build(it->get()));
+            }
+
+            if (!expr) {
+                // Static function call
+                DEBUG("Elem %d: Static function call", ii);
+
+                DEBUG("Function Name: %s", fname.c_str());
+                arl::dm::ITypeExprMethodCallStaticUP call_e(
+                    m_ctxt->ctxt()->mkTypeExprMethodCallStatic(
+                    func,
+                    params));
+                expr = call_e.release();
+            } else {
+                DEBUG("Elem %d: Context function call", ii);
+
+                // Context method call
+                arl::dm::ITypeExprMethodCallContextUP call_e(
+                    m_ctxt->ctxt()->mkTypeExprMethodCallContext(
+                        func,
+                        expr,
+                        params
+                    )
+                );
+                expr = call_e.release();
+            }
+        } else if (elem->getSubscript()) {
+            DEBUG("TODO: array subscript reference");
+            if (!field_ref) {
+                
+            }
+        } else {
+            DEBUG("TODO: field subref expr=%p idx=%d", expr, elem->getTarget());
+            if (!field_ref) {
+                field_ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
+                    expr, 
+                    elem->getTarget());
+                expr = field_ref;
+            } else {
+                field_ref->addPathElem(elem->getTarget());
+            }
+        }
+    }
+
+    m_expr = expr;
+
+    DEBUG_LEAVE("visitExprRefPathContext %p", m_expr);
 }
     
 void TaskBuildExpr::visitExprRefPathElem(ast::IExprRefPathElem *i) { 
@@ -315,7 +409,6 @@ void TaskBuildExpr::visitExprSignedNumber(ast::IExprSignedNumber *i) {
     m_val->setBits(i->getWidth());
     m_val->set_val_u(i->getValue());
     m_expr = m_ctxt->ctxt()->mkTypeExprVal(m_val.get());
-
     DEBUG_LEAVE("visitExprSignedNumber");
 }
 
@@ -324,7 +417,6 @@ void TaskBuildExpr::visitExprUnsignedNumber(ast::IExprUnsignedNumber *i) {
     m_val->setBits(i->getWidth());
     m_val->set_val_i(i->getValue());
     m_expr = m_ctxt->ctxt()->mkTypeExprVal(m_val.get());
-
     DEBUG_LEAVE("visitExprUnsignedNumber");
 }
 

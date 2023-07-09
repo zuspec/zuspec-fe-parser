@@ -45,6 +45,7 @@ TEST_F(TestRegisters, field_ctor) {
 
         component MyRegs : reg_group_c {
             reg_c<MyReg>        my_reg1;
+            reg_c<MyReg>        my_reg2;
         }
         component pss_top {
             MyRegs          regs;
@@ -52,6 +53,7 @@ TEST_F(TestRegisters, field_ctor) {
             action Entry {
                 exec body {
                     comp.regs.my_reg1.write_val(2);
+                    comp.regs.my_reg2.write_val(2+3);
                 }
             }
         }

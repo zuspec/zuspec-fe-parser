@@ -86,7 +86,7 @@ void TaskBuildDataType::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
 }
 
 void TaskBuildDataType::visitAction(ast::IAction *i) {
-    DEBUG_ENTER("visitAction");
+    DEBUG_ENTER("visitAction %s", i->getName()->getId().c_str());
     if (!m_depth && !(m_type=findType(i))) {
         // We're at top level and the type doesn't exist yet, so let's do it!
     
@@ -109,7 +109,7 @@ void TaskBuildDataType::visitAction(ast::IAction *i) {
     }
 
     // Note: there won't be any other types declared inside an action
-    DEBUG_LEAVE("visitAction");
+    DEBUG_LEAVE("visitAction %s", i->getName()->getId().c_str());
 }
 
 void TaskBuildDataType::visitActivityDecl(ast::IActivityDecl *i) {

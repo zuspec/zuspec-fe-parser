@@ -14,7 +14,11 @@
                 "packages/vsc-dm/src/include",
                 "packages/zuspec-arl-dm/src",
                 "packages/zuspec-arl-dm/src/include",
+                "packages/zuspec-parser/src",
+                "packages/zuspec-parser/src/include",
                 "packages/zuspec-parser/build/include",
+                "packages/zuspec-parser/build/src/antlr4cpp_generated_src/PSSParser",
+                "packages/zuspec-parser/build/src/antlr4cpp_generated_src/PSSLexer",
                 "packages/zuspec-parser/src",
                 "packages/zuspec-parser/src/include",
                 "packages/zuspec-parser/src/include/zsp/parser/impl"
@@ -35,10 +39,22 @@
                 "databaseFilename": "${default}",
                 "path": [
                     "${default}",
-                    "packages/libvsc/src",
-                    "packages/libvsc/src/include",
-                    "packages/libarl/src",
-                    "packages/libarl/src/include"
+                    "src",
+                    "src/include",
+                    "tests/src",
+                    "packages/debug-mgr/src",
+                    "packages/debug-mgr/src/include",
+                    "packages/gtest/googletest/include",
+                    "packages/vsc-dm/src",
+                    "packages/vsc-dm/src/include",
+                    "packages/zuspec-arl-dm/src",
+                    "packages/zuspec-arl-dm/src/include",
+                    "packages/zuspec-parser/build/include",
+                    "packages/zuspec-parser/build/src/antlr4cpp_generated_src/PSSParser",
+                    "packages/zuspec-parser/build/src/antlr4cpp_generated_src/PSSLexer",
+                    "packages/zuspec-parser/src",
+                    "packages/zuspec-parser/src/include",
+                    "packages/zuspec-parser/src/include/zsp/parser/impl"
                 ]
             },
             "intelliSenseMode": "${default}",
