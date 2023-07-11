@@ -23,6 +23,7 @@
 #include "TaskBuildActivity.h"
 #include "TaskBuildDataType.h"
 #include "TaskBuildField.h"
+#include "TaskBuildTypeConstraints.h"
 #include "TaskBuildTypeExecs.h"
 #include "zsp/parser/impl/TaskResolveSymbolPathRef.h"
 
@@ -331,6 +332,13 @@ void TaskBuildDataType::buildType(
         arl_type,
         ast_type);
 
+    std::map<std::string, ast::IConstraintScope *> c_inherit_m;
+
+    buildTypeConstraints(
+        c_inherit_m,
+        arl_type,
+        ast_type);
+
     m_type_s.pop_back();
 
     m_depth--;
@@ -340,6 +348,17 @@ void TaskBuildDataType::buildType(
         ast_type);
 
     DEBUG_LEAVE("buildType (%d)", m_depth);
+}
+
+void TaskBuildDataType::buildTypeConstraints(
+    std::map<std::string, ast::IConstraintScope *>      &c_inherit_m,
+    vsc::dm::IDataTypeStruct                            *arl_type,
+    ast::ISymbolTypeScope                               *ast_type) {
+    DEBUG_ENTER("buildTypeConstraints");
+
+    TaskBuildTypeConstraints(m_ctxt, arl_type).build(ast_type);
+
+    DEBUG_LEAVE("buildTypeConstraints");
 }
 
 void TaskBuildDataType::buildTypeFields(

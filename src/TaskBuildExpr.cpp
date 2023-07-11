@@ -109,7 +109,9 @@ void TaskBuildExpr::visitExprBin(ast::IExprBin *i) {
 }
 
 void TaskBuildExpr::visitExprBitSlice(ast::IExprBitSlice *i) { 
-
+    DEBUG_ENTER("visitExprBitSlice");
+    DEBUG("TODO: visitExprBitSlice");
+    DEBUG_ENTER("visitExprBitSlice");
 }
     
 void TaskBuildExpr::visitExprBool(ast::IExprBool *i) {
@@ -165,11 +167,15 @@ void TaskBuildExpr::visitExprNumber(ast::IExprNumber *i) {
 }
     
 void TaskBuildExpr::visitExprAggregateLiteral(ast::IExprAggregateLiteral *i) { 
-
+    DEBUG_ENTER("visitExprAggregateLiteral");
+    DEBUG("TODO: visitExprAggregateLiteral");
+    DEBUG_LEAVE("visitExprAggregateLiteral");
 }
     
 void TaskBuildExpr::visitExprOpenRangeList(ast::IExprOpenRangeList *i) { 
-
+    DEBUG_ENTER("visitExprOpenRangeList");
+    DEBUG("TODO: visitExprOpenRangeList");
+    DEBUG_LEAVE("visitExprOpenRangeList");
 }
     
 void TaskBuildExpr::visitExprOpenRangeValue(ast::IExprOpenRangeValue *i) { 
@@ -397,11 +403,12 @@ void TaskBuildExpr::visitExprRefPathStaticRooted(ast::IExprRefPathStaticRooted *
 }
     
 void TaskBuildExpr::visitExprRefPathSuper(ast::IExprRefPathSuper *i) { 
-
+    DEBUG_ENTER("visitExprRefPathSuper");
+    DEBUG_LEAVE("visitExprRefPathSuper");
 }
     
 void TaskBuildExpr::visitConstraintScope(ast::IConstraintScope *i) { 
-
+    // NOP
 }
     
 void TaskBuildExpr::visitExprSignedNumber(ast::IExprSignedNumber *i) { 
@@ -427,7 +434,9 @@ void TaskBuildExpr::visitExprRefPathStatic(ast::IExprRefPathStatic *i) {
 }
 
 void TaskBuildExpr::visitExprRefPathStaticFunc(ast::IExprRefPathStaticFunc *i) { 
-
+    DEBUG_ENTER("visitExprRefPathStaticFunc");
+    DEBUG("TODO: visitExprRefPathStaticFunc");
+    DEBUG_LEAVE("visitExprRefPathStaticFunc");
 }
 
 

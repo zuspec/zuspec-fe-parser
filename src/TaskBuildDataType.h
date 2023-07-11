@@ -94,6 +94,11 @@ private:
         vsc::dm::IDataTypeStruct    *arl_type,
         ast::ISymbolTypeScope       *ast_type);
 
+    void buildTypeConstraints(
+        std::map<std::string, ast::IConstraintScope *>      &c_inherit_m,
+        vsc::dm::IDataTypeStruct                            *arl_type,
+        ast::ISymbolTypeScope                               *ast_type);
+
     void buildTypeExecs(
         std::vector<int32_t>        &off_l,
         vsc::dm::IDataTypeStruct    *arl_type,
@@ -118,6 +123,7 @@ private:
     vsc::dm::IDataType                                          *m_type;
     std::vector<vsc::dm::IDataTypeStruct *>                     m_type_s;
     uint32_t                                                    m_field_off;
+    std::vector<std::map<std::string,ast::IConstraintScope *>>  m_constraint_m;
 
 };
 
