@@ -54,7 +54,7 @@ void TaskBuildField::visitField(ast::IField *i) {
     vsc::dm::IDataType *dt = TaskBuildDataType(m_ctxt).build(i->getType());
     m_ctxt->popSymScopeStack();
     vsc::dm::TypeFieldAttr attr = vsc::dm::TypeFieldAttr::NoAttr;
-    vsc::dm::IModelVal *init = 0;
+    vsc::dm::ValRef init; // Default is Void
 
     if (assoc_d) {
         IElemFactoryAssocData *elem_f = 

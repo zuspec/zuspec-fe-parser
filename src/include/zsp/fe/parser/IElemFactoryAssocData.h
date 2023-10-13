@@ -39,7 +39,7 @@ public:
         const std::string       &name,
         ast::IScopeChild        *type,
         vsc::dm::TypeFieldAttr  attr,
-        vsc::dm::IModelVal      *init) = 0;
+        const vsc::dm::ValRef   &init) = 0;
 
 };
 

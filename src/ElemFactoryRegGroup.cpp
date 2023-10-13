@@ -42,7 +42,7 @@ vsc::dm::ITypeField *ElemFactoryRegGroup::mkTypeFieldPhy(
         const std::string       &name,
         ast::IScopeChild        *type,
         vsc::dm::TypeFieldAttr  attr,
-        vsc::dm::IModelVal      *init) {
+        const vsc::dm::ValRef   &init) {
     DEBUG_ENTER("mkTypeFieldPhy %s", name.c_str());
 
     // Build field in terms of specified target type

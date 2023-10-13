@@ -124,7 +124,7 @@ void TaskBuildActivity::visitActivityActionTypeTraversal(ast::IActivityActionTyp
             at,
             false,
             vsc::dm::TypeFieldAttr::NoAttr,
-            0);
+            vsc::dm::ValRef());
 
         seq->addField(f);
         arl::dm::IDataTypeActivityTraverse *dt_t = 

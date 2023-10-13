@@ -39,7 +39,7 @@ public:
         const std::string       &name,
         ast::IScopeChild        *type,
         vsc::dm::TypeFieldAttr  attr,
-        vsc::dm::IModelVal      *init) override;
+        const vsc::dm::ValRef   &init) override;
 
     static ElemFactoryAddrClaim *create(dmgr::IDebugMgr *dmgr) {
         return new ElemFactoryAddrClaim(dmgr);

@@ -93,6 +93,7 @@ void Ast2ArlBuilder::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
     DEBUG_ENTER("visitSymbolFunctionScope \"%s\"", i->getName().c_str());
 
     ast::IFunctionPrototype *proto = i->getPrototypes().at(0);
+    arl::dm::DataTypeFunctionFlags flags = arl::dm::DataTypeFunctionFlags::NoFlags;
     bool is_target = proto->getIs_target();
     bool is_solve  = proto->getIs_solve();
 
@@ -111,6 +112,13 @@ void Ast2ArlBuilder::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
         if (is_target && is_solve) {
             is_target = false;
             is_solve = false;
+        } else {
+            if (is_target) {
+                flags = flags | arl::dm::DataTypeFunctionFlags::Target;
+            }
+            if (is_solve) {
+                flags = flags | arl::dm::DataTypeFunctionFlags::Solve;
+            }
         }
     }
 //    ast::IScopeChild *rtype = i->getDefinition()->getProto()->getRtype();
@@ -119,8 +127,7 @@ void Ast2ArlBuilder::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
         i->getName(),
         rtype?TaskBuildDataType(m_ctxt).build(rtype):0,
         false,
-        is_target,
-        is_solve);
+        flags);
 
     // Bring across the function parameters
     for (std::vector<ast::IFunctionParamDeclUP>::const_iterator

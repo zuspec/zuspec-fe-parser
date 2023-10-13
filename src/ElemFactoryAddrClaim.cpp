@@ -40,7 +40,7 @@ vsc::dm::ITypeField *ElemFactoryAddrClaim::mkTypeFieldPhy(
         const std::string       &name,
         ast::IScopeChild        *type,
         vsc::dm::TypeFieldAttr  attr,
-        vsc::dm::IModelVal      *init) {
+        const vsc::dm::ValRef   &init) {
     return 0;
 }
 

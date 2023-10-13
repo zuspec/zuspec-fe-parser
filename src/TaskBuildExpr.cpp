@@ -19,6 +19,7 @@
  *     Author:
  */
 #include "dmgr/impl/DebugMacros.h"
+#include "vsc/dm/impl/ValRefBool.h"
 #include "zsp/parser/impl/TaskResolveSymbolPathRef.h"
 #include "zsp/parser/impl/TaskGetName.h"
 #include "TaskBuildExpr.h"
@@ -116,9 +117,8 @@ void TaskBuildExpr::visitExprBitSlice(ast::IExprBitSlice *i) {
     
 void TaskBuildExpr::visitExprBool(ast::IExprBool *i) {
     DEBUG_ENTER("visitExprBool");
-    m_val->setBits(1);
-    m_val->set_val_u(i->getValue());
-    m_expr = m_ctxt->ctxt()->mkTypeExprVal(m_val.get());
+    m_expr = m_ctxt->ctxt()->mkTypeExprVal(
+        m_ctxt->ctxt()->mkValRefInt(0, false, 1));
     DEBUG_LEAVE("visitExprBool");
 }
     
@@ -413,17 +413,15 @@ void TaskBuildExpr::visitConstraintScope(ast::IConstraintScope *i) {
     
 void TaskBuildExpr::visitExprSignedNumber(ast::IExprSignedNumber *i) { 
     DEBUG_ENTER("visitExprSignedNumber");
-    m_val->setBits(i->getWidth());
-    m_val->set_val_u(i->getValue());
-    m_expr = m_ctxt->ctxt()->mkTypeExprVal(m_val.get());
+    m_expr = m_ctxt->ctxt()->mkTypeExprVal(
+        m_ctxt->ctxt()->mkValRefInt(i->getValue(), true, i->getWidth()));
     DEBUG_LEAVE("visitExprSignedNumber");
 }
 
 void TaskBuildExpr::visitExprUnsignedNumber(ast::IExprUnsignedNumber *i) { 
     DEBUG_ENTER("visitExprUnsignedNumber");
-    m_val->setBits(i->getWidth());
-    m_val->set_val_i(i->getValue());
-    m_expr = m_ctxt->ctxt()->mkTypeExprVal(m_val.get());
+    m_expr = m_ctxt->ctxt()->mkTypeExprVal(
+        m_ctxt->ctxt()->mkValRefInt(i->getValue(), false, i->getWidth()));
     DEBUG_LEAVE("visitExprUnsignedNumber");
 }
 
