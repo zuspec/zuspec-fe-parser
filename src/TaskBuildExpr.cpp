@@ -333,6 +333,7 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
 
             zsp::ast::IScopeChild *func_t = ast_scope;
             std::string fname = zsp::parser::TaskGetName().get(func_t, true);
+            DEBUG("FunctionCallStatic: name=%s", fname.c_str());
             arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->findDataTypeFunction(fname);
 
             std::vector<vsc::dm::ITypeExpr *> params;

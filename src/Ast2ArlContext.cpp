@@ -154,6 +154,23 @@ vsc::dm::IDataTypeStruct *Ast2ArlContext::getType(ast::IScopeChild *t) {
     return ret;
 }
 
+std::string Ast2ArlContext::getQName(const std::string &name) {
+    std::string qname;
+
+    for (uint32_t i=2; i<m_scope_s.back().size(); i++) {
+        if (i > 2) {
+            qname += "::";
+        }
+        qname += m_scope_s.back().at(i)->getName();
+    }
+    if (m_scope_s.back().size() > 2) {
+        qname += "::";
+    }
+    qname += name;
+
+    return qname;
+}
+
 dmgr::IDebug *Ast2ArlContext::m_dbg = 0;
 
 }

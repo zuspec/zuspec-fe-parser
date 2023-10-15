@@ -65,6 +65,8 @@ public:
 
     virtual vsc::dm::IDataTypeStruct *getType(ast::IScopeChild *t) = 0;
 
+    virtual std::string getQName(const std::string &name) = 0;
+
     virtual ast::ISymbolScope *getRoot() = 0;
 
 };

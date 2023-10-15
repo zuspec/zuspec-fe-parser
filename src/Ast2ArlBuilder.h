@@ -48,9 +48,14 @@ public:
         ast::ISymbolScope               *root,
         IAst2ArlContext                 *ctxt) override;
 
+    virtual void visitExtendType(ast::IExtendType *i) override { }
+
     virtual void visitSymbolScope(ast::ISymbolScope *i) override;
 
     virtual void visitSymbolEnumScope(ast::ISymbolEnumScope *i) override;
+
+    virtual void visitSymbolExtendScope(ast::ISymbolExtendScope *i) override { }
+
 
     virtual void visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) override;
 

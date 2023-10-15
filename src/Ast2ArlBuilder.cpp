@@ -124,7 +124,7 @@ void Ast2ArlBuilder::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
 //    ast::IScopeChild *rtype = i->getDefinition()->getProto()->getRtype();
     ast::IScopeChild *rtype = proto->getRtype();
     arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->mkDataTypeFunction(
-        i->getName(),
+        m_ctxt->getQName(i->getName()),
         rtype?TaskBuildDataType(m_ctxt).build(rtype):0,
         false,
         flags);

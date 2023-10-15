@@ -91,6 +91,8 @@ public:
         return m_root;
     }
 
+    virtual std::string getQName(const std::string &name) override;
+
 private:
 
 
