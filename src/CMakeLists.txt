@@ -28,7 +28,7 @@ add_library(zsp-fe-parser SHARED
 
 install(TARGETS zsp-fe-parser
     DESTINATION lib
-    EXPORT zsp-targets)
+    EXPORT zsp-fe-parser-targets)
     
 #target_link_libraries(zsp-fe-parser ${ZUSPEC_PARSER_LIBS})
 set_target_properties(zsp-fe-parser PROPERTIES SKIP_BUILD_RPATH TRUE)
