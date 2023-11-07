@@ -38,28 +38,33 @@ TestRegisters::~TestRegisters() {
 TEST_F(TestRegisters, field_ctor) {
     const char *content = R"(
         import addr_reg_pkg::*;
+        /*
         struct MyReg : packed_s<> {
             bit[16]  v1;
             bit[16]  v2;
         }
+         */
 
         component MyRegs : reg_group_c {
-            reg_c<MyReg>        my_reg1;
-            reg_c<MyReg>        my_reg2;
+//            reg_c<MyReg>        my_reg1;
+//            reg_c<MyReg>        my_reg2;
+            reg_c<bit[32]>      my_reg3;
+            reg_c<bit[64]>      my_reg4;
         }
         component pss_top {
             MyRegs          regs;
 
             action Entry {
                 exec body {
-                    comp.regs.my_reg1.write_val(2);
-                    comp.regs.my_reg2.write_val(2+3);
+//                    write32(0, 0);
+//                    comp.regs.my_reg1.write_val(2);
+                    comp.regs.my_reg3.write_val(2);
+                    comp.regs.my_reg4.write_val(2+3);
                 }
             }
         }
     )";
 
-    enableDebug(true);
 
     IMarkerCollectorUP marker_c(m_zsp_factory->mkMarkerCollector());
     std::vector<ast::IGlobalScopeUP> files;
@@ -68,6 +73,11 @@ TEST_F(TestRegisters, field_ctor) {
         content,
         "smoke.pss"
     )));
+    for (std::vector<IMarkerUP>::const_iterator
+        it=marker_c->markers().begin();
+        it!=marker_c->markers().end(); it++) {
+        fprintf(stdout, "Marker: %s\n", (*it)->msg().c_str());
+    }
 
     ASSERT_FALSE(marker_c->hasSeverity(MarkerSeverityE::Error));
 
@@ -75,8 +85,15 @@ TEST_F(TestRegisters, field_ctor) {
         marker_c.get(),
         files
     ));
+    for (std::vector<IMarkerUP>::const_iterator
+        it=marker_c->markers().begin();
+        it!=marker_c->markers().end(); it++) {
+        fprintf(stdout, "Marker: %s\n", (*it)->msg().c_str());
+    }
 
     ASSERT_FALSE(marker_c->hasSeverity(MarkerSeverityE::Error));
+
+    enableDebug(true);
 
     ast2Arl(
         marker_c.get(),

@@ -51,6 +51,7 @@ private:
     arl::dm::IDataTypeArlStruct     *m_target;
     ast::ExecKind                   m_target_kind;
     arl::dm::ITypeExecGroupUP       m_exec_group;
+    int32_t                         m_depth;
 
 };
 

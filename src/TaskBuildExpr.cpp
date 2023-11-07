@@ -22,6 +22,8 @@
 #include "vsc/dm/impl/ValRefBool.h"
 #include "zsp/parser/impl/TaskResolveSymbolPathRef.h"
 #include "zsp/parser/impl/TaskGetName.h"
+#include "zsp/parser/impl/TaskIndexField.h"
+#include "TaskBuildDataTypeFunction.h"
 #include "TaskBuildExpr.h"
 #include "TaskResolveGlobalRef.h"
 
@@ -254,6 +256,7 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
     DEBUG("HierId (%p) .size=%d", 
         i->getHier_id(),
         i->getHier_id()->getElems().size());
+    DEBUG("TypeScope: %s", m_ctxt->typeScope()->getName().c_str());
 
     // First, is to determine whether we have a:
     // - Context path (relative to type context)
@@ -265,8 +268,9 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
     ast::ISymbolScope *scope = m_ctxt->symScopes().at(0);
     int32_t type_scope_idx = -1;
     for (uint32_t ii=0; ii<i->getTarget()->getPath().size(); ii++) {
-        DEBUG("Scope: %s ;   ii=%d", 
+        DEBUG("Scope: %s ; ii=%d idx=%d", 
             scope->getName().c_str(), 
+            ii,
             i->getTarget()->getPath().at(ii).idx);
         ast::IScopeChild *c = scope->getChildren().at(
             i->getTarget()->getPath().at(ii).idx);
@@ -294,6 +298,9 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
     // - 
     vsc::dm::ITypeExpr *expr = 0;
     if (type_scope_idx != -1) {
+        DEBUG("type_scope_idx=%d (PathSize-1)=%d",
+            type_scope_idx,
+            (i->getTarget()->getPath().size()-1));
         if (type_scope_idx == (i->getTarget()->getPath().size()-1)) {
             // Reference is to a field within the active type
             DEBUG("Type-context reference");
@@ -323,18 +330,39 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
             m_ctxt->getDebugMgr(),
             m_ctxt->getRoot());
     ast::IScopeChild *ast_scope = resolver.resolve(i->getTarget());
+    for (uint32_t ii=0; ii<i->getHier_id()->getElems().size(); ii++) {
+        DEBUG("Path[%d]: %d", ii, i->getHier_id()->getElems().at(ii)->getTarget());
+    }
 
     vsc::dm::ITypeExprFieldRef *field_ref = 0;
-    for (uint32_t ii=0; ii<i->getHier_id()->getElems().size(); ii++) {
+    for (uint32_t ii=1; ii<i->getHier_id()->getElems().size(); ii++) {
         ast::IExprMemberPathElem *elem = i->getHier_id()->getElems().at(ii).get();
+
+/*
+        int32_t target = i->getHier_id()->getElems().at(ii)->getTarget();
+        DEBUG("target=%d", target);
+        ast_scope = dynamic_cast<ast::IScope *>(ast_scope)->getChildren().at(target).get();
+        DEBUG("ast_scope=%p", ast_scope);
+ */
 
         if (elem->getParams()) {
             // Func
+            DEBUG("Elem[%d] has parameters (%s)", ii, elem->getId()->getId().c_str());
+
+            ast_scope = zsp::parser::TaskIndexField(
+                m_ctxt->getDebugMgr(),
+                m_ctxt->getRoot()).index(
+                    ast_scope,
+                    elem->getTarget());
 
             zsp::ast::IScopeChild *func_t = ast_scope;
             std::string fname = zsp::parser::TaskGetName().get(func_t, true);
             DEBUG("FunctionCallStatic: name=%s", fname.c_str());
             arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->findDataTypeFunction(fname);
+
+            if (!func) {
+                DEBUG("Error: failed to find function %s", fname.c_str());
+            }
 
             std::vector<vsc::dm::ITypeExpr *> params;
 
@@ -382,6 +410,11 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
             } else {
                 field_ref->addPathElem(elem->getTarget());
             }
+            ast_scope = zsp::parser::TaskIndexField(
+                m_ctxt->getDebugMgr(),
+                m_ctxt->getRoot()).index(
+                    ast_scope,
+                    elem->getTarget());
         }
     }
 

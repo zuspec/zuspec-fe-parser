@@ -84,7 +84,7 @@ public:
 
     virtual void visitFieldClaim(ast::IFieldClaim *i) override;
     
-private:
+protected:
     void buildType(
         vsc::dm::IDataTypeStruct    *arl_type,
         ast::ISymbolTypeScope   *ast_type);
@@ -116,7 +116,7 @@ private:
 
     zsp::parser::TaskResolveSymbolPathRefResult resolveTypePath(ast::ISymbolRefPath *ref);
 
-private:
+protected:
     static dmgr::IDebug                                         *m_dbg;
     IAst2ArlContext                                             *m_ctxt;
     uint32_t                                                    m_depth;

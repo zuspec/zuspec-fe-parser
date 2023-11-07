@@ -21,6 +21,7 @@
 #include "dmgr/impl/DebugMacros.h"
 #include "Ast2ArlBuilder.h"
 #include "TaskBuildDataType.h"
+#include "TaskBuildDataTypeFunction.h"
 #include "TaskBuildEnumType.h"
 #include "TaskBuildExpr.h"
 #include "TaskBuildTypeExecStmt.h"

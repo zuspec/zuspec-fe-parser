@@ -42,6 +42,7 @@ void TaskBuildTypeExecs::build(
         ast::ISymbolTypeScope       *src) {
     DEBUG_ENTER("build");
     m_target = target;
+    m_depth = 0;
     src->accept(m_this);
     DEBUG_LEAVE("build");
 }
@@ -55,25 +56,32 @@ static std::vector<ast::ExecKind> prv_kinds = {
 void TaskBuildTypeExecs::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
     DEBUG_ENTER("visitSymbolTypeScope");
 
-    for (std::vector<ast::ExecKind>::const_iterator
-        k_it=prv_kinds.begin();
-        k_it!=prv_kinds.end(); k_it++) {
-        m_target_kind = *k_it;
+    if (!m_depth) {
+        m_depth++;
+        for (std::vector<ast::ExecKind>::const_iterator
+            k_it=prv_kinds.begin();
+            k_it!=prv_kinds.end(); k_it++) {
+            m_target_kind = *k_it;
 
-        for (std::vector<ast::IScopeChild *>::const_iterator
-            it=i->getChildren().begin();
-            it!=i->getChildren().end(); it++) {
-            (*it)->accept(m_this);
+            for (std::vector<ast::IScopeChild *>::const_iterator
+                it=i->getChildren().begin();
+                it!=i->getChildren().end(); it++) {
+                (*it)->accept(m_this);
+            }
         }
+        m_depth--;
+    } else {
+        DEBUG("Skip recursion");
     }
 
     DEBUG_LEAVE("visitSymbolTypeScope");
 }
 
 void TaskBuildTypeExecs::visitSymbolExecScope(ast::ISymbolExecScope *i) {
-    DEBUG_ENTER("visitSymbolExecScope kind=%d target_kind=%d",
+    DEBUG_ENTER("visitSymbolExecScope kind=%d target_kind=%d size=%d",
         dynamic_cast<ast::IExecBlock *>(i->getTarget())->getKind(),
-        m_target_kind);
+        m_target_kind,
+        i->getChildren().size());
 
     if (dynamic_cast<ast::IExecBlock *>(i->getTarget())->getKind() != m_target_kind) {
         DEBUG_LEAVE("visitSymbolExecScope -- not target kind");

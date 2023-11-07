@@ -20,7 +20,7 @@
  */
 #include "dmgr/impl/DebugMacros.h"
 #include "ElemFactoryReg.h"
-#include "TaskBuildDataType.h"
+#include "TaskBuildDataTypeReg.h"
 
 namespace zsp {
 namespace fe {
@@ -42,8 +42,10 @@ vsc::dm::ITypeField *ElemFactoryReg::mkTypeFieldPhy(
         vsc::dm::TypeFieldAttr  attr,
         const vsc::dm::ValRef   &init) {
     DEBUG_ENTER("mkTypeFieldPhy %s", name.c_str());
+    ast::IDataTypeUserDefined *type_s = dynamic_cast<ast::IDataTypeUserDefined *>(type);
+//    DEBUG("type_s name=%s", type_s->getName()->getId().c_str());
 
-    vsc::dm::IDataType *dt = TaskBuildDataType(ctx).build(type);
+    vsc::dm::IDataType *dt = TaskBuildDataTypeReg(ctx).build(type);
 
     vsc::dm::ITypeField *ret = ctx->ctxt()->mkTypeFieldReg(
         name,

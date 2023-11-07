@@ -26,6 +26,7 @@
 #include "TaskBuildTypeConstraints.h"
 #include "TaskBuildTypeExecs.h"
 #include "zsp/parser/impl/TaskResolveSymbolPathRef.h"
+#include "zsp/parser/impl/TaskEvalExpr.h"
 
 
 namespace zsp {
@@ -176,6 +177,21 @@ void TaskBuildDataType::visitDataTypeInt(ast::IDataTypeInt *i) {
     // TODO:
     int32_t width = i->getIs_signed()?32:1;
 
+    if (i->getWidth()) {
+        zsp::parser::IVal *width_v = zsp::parser::TaskEvalExpr(
+            m_ctxt->factory()).eval(i->getWidth());
+
+        if (width_v) {
+            if (width_v->getKind() == zsp::parser::ValKind::Int) {
+                width = dynamic_cast<zsp::parser::IValInt *>(width_v)->getValU();
+            } else {
+                DEBUG("Error: data-type width expression is %d, not int", width_v->getKind());
+            }
+        } else {
+            DEBUG("Error: data-type width expression produced null result");
+        }
+    }
+
     vsc::dm::IDataTypeInt *t = m_ctxt->ctxt()->findDataTypeInt(
         i->getIs_signed(),
         width);
@@ -269,6 +285,8 @@ void TaskBuildDataType::visitStruct(ast::IStruct *i) {
         } else {
             DEBUG("Skip building type for unspecialized template");
         }
+    } else {
+        DEBUG("Not building (depth=%d type=%p)", m_depth, m_type);
     }
 
     // Note: there won't be any other types declared inside a struct
@@ -347,7 +365,7 @@ void TaskBuildDataType::buildType(
         dynamic_cast<arl::dm::IDataTypeArlStruct *>(arl_type), 
         ast_type);
 
-    DEBUG_LEAVE("buildType (%d)", m_depth);
+    DEBUG_LEAVE("buildType %s (%d)", arl_type->name().c_str(), m_depth);
 }
 
 void TaskBuildDataType::buildTypeConstraints(
