@@ -22,6 +22,7 @@
 #include "vsc/dm/IDataTypeStruct.h"
 #include "TaskBuildActivity.h"
 #include "TaskBuildDataType.h"
+#include "TaskBuildDataTypeFunction.h"
 #include "TaskBuildField.h"
 #include "TaskBuildTypeConstraints.h"
 #include "TaskBuildTypeExecs.h"
@@ -56,7 +57,14 @@ vsc::dm::IDataType *TaskBuildDataType::build(ast::IScopeChild *type) {
 
 void TaskBuildDataType::visitSymbolExecScope(ast::ISymbolExecScope *i) {
     DEBUG_ENTER("visitSymbolExecScope (depth=%d)", m_depth);
+    DEBUG("TODO: visitSymbolExecScope");
     DEBUG_LEAVE("visitSymbolExecScope (depth=%d)", m_depth);
+}
+
+void TaskBuildDataType::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
+    DEBUG_ENTER("visitSymbolFunctionScope");
+    TaskBuildDataTypeFunction(m_ctxt).build(i);
+    DEBUG_LEAVE("visitSymbolFunctionScope");
 }
 
 void TaskBuildDataType::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {

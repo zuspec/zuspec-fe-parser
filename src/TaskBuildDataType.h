@@ -47,6 +47,8 @@ public:
 
     virtual void visitSymbolExecScope(ast::ISymbolExecScope *i) override;
 
+    virtual void visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) override;
+
     virtual void visitSymbolTypeScope(ast::ISymbolTypeScope *i) override;
 
     virtual void visitAction(ast::IAction *i) override;

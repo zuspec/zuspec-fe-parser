@@ -66,10 +66,19 @@ void Ast2ArlBuilder::visitSymbolScope(ast::ISymbolScope *i) {
 
 void Ast2ArlBuilder::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
     DEBUG_ENTER("visitSymbolTypeScope %s", i->getName().c_str());
-    if (!m_ctxt->findType(i->getTarget())) {
-        DEBUG("Need to build type");
-        // We haven't defined this type yet, so go build it
-        vsc::dm::IDataType *type = TaskBuildDataType(m_ctxt).build(i);
+    if (i->getSpec_types().size()) {
+        DEBUG("Type has specializations. Processing those");
+        for (std::vector<ast::ISymbolTypeScopeUP>::const_iterator
+            it=i->getSpec_types().begin();
+            it!=i->getSpec_types().end(); it++) {
+            (*it)->accept(m_this);
+        }
+    } else {
+        if (!m_ctxt->findType(i->getTarget())) {
+            DEBUG("Need to build type");
+            // We haven't defined this type yet, so go build it
+            vsc::dm::IDataType *type = TaskBuildDataType(m_ctxt).build(i);
+        }
     }
     DEBUG_LEAVE("visitSymbolTypeScope %s", i->getName().c_str());
 }
@@ -83,97 +92,9 @@ void Ast2ArlBuilder::visitSymbolEnumScope(ast::ISymbolEnumScope *i) {
     DEBUG_LEAVE("visitSymbolEnumScope");
 }
 
-static std::map<ast::ParamDir, arl::dm::ParamDir> param_dir_m = {
-    {ast::ParamDir::ParamDir_Default, arl::dm::ParamDir::In},
-    {ast::ParamDir::ParamDir_In, arl::dm::ParamDir::In},
-    {ast::ParamDir::ParamDir_Out, arl::dm::ParamDir::Out},
-    {ast::ParamDir::ParamDir_InOut, arl::dm::ParamDir::InOut} 
-};
-
 void Ast2ArlBuilder::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
     DEBUG_ENTER("visitSymbolFunctionScope \"%s\"", i->getName().c_str());
-
-    ast::IFunctionPrototype *proto = i->getPrototypes().at(0);
-    arl::dm::DataTypeFunctionFlags flags = arl::dm::DataTypeFunctionFlags::NoFlags;
-    bool is_target = proto->getIs_target();
-    bool is_solve  = proto->getIs_solve();
-
-    if (!i->getDefinition()) {
-        for (std::vector<ast::IFunctionImport *>::const_iterator
-            it=i->getImport_specs().begin();
-            it!=i->getImport_specs().end(); it++) {
-            if ((*it)->getPlat() == ast::PlatQual::PlatQual_Target) {
-                is_target = true;
-            }
-            if ((*it)->getPlat() == ast::PlatQual::PlatQual_Solve) {
-                is_solve = true;
-            }
-        }
-
-        if (is_target && is_solve) {
-            is_target = false;
-            is_solve = false;
-        } else {
-            if (is_target) {
-                flags = flags | arl::dm::DataTypeFunctionFlags::Target;
-            }
-            if (is_solve) {
-                flags = flags | arl::dm::DataTypeFunctionFlags::Solve;
-            }
-        }
-    }
-//    ast::IScopeChild *rtype = i->getDefinition()->getProto()->getRtype();
-    ast::IScopeChild *rtype = proto->getRtype();
-    arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->mkDataTypeFunction(
-        m_ctxt->getQName(i->getName()),
-        rtype?TaskBuildDataType(m_ctxt).build(rtype):0,
-        false,
-        flags);
-
-    // Bring across the function parameters
-    for (std::vector<ast::IFunctionParamDeclUP>::const_iterator
-        it=proto->getParameters().begin();
-        it!=proto->getParameters().end(); it++) {
-        std::string name = (*it)->getName()->getId();
-        arl::dm::ParamDir dir = param_dir_m.find((*it)->getDir())->second;
-        vsc::dm::IDataType *type = TaskBuildDataType(m_ctxt).build((*it)->getType());
-        vsc::dm::ITypeExpr *dflt = ((*it)->getDflt())?TaskBuildExpr(m_ctxt).build((*it)->getDflt()):0;
-        arl::dm::IDataTypeFunctionParamDecl *param = 
-        m_ctxt->ctxt()->mkDataTypeFunctionParamDecl(
-            name,
-            dir,
-            type,
-            false,
-            dflt
-        );
-        func->addParameter(param);
-    }
-    m_ctxt->ctxt()->addDataTypeFunction(func);
-
-    if (i->getDefinition()) {
-        // Local implementation
-        DEBUG("PSS-native function");
-
-        m_ctxt->pushSymScope(i);
-
-
-        m_ctxt->pushSymScope(i->getBody());
-        for (std::vector<ast::IExecStmtUP>::const_iterator
-            it=i->getDefinition()->getBody()->getChildren().begin();
-            it!= i->getDefinition()->getBody()->getChildren().end(); it++) {
-            TaskBuildTypeExecStmt(m_ctxt).build(
-                func->getBody(),
-                it->get());
-        }
-
-        m_ctxt->popSymScope();
-        m_ctxt->popSymScope();
-    } else {
-        DEBUG("Import function");
-        func->addImportSpec(m_ctxt->ctxt()->mkDataTypeFunctionImport(
-            "", is_target, is_solve));
-    }
-
+    TaskBuildDataTypeFunction(m_ctxt).build(i);
     DEBUG_LEAVE("visitSymbolFunctionScope %s", i->getName().c_str());
 }
 

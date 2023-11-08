@@ -80,6 +80,8 @@ TEST_F(TestRegisters, field_ctor) {
     }
 
     ASSERT_FALSE(marker_c->hasSeverity(MarkerSeverityE::Error));
+    
+    enableDebug(true);
 
     ast::ISymbolScopeUP root(link(
         marker_c.get(),
@@ -93,7 +95,6 @@ TEST_F(TestRegisters, field_ctor) {
 
     ASSERT_FALSE(marker_c->hasSeverity(MarkerSeverityE::Error));
 
-    enableDebug(true);
 
     ast2Arl(
         marker_c.get(),
