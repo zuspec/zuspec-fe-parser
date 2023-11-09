@@ -187,7 +187,8 @@ void TaskBuildDataType::visitDataTypeInt(ast::IDataTypeInt *i) {
 
     if (i->getWidth()) {
         zsp::parser::IVal *width_v = zsp::parser::TaskEvalExpr(
-            m_ctxt->factory()).eval(i->getWidth());
+            m_ctxt->factory(),
+            m_ctxt->getRoot()).eval(i->getWidth());
 
         if (width_v) {
             if (width_v->getKind() == zsp::parser::ValKind::Int) {
