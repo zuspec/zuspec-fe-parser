@@ -45,6 +45,9 @@ TaskBuildExpr::~TaskBuildExpr() {
 vsc::dm::ITypeExpr *TaskBuildExpr::build(ast::IExpr *e) {
     DEBUG_ENTER("build");
     vsc::dm::ITypeExpr *e_dm = expr(e);
+    if (!e_dm) {
+        ERROR("Failed to build expression");
+    }
     DEBUG_LEAVE("build %p", e_dm);
     return e_dm;
 }
@@ -248,6 +251,12 @@ void TaskBuildExpr::visitExprRefPathId(ast::IExprRefPathId *i) {
 void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) { 
     DEBUG_ENTER("visitExprRefPathContext");
 
+    if (!i->getTarget()) {
+        ERROR("expression target is null");
+        DEBUG_LEAVE("visitExprRefPathContext");
+        return;
+    }
+
     for (std::vector<ast::SymbolRefPathElem>::const_iterator
         it=i->getTarget()->getPath().begin();
         it!=i->getTarget()->getPath().end(); it++) {
@@ -313,6 +322,10 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                 DEBUG("Add path elem %d", i->getTarget()->getPath().at(ii).idx);
                 ref->addPathElem(i->getTarget()->getPath().at(ii).idx);
             }
+            if (ref->getPath().size() == 0) {
+                ERROR("type-context reference path is empty");
+            }
+
             expr = ref;
 
             // TODO: determine if this is actually a static reference
@@ -322,6 +335,9 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                 vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope,
                 (m_ctxt->symScopes().size()-i->getTarget()->getPath().size()));
             ref->addPathElem(i->getTarget()->getPath().back().idx);
+            if (ref->getPath().size() == 0) {
+                ERROR("bottom-up reference path is empty");
+            }
             expr = ref;
         }
     }
@@ -335,7 +351,7 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
     }
 
     vsc::dm::ITypeExprFieldRef *field_ref = 0;
-    for (uint32_t ii=1; ii<i->getHier_id()->getElems().size(); ii++) {
+    for (uint32_t ii=0; ii<i->getHier_id()->getElems().size(); ii++) {
         ast::IExprMemberPathElem *elem = i->getHier_id()->getElems().at(ii).get();
 
 /*
@@ -349,11 +365,13 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
             // Func
             DEBUG("Elem[%d] has parameters (%s)", ii, elem->getId()->getId().c_str());
 
-            ast_scope = zsp::parser::TaskIndexField(
-                m_ctxt->getDebugMgr(),
-                m_ctxt->getRoot()).index(
-                    ast_scope,
-                    elem->getTarget());
+            if (ii) {
+                ast_scope = zsp::parser::TaskIndexField(
+                    m_ctxt->getDebugMgr(),
+                    m_ctxt->getRoot()).index(
+                        ast_scope,
+                        elem->getTarget());
+            }
 
             zsp::ast::IScopeChild *func_t = ast_scope;
             std::string fname = zsp::parser::TaskGetName().get(func_t, true);
@@ -401,20 +419,26 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                 
             }
         } else {
-            DEBUG("TODO: field subref expr=%p idx=%d", expr, elem->getTarget());
-            if (!field_ref) {
-                field_ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
-                    expr, 
-                    elem->getTarget());
-                expr = field_ref;
-            } else {
-                field_ref->addPathElem(elem->getTarget());
+            if (ii) {
+                DEBUG("TODO: field subref expr=%p idx=%d", expr, elem->getTarget());
+                if (!field_ref) {
+                    field_ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
+                        expr, 
+                        elem->getTarget());
+
+                    if (field_ref->getPath().size() == 0) {
+                        ERROR("bottom-up reference path is empty");
+                    }
+                    expr = field_ref;
+                } else {
+                    field_ref->addPathElem(elem->getTarget());
+                }
+                ast_scope = zsp::parser::TaskIndexField(
+                    m_ctxt->getDebugMgr(),
+                    m_ctxt->getRoot()).index(
+                        ast_scope,
+                        elem->getTarget());
             }
-            ast_scope = zsp::parser::TaskIndexField(
-                m_ctxt->getDebugMgr(),
-                m_ctxt->getRoot()).index(
-                    ast_scope,
-                    elem->getTarget());
         }
     }
 
