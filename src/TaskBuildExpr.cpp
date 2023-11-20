@@ -156,7 +156,38 @@ void TaskBuildExpr::visitExprIn(ast::IExprIn *i) {
 }
     
 void TaskBuildExpr::visitExprMemberPathElem(ast::IExprMemberPathElem *i) { 
+    DEBUG_ENTER("visitExprMemberPathElem");
+    if (i->getParams()) {
+        DEBUG("Method call");
+        if (m_ctxt->isPyRef()) {
+            DEBUG("Create Python method call");
+            std::vector<vsc::dm::ITypeExpr *> params;
+            m_ctxt->pushBaseExpr(0); // No parent for these elements
+            for (std::vector<ast::IExprUP>::const_iterator
+                it=i->getParams()->getParameters().begin();
+                it!=i->getParams()->getParameters().end(); it++) {
+                m_expr = 0;
+                (*it)->accept(m_this);
+                params.push_back(m_expr);
+            }
+            m_ctxt->popBaseExpr();
 
+            arl::dm::ITypeExprPythonMethodCall *call = m_ctxt->ctxt()->mkTypeExprPythonMethodCall(
+                m_ctxt->baseExpr(),
+                true,
+                i->getId()->getId(),
+                params);
+            m_expr = call;
+        } else {
+            // TODO: base tells us how to get here. 
+            // How do we know if it's a context or static call?
+            // Use baseExpr() to determine
+        }
+    } else {
+        DEBUG("Sub-field reference");
+    }
+
+    DEBUG_LEAVE("visitExprMemberPathElem");
 }
     
 void TaskBuildExpr::visitExprNull(ast::IExprNull *i) { 
@@ -249,98 +280,102 @@ void TaskBuildExpr::visitExprRefPathId(ast::IExprRefPathId *i) {
 }
     
 void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) { 
-    DEBUG_ENTER("visitExprRefPathContext");
+    DEBUG_ENTER("visitExprRefPathContext baseExpr=%p", m_ctxt->baseExpr());
 
-    if (!i->getTarget()) {
-        ERROR("expression target is null");
-        DEBUG_LEAVE("visitExprRefPathContext");
-        return;
-    }
-
-    for (std::vector<ast::SymbolRefPathElem>::const_iterator
-        it=i->getTarget()->getPath().begin();
-        it!=i->getTarget()->getPath().end(); it++) {
-        DEBUG("it: kind=%d idx=%d", it->kind, it->idx);
-    }
-    DEBUG("HierId (%p) .size=%d", 
-        i->getHier_id(),
-        i->getHier_id()->getElems().size());
-    DEBUG("TypeScope: %s", m_ctxt->typeScope()->getName().c_str());
-
-    // First, is to determine whether we have a:
-    // - Context path (relative to type context)
-    // - Bottom-up path (relative to the activity/exec context)
-    // - Type path (pointer to a constant in a type)
-    DEBUG("Path size=%d ; scope depth=%d", 
-        i->getTarget()->getPath().size(),
-        m_ctxt->symScopes().size());
-    ast::ISymbolScope *scope = m_ctxt->symScopes().at(0);
-    int32_t type_scope_idx = -1;
-    for (uint32_t ii=0; ii<i->getTarget()->getPath().size(); ii++) {
-        DEBUG("Scope: %s ; ii=%d idx=%d", 
-            scope->getName().c_str(), 
-            ii,
-            i->getTarget()->getPath().at(ii).idx);
-        ast::IScopeChild *c = scope->getChildren().at(
-            i->getTarget()->getPath().at(ii).idx);
-
-        if (c == m_ctxt->typeScope()) {
-            DEBUG("Found type scope @ %d (%s)", ii,
-                m_ctxt->typeScope()->getName().c_str());
-            // we're looking at the *next* entry, so adjust 
-            // the index accordingly
-            type_scope_idx = ii+1;
+    if (!m_ctxt->baseExpr()) {
+        if (!i->getTarget()) {
+            ERROR("expression target is null");
+            DEBUG_LEAVE("visitExprRefPathContext");
+            return;
         }
 
-        if (ii+1 < i->getTarget()->getPath().size()) {
-            scope = dynamic_cast<ast::ISymbolScope *>(c);
+        for (std::vector<ast::SymbolRefPathElem>::const_iterator
+            it=i->getTarget()->getPath().begin();
+            it!=i->getTarget()->getPath().end(); it++) {
+            DEBUG("it: kind=%d idx=%d", it->kind, it->idx);
         }
-    }
+        DEBUG("HierId (%p) .size=%d", 
+            i->getHier_id(),
+            i->getHier_id()->getElems().size());
+        DEBUG("TypeScope: %s", m_ctxt->typeScope()->getName().c_str());
 
-    DEBUG("type_scope_idx=%d", type_scope_idx);
+        // First, is to determine whether we have a:
+        // - Context path (relative to type context)
+        // - Bottom-up path (relative to the activity/exec context)
+        // - Type path (pointer to a constant in a type)
+        DEBUG("Path size=%d ; scope depth=%d", 
+            i->getTarget()->getPath().size(),
+            m_ctxt->symScopes().size());
+        ast::ISymbolScope *scope = m_ctxt->symScopes().at(0);
+        int32_t type_scope_idx = -1;
+        for (uint32_t ii=0; ii<i->getTarget()->getPath().size(); ii++) {
+            DEBUG("Scope: %s ; ii=%d idx=%d", 
+                scope->getName().c_str(), 
+                ii,
+                i->getTarget()->getPath().at(ii).idx);
+            ast::IScopeChild *c = scope->getChildren().at(
+                i->getTarget()->getPath().at(ii).idx);
 
-    // Determine how to get to the root identifier
-    // - It's a field within the current action
-    // - It's a field relative to where we are
-    //
-    // Then, determine how to proceed
-    // - 
-    vsc::dm::ITypeExpr *expr = 0;
-    if (type_scope_idx != -1) {
-        DEBUG("type_scope_idx=%d (PathSize-1)=%d",
-            type_scope_idx,
-            (i->getTarget()->getPath().size()-1));
-        if (type_scope_idx == (i->getTarget()->getPath().size()-1)) {
-            // Reference is to a field within the active type
-            DEBUG("Type-context reference");
-            vsc::dm::ITypeExprFieldRef *ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
-                vsc::dm::ITypeExprFieldRef::RootRefKind::TopDownScope,
-                -1);
-
-            // This gets us 
-            for (uint32_t ii=type_scope_idx; ii<i->getTarget()->getPath().size(); ii++) {
-                DEBUG("Add path elem %d", i->getTarget()->getPath().at(ii).idx);
-                ref->addPathElem(i->getTarget()->getPath().at(ii).idx);
+            if (c == m_ctxt->typeScope()) {
+                DEBUG("Found type scope @ %d (%s)", ii,
+                    m_ctxt->typeScope()->getName().c_str());
+                // we're looking at the *next* entry, so adjust 
+                // the index accordingly
+                type_scope_idx = ii+1;
             }
-            if (ref->getPath().size() == 0) {
-                ERROR("type-context reference path is empty");
-            }
 
-            expr = ref;
-
-            // TODO: determine if this is actually a static reference
-        } else {
-            DEBUG("Bottom-up scope reference");
-            vsc::dm::ITypeExprFieldRef *ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
-                vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope,
-                (m_ctxt->symScopes().size()-i->getTarget()->getPath().size()));
-            ref->addPathElem(i->getTarget()->getPath().back().idx);
-            if (ref->getPath().size() == 0) {
-                ERROR("bottom-up reference path is empty");
+            if (ii+1 < i->getTarget()->getPath().size()) {
+                scope = dynamic_cast<ast::ISymbolScope *>(c);
             }
-            expr = ref;
         }
-    }
+
+        DEBUG("type_scope_idx=%d", type_scope_idx);
+
+        // Determine how to get to the root identifier
+        // - It's a field within the current action
+        // - It's a field relative to where we are
+        //
+        // Then, determine how to proceed
+        // - 
+        vsc::dm::ITypeExpr *expr = 0;
+        if (type_scope_idx != -1) {
+            DEBUG("type_scope_idx=%d (PathSize-1)=%d",
+                type_scope_idx,
+                (i->getTarget()->getPath().size()-1));
+            if (type_scope_idx == (i->getTarget()->getPath().size()-1)) {
+                // Reference is to a field within the active type
+                DEBUG("Type-context reference");
+                vsc::dm::ITypeExprFieldRef *ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
+                    vsc::dm::ITypeExprFieldRef::RootRefKind::TopDownScope,
+                    -1);
+
+                // This gets us 
+                for (uint32_t ii=type_scope_idx; ii<i->getTarget()->getPath().size(); ii++) {
+                    DEBUG("Add path elem %d", i->getTarget()->getPath().at(ii).idx);
+                    ref->addPathElem(i->getTarget()->getPath().at(ii).idx);
+                }
+                if (ref->getPath().size() == 0) {
+                    ERROR("type-context reference path is empty");
+                }
+
+                expr = ref;
+
+                // TODO: determine if this is actually a static reference
+            } else {
+                DEBUG("Bottom-up scope reference");
+                vsc::dm::ITypeExprFieldRef *ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
+                    vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope,
+                    (m_ctxt->symScopes().size()-i->getTarget()->getPath().size()));
+                ref->addPathElem(i->getTarget()->getPath().back().idx);
+                if (ref->getPath().size() == 0) {
+                    ERROR("bottom-up reference path is empty");
+                }
+                expr = ref;
+            }
+        } else { // Has a base expression
+            // 
+            DEBUG("Note: has a base expression");
+        }
 
     zsp::parser::TaskResolveSymbolPathRef resolver(
             m_ctxt->getDebugMgr(),
@@ -441,8 +476,12 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
             }
         }
     }
-
     m_expr = expr;
+    } else {
+        // Root is an expression
+        DEBUG("Note: root is an expression");
+    }
+
 
     DEBUG_LEAVE("visitExprRefPathContext %p", m_expr);
 }
@@ -455,6 +494,32 @@ void TaskBuildExpr::visitExprRefPathElem(ast::IExprRefPathElem *i) {
     
 void TaskBuildExpr::visitExprRefPathStaticRooted(ast::IExprRefPathStaticRooted *i) { 
     DEBUG_ENTER("visitExprRefPathStaticRooted");
+    
+    // First, build the root-reference expression
+    m_expr = 0;
+    m_ctxt->pushBaseExpr(m_expr);
+    i->getRoot()->accept(m_this);
+    m_ctxt->popBaseExpr();
+
+    if (!m_expr) {
+        ERROR("Building root expression failed");
+        DEBUG_LEAVE("visitExprRefPathStaticRooted -- failed to build root expr");
+        return;
+    }
+
+    m_ctxt->pushIsPyRef(i->getRoot()->getTarget()->getPyref_idx() != -1);
+    for (std::vector<ast::IExprMemberPathElemUP>::const_iterator
+        it=i->getLeaf()->getElems().begin();
+        it!=i->getLeaf()->getElems().end(); it++) {
+        DEBUG("Push BaseExpr %p", m_expr);
+        m_ctxt->pushBaseExpr(m_expr);
+        DEBUG("BaseExpr %p", m_ctxt->baseExpr());
+        (*it)->accept(m_this);
+        m_ctxt->popBaseExpr();
+        DEBUG("Post Pop BaseExpr expr=%p", m_expr);
+    }
+    m_ctxt->popIsPyRef();
+
     DEBUG("root=%p leaf=%p", i->getRoot(), i->getLeaf());
 
     DEBUG_LEAVE("visitExprRefPathStaticRooted");
@@ -485,7 +550,40 @@ void TaskBuildExpr::visitExprUnsignedNumber(ast::IExprUnsignedNumber *i) {
 
 void TaskBuildExpr::visitExprRefPathStatic(ast::IExprRefPathStatic *i) { 
     DEBUG_ENTER("visitExprRefPathStatic");
+    if (i->getTarget()->getPyref_idx() != -1) {
+        DEBUG("Path involves a Python-type reference");
+        ast::IScopeChild *target_c = zsp::parser::TaskResolveSymbolPathRef(
+            m_ctxt->getDebugMgr(),
+            m_ctxt->getRoot()).resolve(i->getTarget());
+        
+        // Build an expression to represent the PSS portion of the path
+        target_c->accept(m_this);
 
+        // Now, build references for the remainder
+        for (std::vector<ast::ITypeIdentifierElemUP>::const_iterator
+            it=(i->getBase().begin()+i->getTarget()->getPyref_idx()+1);
+            it!=i->getBase().end(); it++) {
+            if ((*it)->getParams()) {
+                // Python method call
+                std::vector<vsc::dm::ITypeExpr *> params;
+                /*
+                for (std::vector<ast::IExprUP>::const_iterator
+                    it_p=(*it)->getParams()->getValues().back();
+                    it_p!=(*it)->getParams()->getValues().end();)
+                m_expr = m_ctxt->ctxt()->mkTypeExprPythonMethodCall(
+                    m_expr,
+                    true,
+                    (*it)->getId()->getId(),
+                    params);
+                 */
+            } else {
+                // Python field reference
+            }
+        }
+
+    } else {
+        ERROR("non-python static ref path unimplemented");
+    }
     DEBUG_LEAVE("visitExprRefPathStatic");
 }
 
@@ -495,6 +593,23 @@ void TaskBuildExpr::visitExprRefPathStaticFunc(ast::IExprRefPathStaticFunc *i) {
     DEBUG_LEAVE("visitExprRefPathStaticFunc");
 }
 
+void TaskBuildExpr::visitPyImportStmt(ast::IPyImportStmt *i) {
+    DEBUG_ENTER("visitPyImportStmt");
+    // Lookup specified package
+    std::string name;
+    for (std::vector<ast::IExprIdUP>::const_iterator
+        it=i->getPath().begin();
+        it!=i->getPath().end(); it++) {
+        if (name.size()) {
+            name.append(".");
+        }
+        name.append((*it)->getId());
+    }
+    DEBUG("Searching for python import \"%s\"", name.c_str());
+    arl::dm::IPyImport *imp = m_ctxt->ctxt()->findPyImport(name);
+    m_expr = m_ctxt->ctxt()->mkTypeExprPyImportRef(imp);
+    DEBUG_LEAVE("visitPyImportStmt");
+}
 
 vsc::dm::ITypeExpr *TaskBuildExpr::expr(ast::IExpr *e) {
     DEBUG_ENTER("expr");

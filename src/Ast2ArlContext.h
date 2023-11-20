@@ -93,6 +93,20 @@ public:
 
     virtual std::string getQName(const std::string &name) override;
 
+    virtual void pushIsPyRef(bool v) override;
+
+    virtual void setIsPyRef(bool v) override;
+
+    virtual bool isPyRef() override;
+
+    virtual void popIsPyRef() override;
+
+    virtual void pushBaseExpr(vsc::dm::ITypeExpr *expr) override;
+    
+    virtual vsc::dm::ITypeExpr *baseExpr() override;
+
+    virtual vsc::dm::ITypeExpr *popBaseExpr() override;
+
 private:
 
 
@@ -107,6 +121,8 @@ private:
     std::vector<std::vector<ast::ISymbolScope *>>                   m_scope_s;
     std::map<ast::IScopeChild *, vsc::dm::IDataTypeStruct *>        m_type_m;
     int32_t                                                         m_type_s_idx;
+    std::vector<bool>                                               m_pyref_s;
+    std::vector<vsc::dm::ITypeExpr *>                               m_base_s;
 
 };
 

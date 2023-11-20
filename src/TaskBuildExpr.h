@@ -102,6 +102,8 @@ public:
 
     virtual void visitExprRefPathStaticFunc(ast::IExprRefPathStaticFunc *i) override;
 
+    virtual void visitPyImportStmt(ast::IPyImportStmt *i) override;
+
 private:
 
     vsc::dm::ITypeExpr *expr(ast::IExpr *e);

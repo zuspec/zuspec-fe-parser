@@ -21,6 +21,7 @@
 #pragma once
 #include <memory>
 #include "dmgr/IDebugMgr.h"
+#include "vsc/dm/ITypeExpr.h"
 #include "zsp/parser/IFactory.h"
 #include "zsp/arl/dm/IContext.h"
 #include "zsp/ast/IScopeChild.h"
@@ -68,6 +69,20 @@ public:
     virtual std::string getQName(const std::string &name) = 0;
 
     virtual ast::ISymbolScope *getRoot() = 0;
+
+    virtual void pushIsPyRef(bool v) = 0;
+
+    virtual void setIsPyRef(bool v) = 0;
+
+    virtual bool isPyRef() = 0;
+
+    virtual void popIsPyRef() = 0;
+
+    virtual void pushBaseExpr(vsc::dm::ITypeExpr *expr) = 0;
+    
+    virtual vsc::dm::ITypeExpr *baseExpr() = 0;
+
+    virtual vsc::dm::ITypeExpr *popBaseExpr() = 0;
 
 };
 

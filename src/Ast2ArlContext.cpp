@@ -171,6 +171,47 @@ std::string Ast2ArlContext::getQName(const std::string &name) {
     return qname;
 }
 
+void Ast2ArlContext::pushIsPyRef(bool v) {
+    m_pyref_s.push_back(v);
+}
+
+void Ast2ArlContext::setIsPyRef(bool v) {
+    if (m_pyref_s.size()) {
+        m_pyref_s.back() = v;
+    } else if (v) {
+        ERROR("Attempting to setIsPyRef==true with empty stack");
+    }
+}
+
+bool Ast2ArlContext::isPyRef() {
+    return (m_pyref_s.size() && m_pyref_s.back());
+}
+
+void Ast2ArlContext::popIsPyRef() {
+    if (m_pyref_s.size()) {
+        m_pyref_s.pop_back();
+    }
+}
+
+void Ast2ArlContext::pushBaseExpr(vsc::dm::ITypeExpr *expr) {
+    m_base_s.push_back(expr);
+}
+    
+vsc::dm::ITypeExpr *Ast2ArlContext::baseExpr() {
+    return (m_base_s.size())?m_base_s.back():0;
+}
+
+vsc::dm::ITypeExpr *Ast2ArlContext::popBaseExpr() {
+    vsc::dm::ITypeExpr *ret = 0;
+
+    if (m_base_s.size()) {
+        ret = m_base_s.back();
+        m_base_s.pop_back();
+    }
+
+    return ret;
+}
+
 dmgr::IDebug *Ast2ArlContext::m_dbg = 0;
 
 }
