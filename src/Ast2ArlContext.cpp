@@ -22,6 +22,7 @@
 #include "Ast2ArlContext.h"
 #include "zsp/parser/impl/TaskResolveSymbolPathRef.h"
 #include "zsp/parser/impl/TaskGetName.h"
+#include "zsp/fe/parser/impl/TaskIsTopDownScope.h"
 
 
 namespace zsp {
@@ -60,7 +61,7 @@ void Ast2ArlContext::pushSymScope(ast::ISymbolScope *s) {
         m_scope_s.back().push_back(s);
     }
 
-    if (dynamic_cast<ast::ISymbolTypeScope *>(s) || dynamic_cast<ast::ISymbolFunctionScope *>(s)) {
+    if (TaskIsTopDownScope().check(s)) {
         m_type_s_idx = m_scope_s.back().size()-1;
         DEBUG("PUSH: m_type_s_idx=%d", m_type_s_idx);
     }
@@ -77,9 +78,7 @@ void Ast2ArlContext::popSymScope() {
         DEBUG("WARNING: size is now zero");
     }
 
-    if (m_scope_s.size() && (
-            dynamic_cast<ast::ISymbolTypeScope *>(m_scope_s.back().back()) ||
-            dynamic_cast<ast::ISymbolFunctionScope *>(m_scope_s.back().back()))) {
+    if (m_scope_s.size() && TaskIsTopDownScope().check(m_scope_s.back().back())) {
         m_type_s_idx = m_scope_s.back().size()-1;
         DEBUG("POP: m_type_s_idx=%d", m_type_s_idx);
     } else {
@@ -118,6 +117,20 @@ ast::IScopeChild *Ast2ArlContext::resolveRefPath(const ast::ISymbolRefPath *ref)
         m_factory->getDebugMgr(),
         m_scope_s.back().front()).resolve(ref);
     DEBUG_ENTER("resolveRefPath");
+    return ret;
+}
+
+int32_t Ast2ArlContext::findBottomUpScope(ast::ISymbolScope *scope) {
+    int32_t ret = -1;
+    if (m_type_s_idx != -1) {
+        for (int32_t i=m_scope_s.back().size()-1; i>m_type_s_idx; i--) {
+            if (m_scope_s.back().at(i) == scope) {
+                ret = m_scope_s.back().size()-i-1;
+                break;
+            }
+        }
+    }
+
     return ret;
 }
 

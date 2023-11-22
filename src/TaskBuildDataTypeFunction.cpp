@@ -69,6 +69,8 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
             }
         }
 
+        flags = flags | arl::dm::DataTypeFunctionFlags::Import;
+
         if (is_target && is_solve) {
             is_target = false;
             is_solve = false;

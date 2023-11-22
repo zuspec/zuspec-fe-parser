@@ -240,9 +240,14 @@ void TaskBuildExpr::visitExprRefPathId(ast::IExprRefPathId *i) {
         DEBUG("Scope: %s ;   ii=%d", scope->getName().c_str(), i->getTarget()->getPath().at(ii));
         ast::IScopeChild *c = scope->getChildren().at(
             i->getTarget()->getPath().at(ii).idx);
+        
+        DEBUG("Scope=%p typeScope=%p symScope=%p",
+            c, m_ctxt->typeScope(), m_ctxt->symScope());
 
         if (c == m_ctxt->typeScope()) {
             type_scope_idx = ii;
+        } else if (c == m_ctxt->symScope()) {
+            DEBUG("TODO: bottom-up scope");
         }
 
         if (ii+1 < i->getTarget()->getPath().size()) {
@@ -280,7 +285,7 @@ void TaskBuildExpr::visitExprRefPathId(ast::IExprRefPathId *i) {
 }
     
 void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) { 
-    DEBUG_ENTER("visitExprRefPathContext baseExpr=%p", m_ctxt->baseExpr());
+    DEBUG_ENTER("visitExprRefPathContext elem[0]=%s", i->getHier_id()->getElems().at(0)->getId()->getId().c_str());
 
     if (!m_ctxt->baseExpr()) {
         if (!i->getTarget()) {
@@ -307,8 +312,9 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
             i->getTarget()->getPath().size(),
             m_ctxt->symScopes().size());
         ast::ISymbolScope *scope = m_ctxt->symScopes().at(0);
-        int32_t type_scope_idx = -1;
-        for (uint32_t ii=0; ii<i->getTarget()->getPath().size(); ii++) {
+        int32_t type_scope_idx=-1, bup_scope_idx=-1;
+        uint32_t ii;
+        for (ii=0; ii<i->getTarget()->getPath().size(); ii++) {
             DEBUG("Scope: %s ; ii=%d idx=%d", 
                 scope->getName().c_str(), 
                 ii,
@@ -316,12 +322,21 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
             ast::IScopeChild *c = scope->getChildren().at(
                 i->getTarget()->getPath().at(ii).idx);
 
+            DEBUG("Scope=%s typeScope=%s symScope=%s",
+                scope->getName().c_str(), 
+                m_ctxt->typeScope()->getName().c_str(), 
+                m_ctxt->symScope()->getName().c_str());
             if (c == m_ctxt->typeScope()) {
                 DEBUG("Found type scope @ %d (%s)", ii,
                     m_ctxt->typeScope()->getName().c_str());
                 // we're looking at the *next* entry, so adjust 
                 // the index accordingly
                 type_scope_idx = ii+1;
+                break;
+            } else if ((bup_scope_idx=m_ctxt->findBottomUpScope(scope)) != -1) {
+                // See if this if (scope == m_ctxt->symScope()) {
+                DEBUG("bottom-up scope %d", bup_scope_idx);
+                break;
             }
 
             if (ii+1 < i->getTarget()->getPath().size()) {
@@ -329,7 +344,8 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
             }
         }
 
-        DEBUG("type_scope_idx=%d", type_scope_idx);
+        DEBUG("type_scope_idx=%d bup_scope_idx=%d", 
+            type_scope_idx, bup_scope_idx);
 
         // Determine how to get to the root identifier
         // - It's a field within the current action
@@ -362,19 +378,23 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
 
                 // TODO: determine if this is actually a static reference
             } else {
-                DEBUG("Bottom-up scope reference");
-                vsc::dm::ITypeExprFieldRef *ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
-                    vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope,
-                    (m_ctxt->symScopes().size()-i->getTarget()->getPath().size()));
-                ref->addPathElem(i->getTarget()->getPath().back().idx);
-                if (ref->getPath().size() == 0) {
-                    ERROR("bottom-up reference path is empty");
-                }
-                expr = ref;
+                ERROR("Failed consistency check");
             }
-        } else { // Has a base expression
+        } else if (bup_scope_idx != -1) {
+            DEBUG("Processing bottom-up reference");
+            vsc::dm::ITypeExprFieldRef *ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
+                vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope,
+                bup_scope_idx);
+            // Add path offsets from where we left off
+            for (; ii<i->getTarget()->getPath().size(); ii++) {
+                DEBUG("ii=%d idx=%d", ii, i->getTarget()->getPath().at(ii));
+                ref->addPathElem(i->getTarget()->getPath().at(ii).idx);
+            }
+            expr = ref;
+        } else { // Error -- needs to be one
+            DEBUG("TODO: See if this is a global");
             // 
-            DEBUG("Note: has a base expression");
+            ERROR("Neither bottom-up or top-down");
         }
 
     zsp::parser::TaskResolveSymbolPathRef resolver(

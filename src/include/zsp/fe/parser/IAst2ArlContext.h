@@ -58,6 +58,8 @@ public:
 
     virtual ast::IScopeChild *resolveRefPath(const ast::ISymbolRefPath *ref) = 0;
 
+    virtual int32_t findBottomUpScope(ast::ISymbolScope *scope) = 0;
+
     virtual ast::ISymbolScope *typeScope() const = 0;
 
     virtual vsc::dm::IDataTypeStruct *findType(ast::IScopeChild *t) = 0;

@@ -52,6 +52,11 @@ vsc::dm::IDataType *TaskBuildDataType::build(ast::IScopeChild *type) {
     type->accept(this);
     DEBUG_LEAVE("build");
 
+    if (!m_type) {
+        ERROR("Failed to produce a data type");
+        m_type = m_ctxt->ctxt()->findDataTypeInt(true, 32);
+    }
+
     return m_type;
 }
 
@@ -224,7 +229,7 @@ void TaskBuildDataType::visitDataTypeInt(ast::IDataTypeInt *i) {
 
 void TaskBuildDataType::visitDataTypeString(ast::IDataTypeString *i) {
     DEBUG_ENTER("visitDataTypeString");
-
+    m_type = m_ctxt->ctxt()->getDataTypeCore(vsc::dm::DataTypeCoreE::String);
     DEBUG_LEAVE("visitDataTypeString");
 }
 
