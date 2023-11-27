@@ -335,7 +335,8 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                 type_scope_idx = ii+1;
                 break;
             } else if ((bup_scope_idx=m_ctxt->findBottomUpScope(scope)) != -1) {
-                // See if this if (scope == m_ctxt->symScope()) {
+                // Find the first scope on the top-down path
+                // that matches a bottom-up scope.
                 DEBUG("bottom-up scope %d", bup_scope_idx);
                 break;
             }
@@ -382,15 +383,62 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                 ERROR("Failed consistency check");
             }
         } else if (bup_scope_idx != -1) {
+            // First, keep going along the path to find the last
+            // bottom-up scope on the path
+            for (; ii<i->getTarget()->getPath().size()-1; ii++) {
+                int32_t t_bup_scope_idx;
+                ast::IScopeChild *c = scope->getChildren().at(
+                    i->getTarget()->getPath().at(ii).idx);
+                scope = dynamic_cast<ast::ISymbolScope *>(c);
+
+                if ((t_bup_scope_idx=m_ctxt->findBottomUpScope(scope)) != -1) {
+                    DEBUG("Found bottom-up scope %d @ path index %d", t_bup_scope_idx, ii);
+                    bup_scope_idx = t_bup_scope_idx;
+                } else {
+                    DEBUG("Reached the end of bottom-up scopes @ %d", ii);
+                    break;
+                }
+            }
+            fflush(stdout);
+
             DEBUG("Processing bottom-up reference");
+            ast::ISymbolExecScope *lscope = dynamic_cast<ast::ISymbolExecScope *>(
+                    m_ctxt->symScopes().at(m_ctxt->symScopes().size()-bup_scope_idx-1));
+            
             vsc::dm::ITypeExprFieldRef *ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
                 vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope,
                 bup_scope_idx);
-            // Add path offsets from where we left off
-            for (; ii<i->getTarget()->getPath().size(); ii++) {
-                DEBUG("ii=%d idx=%d", ii, i->getTarget()->getPath().at(ii));
-                ref->addPathElem(i->getTarget()->getPath().at(ii).idx);
+
+            if (lscope) {
+                // If the lowest local scope is an Exec scope, then 
+                // we need to remap variable indices
+                DEBUG("Must transform first element ii=%d idx=%d", ii, i->getTarget()->getPath().at(ii).idx);
+                DEBUG("Children: %d locals: %d", lscope->getChildren().size(), lscope->getLocals().size());
+                int32_t target_idx = -1;
+                int32_t var_child_idx = i->getTarget()->getPath().at(ii).idx;
+                for (uint32_t vi=0; vi<lscope->getLocals().size(); vi++) {
+                    if (lscope->getLocals().at(vi) == lscope->getChildren().at(var_child_idx)) {
+                        DEBUG("Found local @ %d", vi);
+                        target_idx = vi;
+                        break;
+                    }
+                }
+                fflush(stdout);
+                if (target_idx != -1) {
+                    DEBUG("Remapped reference to local-var @ %d", target_idx);
+                    ref->addPathElem(target_idx);
+                } else {
+                    FATAL("Failed to remap locals index");
+                }
+                ii++;
+            } else {
+                DEBUG("Target scope is not an Exec scope. No need to remap");
             }
+
+            for (uint32_t li=ii; li<i->getTarget()->getPath().size(); li++) {
+                ref->addPathElem(i->getTarget()->getPath().at(li).idx);
+            }
+            DEBUG("Ref has %d elements", ref->getPath().size());
             expr = ref;
         } else { // Error -- needs to be one
             DEBUG("TODO: See if this is a global");

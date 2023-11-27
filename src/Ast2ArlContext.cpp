@@ -121,16 +121,20 @@ ast::IScopeChild *Ast2ArlContext::resolveRefPath(const ast::ISymbolRefPath *ref)
 }
 
 int32_t Ast2ArlContext::findBottomUpScope(ast::ISymbolScope *scope) {
+    DEBUG_ENTER("findBottomUpScope %p", scope);
     int32_t ret = -1;
     if (m_type_s_idx != -1) {
+        DEBUG("search: %d %d", m_scope_s.back().size(), m_type_s_idx);
         for (int32_t i=m_scope_s.back().size()-1; i>m_type_s_idx; i--) {
             if (m_scope_s.back().at(i) == scope) {
+                DEBUG("Found @ %d", i);
                 ret = m_scope_s.back().size()-i-1;
                 break;
             }
         }
     }
 
+    DEBUG_LEAVE("findBottomUpScope %d", ret);
     return ret;
 }
 

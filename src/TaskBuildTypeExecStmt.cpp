@@ -20,6 +20,7 @@
  */
 #include "dmgr/impl/DebugMacros.h"
 #include "TaskBuildTypeExecStmt.h"
+#include "TaskBuildDataType.h"
 #include "TaskBuildExpr.h"
 
 
@@ -76,12 +77,20 @@ void TaskBuildTypeExecStmt::visitProceduralStmtExpr(ast::IProceduralStmtExpr *i)
     
 void TaskBuildTypeExecStmt::visitProceduralStmtFunctionCall(ast::IProceduralStmtFunctionCall *i) { 
     DEBUG_ENTER("visitProceduralStmtFunctionCall");
-
+    DEBUG("TODO: visitProceduralStmtFunctionCall");
     DEBUG_LEAVE("visitProceduralStmtFunctionCall");
 }
     
 void TaskBuildTypeExecStmt::visitProceduralStmtReturn(ast::IProceduralStmtReturn *i) { 
+    DEBUG_ENTER("visitProceduralStmtReturn");
+    vsc::dm::ITypeExpr *expr = 0;
+    if (i->getExpr()) {
+        expr = TaskBuildExpr(m_ctxt).build(i->getExpr());
+    }
 
+    m_scope_s.back()->addStatement(m_ctxt->ctxt()->mkTypeProcStmtReturn(expr));
+
+    DEBUG_LEAVE("visitProceduralStmtReturn");
 }
     
 void TaskBuildTypeExecStmt::visitProceduralStmtRepeat(ast::IProceduralStmtRepeat *i) { 
@@ -148,7 +157,16 @@ void TaskBuildTypeExecStmt::visitProceduralStmtContinue(ast::IProceduralStmtCont
 }
     
 void TaskBuildTypeExecStmt::visitProceduralStmtDataDeclaration(ast::IProceduralStmtDataDeclaration *i) { 
+    DEBUG_ENTER("visitProceduralStmtDataDeclaration");
+    m_scope_s.back()->addVariable(
+        m_ctxt->ctxt()->mkTypeProcStmtVarDecl(
+            i->getName()->getId(),
+            TaskBuildDataType(m_ctxt).build(i->getDatatype()),
+            false,
+            (i->getInit())?TaskBuildExpr(m_ctxt).build(i->getInit()):0
+        ));
 
+    DEBUG_LEAVE("visitProceduralStmtDataDeclaration");
 }
 
 void TaskBuildTypeExecStmt::visitProceduralStmtSequenceBlock(ast::IProceduralStmtSequenceBlock *i) {
