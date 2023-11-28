@@ -88,6 +88,7 @@ void TaskBuildTypeExecStmt::visitProceduralStmtReturn(ast::IProceduralStmtReturn
         expr = TaskBuildExpr(m_ctxt).build(i->getExpr());
     }
 
+    DEBUG("Add return to %p", m_scope_s.back());
     m_scope_s.back()->addStatement(m_ctxt->ctxt()->mkTypeProcStmtReturn(expr));
 
     DEBUG_LEAVE("visitProceduralStmtReturn");
@@ -111,12 +112,13 @@ void TaskBuildTypeExecStmt::visitProceduralStmtForeach(ast::IProceduralStmtForea
     
 void TaskBuildTypeExecStmt::visitProceduralStmtIfElse(ast::IProceduralStmtIfElse *i) { 
     DEBUG_ENTER("visitProceduralStmtIfElse");
-    vsc::dm::ITypeExpr *cond = 0;
+    vsc::dm::ITypeExpr *cond = TaskBuildExpr(m_ctxt).build(i->getCond());
 
     arl::dm::ITypeProcStmtScope *true_s = m_ctxt->ctxt()->mkTypeProcStmtScope();
     m_scope_s.push_back(true_s);
     i->getTrue_s()->accept(m_this);
     m_scope_s.pop_back();
+    DEBUG("%p %d statements in 'true'", true_s, true_s->getStatements().size());
 
     arl::dm::ITypeProcStmtScope *false_s = 0;
     if (i->getFalse_s()) {
@@ -170,9 +172,12 @@ void TaskBuildTypeExecStmt::visitProceduralStmtDataDeclaration(ast::IProceduralS
 }
 
 void TaskBuildTypeExecStmt::visitProceduralStmtSequenceBlock(ast::IProceduralStmtSequenceBlock *i) {
+    DEBUG_ENTER("visitProceduralStmtSequenceBlock");
     // If this *is* the root block, don't create a duplicate scope
+    arl::dm::ITypeProcStmtScope *scope = 0;
     if (m_root != i) {
-        m_scope_s.push_back(m_ctxt->ctxt()->mkTypeProcStmtScope());
+        scope = m_ctxt->ctxt()->mkTypeProcStmtScope();
+        m_scope_s.push_back(scope);
     }
 
     for (std::vector<ast::IExecStmtUP>::const_iterator
@@ -183,7 +188,9 @@ void TaskBuildTypeExecStmt::visitProceduralStmtSequenceBlock(ast::IProceduralStm
 
     if (m_root != i) {
         m_scope_s.pop_back();
+        m_scope_s.back()->addStatement(scope);
     }
+    DEBUG_LEAVE("visitProceduralStmtSequenceBlock");
 }
 
 dmgr::IDebug *TaskBuildTypeExecStmt::m_dbg = 0;

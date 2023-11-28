@@ -59,7 +59,7 @@ void TaskBuildExpr::visitExprStaticRefPath(ast::IExprStaticRefPath *i) {
 }
 
 void TaskBuildExpr::visitExprString(ast::IExprString *i) { 
-    DEBUG_ENTER("visitExprString");
+    DEBUG_ENTER("visitExprString \"%s\"", i->getValue().c_str());
     m_expr = m_ctxt->ctxt()->mkTypeExprVal(
         m_ctxt->ctxt()->mkValRefStr(i->getValue()));
     DEBUG_LEAVE("visitExprString");
