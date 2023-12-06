@@ -50,7 +50,7 @@ TaskBuildDataTypeFunction::~TaskBuildDataTypeFunction() {
 zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
     ast::ISymbolFunctionScope *i) {
     std::string fname = zsp::parser::TaskGetName().get(i, true);
-    DEBUG_ENTER("build %s", fname.c_str());
+    DEBUG_ENTER("build %s (%s)", fname.c_str(), i->getName().c_str());
 
     ast::IFunctionPrototype *proto = i->getPrototypes().at(0);
     arl::dm::DataTypeFunctionFlags flags = arl::dm::DataTypeFunctionFlags::NoFlags;

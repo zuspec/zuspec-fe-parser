@@ -90,9 +90,10 @@ void Ast2ArlContext::popSymScope() {
 }
 
 void Ast2ArlContext::pushSymScopeStack(ast::ISymbolScope *s) {
-    DEBUG_ENTER("pushSymScopeStack");
+    DEBUG_ENTER("pushSymScopeStack %s", (s)?s->getName().c_str():"<null>");
     if (!s) {
         s = m_scope_s.back().front();
+        DEBUG("Full-push with root scope %s", s->getName().c_str());
     }
     DEBUG("s=%s", s->getName().c_str());
     m_scope_s.push_back({s});

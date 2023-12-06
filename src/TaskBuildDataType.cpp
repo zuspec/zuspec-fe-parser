@@ -50,13 +50,13 @@ vsc::dm::IDataType *TaskBuildDataType::build(ast::IScopeChild *type) {
     m_depth = 0;
 
     type->accept(this);
-    DEBUG_LEAVE("build");
 
     if (!m_type) {
         ERROR("Failed to produce a data type");
         m_type = m_ctxt->ctxt()->findDataTypeInt(true, 32);
     }
 
+    DEBUG_LEAVE("build");
     return m_type;
 }
 
@@ -402,11 +402,16 @@ void TaskBuildDataType::buildTypeFields(
     // Recurse first
     ast::ITypeScope *target_t = dynamic_cast<ast::ITypeScope *>(ast_type->getTarget());
     if (target_t->getSuper_t()) {
-        ast::IScopeChild *super_t_ast = resolvePath(target_t->getSuper_t()->getTarget());
+        if (target_t->getSuper_t()->getTarget()) {
+            ast::IScopeChild *super_t_ast = resolvePath(target_t->getSuper_t()->getTarget());
 //        vsc::dm::IDataType *super_t_arl = TaskBuildDataType(m_ctxt).build(super_t_ast);
 
-        // Now, build the super-type fields
-        buildTypeFields(off_l, arl_type, dynamic_cast<ast::ISymbolTypeScope *>(super_t_ast));
+            // Now, build the super-type fields
+            buildTypeFields(off_l, arl_type, dynamic_cast<ast::ISymbolTypeScope *>(super_t_ast));
+        } else {
+            ERROR("Super type not resolved for %s", 
+                target_t->getName()->getId().c_str());
+        }
     }
 
     // Record how many fields are in 'super'

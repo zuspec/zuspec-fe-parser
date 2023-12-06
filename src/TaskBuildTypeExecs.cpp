@@ -78,15 +78,16 @@ void TaskBuildTypeExecs::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
 }
 
 void TaskBuildTypeExecs::visitSymbolExecScope(ast::ISymbolExecScope *i) {
-    DEBUG_ENTER("visitSymbolExecScope kind=%d target_kind=%d size=%d",
-        dynamic_cast<ast::IExecBlock *>(i->getTarget())->getKind(),
+    DEBUG_ENTER("visitSymbolExecScope target_kind=%d size=%d",
         m_target_kind,
         i->getChildren().size());
 
+    /*
     if (dynamic_cast<ast::IExecBlock *>(i->getTarget())->getKind() != m_target_kind) {
         DEBUG_LEAVE("visitSymbolExecScope -- not target kind");
         return;
     }
+     */
 
     arl::dm::ExecKindT kind;
     switch (m_target_kind) {

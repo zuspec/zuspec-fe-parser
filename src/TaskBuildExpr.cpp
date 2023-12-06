@@ -288,6 +288,8 @@ void TaskBuildExpr::visitExprRefPathId(ast::IExprRefPathId *i) {
 void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) { 
     DEBUG_ENTER("visitExprRefPathContext elem[0]=%s", i->getHier_id()->getElems().at(0)->getId()->getId().c_str());
 
+    vsc::dm::ITypeExprFieldRef *field_ref = 0;
+
     if (!m_ctxt->baseExpr()) {
         if (!i->getTarget()) {
             ERROR("expression target is null");
@@ -333,8 +335,9 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                 // we're looking at the *next* entry, so adjust 
                 // the index accordingly
                 type_scope_idx = ii+1;
-                break;
-            } else if ((bup_scope_idx=m_ctxt->findBottomUpScope(scope)) != -1) {
+//                break;
+            }
+            if ((bup_scope_idx=m_ctxt->findBottomUpScope(scope)) != -1) {
                 // Find the first scope on the top-down path
                 // that matches a bottom-up scope.
                 DEBUG("bottom-up scope %d", bup_scope_idx);
@@ -356,33 +359,7 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
         // Then, determine how to proceed
         // - 
         vsc::dm::ITypeExpr *expr = 0;
-        if (type_scope_idx != -1) {
-            DEBUG("type_scope_idx=%d (PathSize-1)=%d",
-                type_scope_idx,
-                (i->getTarget()->getPath().size()-1));
-            if (type_scope_idx == (i->getTarget()->getPath().size()-1)) {
-                // Reference is to a field within the active type
-                DEBUG("Type-context reference");
-                vsc::dm::ITypeExprFieldRef *ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
-                    vsc::dm::ITypeExprFieldRef::RootRefKind::TopDownScope,
-                    -1);
-
-                // This gets us 
-                for (uint32_t ii=type_scope_idx; ii<i->getTarget()->getPath().size(); ii++) {
-                    DEBUG("Add path elem %d", i->getTarget()->getPath().at(ii).idx);
-                    ref->addPathElem(i->getTarget()->getPath().at(ii).idx);
-                }
-                if (ref->getPath().size() == 0) {
-                    ERROR("type-context reference path is empty");
-                }
-
-                expr = ref;
-
-                // TODO: determine if this is actually a static reference
-            } else {
-                ERROR("Failed consistency check");
-            }
-        } else if (bup_scope_idx != -1) {
+        if (bup_scope_idx != -1) {
             // First, keep going along the path to find the last
             // bottom-up scope on the path
             for (; ii<i->getTarget()->getPath().size()-1; ii++) {
@@ -405,7 +382,7 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
             ast::ISymbolExecScope *lscope = dynamic_cast<ast::ISymbolExecScope *>(
                     m_ctxt->symScopes().at(m_ctxt->symScopes().size()-bup_scope_idx-1));
             
-            vsc::dm::ITypeExprFieldRef *ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
+            field_ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
                 vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope,
                 bup_scope_idx);
 
@@ -426,7 +403,7 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                 fflush(stdout);
                 if (target_idx != -1) {
                     DEBUG("Remapped reference to local-var @ %d", target_idx);
-                    ref->addPathElem(target_idx);
+                    field_ref->addPathElem(target_idx);
                 } else {
                     FATAL("Failed to remap locals index");
                 }
@@ -436,10 +413,36 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
             }
 
             for (uint32_t li=ii; li<i->getTarget()->getPath().size(); li++) {
-                ref->addPathElem(i->getTarget()->getPath().at(li).idx);
+                field_ref->addPathElem(i->getTarget()->getPath().at(li).idx);
             }
-            DEBUG("Ref has %d elements", ref->getPath().size());
-            expr = ref;
+            DEBUG("Ref has %d elements", field_ref->getPath().size());
+            expr = field_ref;
+        } else if (type_scope_idx != -1) {
+            DEBUG("type_scope_idx=%d (PathSize-1)=%d",
+                type_scope_idx,
+                (i->getTarget()->getPath().size()-1));
+            if (type_scope_idx == (i->getTarget()->getPath().size()-1)) {
+                // Reference is to a field within the active type
+                DEBUG("Type-context reference");
+                field_ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
+                    vsc::dm::ITypeExprFieldRef::RootRefKind::TopDownScope,
+                    -1);
+
+                // This gets us 
+                for (uint32_t ii=type_scope_idx; ii<i->getTarget()->getPath().size(); ii++) {
+                    DEBUG("Add path elem %d", i->getTarget()->getPath().at(ii).idx);
+                    field_ref->addPathElem(i->getTarget()->getPath().at(ii).idx);
+                }
+                if (field_ref->getPath().size() == 0) {
+                    ERROR("type-context reference path is empty");
+                }
+
+                expr = field_ref;
+
+                // TODO: determine if this is actually a static reference
+            } else {
+                ERROR("Failed consistency check");
+            }
         } else { // Error -- needs to be one
             DEBUG("TODO: See if this is a global");
             // 
@@ -454,16 +457,8 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
         DEBUG("Path[%d]: %d", ii, i->getHier_id()->getElems().at(ii)->getTarget());
     }
 
-    vsc::dm::ITypeExprFieldRef *field_ref = 0;
     for (uint32_t ii=0; ii<i->getHier_id()->getElems().size(); ii++) {
         ast::IExprMemberPathElem *elem = i->getHier_id()->getElems().at(ii).get();
-
-/*
-        int32_t target = i->getHier_id()->getElems().at(ii)->getTarget();
-        DEBUG("target=%d", target);
-        ast_scope = dynamic_cast<ast::IScope *>(ast_scope)->getChildren().at(target).get();
-        DEBUG("ast_scope=%p", ast_scope);
- */
 
         if (elem->getParams()) {
             // Func

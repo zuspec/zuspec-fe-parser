@@ -102,12 +102,16 @@ void TaskGetDataTypeAssocData::visitDataTypeUserDefined(ast::IDataTypeUserDefine
                 ast::ITypeScope *ts_target = 
                     dynamic_cast<ast::ITypeScope *>(result.val.ts->getTarget());
                 if (ts_target->getSuper_t()) {
-                    DEBUG("TODO: Keep looking through Super");
-                    zsp::parser::TaskResolveSymbolPathRefResult result = 
-                        zsp::parser::TaskResolveSymbolPathRef(
-                            m_ctxt->getDebugMgr(),
-                            scope).resolveFull(ts_target->getSuper_t()->getTarget());
-                    result.val.ts->accept(m_this);
+                    if (ts_target->getSuper_t()->getTarget()) {
+                        DEBUG("TODO: Keep looking through Super");
+                        zsp::parser::TaskResolveSymbolPathRefResult result = 
+                            zsp::parser::TaskResolveSymbolPathRef(
+                                m_ctxt->getDebugMgr(),
+                                scope).resolveFull(ts_target->getSuper_t()->getTarget());
+                        result.val.ts->accept(m_this);
+                    } else {
+                        ERROR("Failed to resolve super type");
+                    }
                 } else {
                     DEBUG("End of the line. Nothing else to search for");
                 }

@@ -47,6 +47,7 @@ Ast2ArlBuilder::~Ast2ArlBuilder() {
 void Ast2ArlBuilder::build(
         ast::ISymbolScope               *root,
         IAst2ArlContext                 *ctxt) {
+    DEBUG_ENTER("build %s", root->getName().c_str());
     m_ctxt = ctxt;
 
     TaskLinkBuiltinTypeElemFactories(ctxt).link(root);
@@ -56,6 +57,7 @@ void Ast2ArlBuilder::build(
     m_ctxt->popSymScopeStack();
 
     m_ctxt = 0;
+    DEBUG_LEAVE("build %s", root->getName().c_str());
 }
 
 void Ast2ArlBuilder::visitSymbolScope(ast::ISymbolScope *i) {

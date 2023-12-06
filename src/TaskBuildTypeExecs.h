@@ -45,6 +45,8 @@ public:
 
     virtual void visitSymbolExecScope(ast::ISymbolExecScope *i) override;
 
+    virtual void visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) override { }
+
 private:
     static dmgr::IDebug             *m_dbg;
     IAst2ArlContext                 *m_ctxt;
