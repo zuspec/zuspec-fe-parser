@@ -35,7 +35,7 @@ namespace parser {
 
 TaskBuildExpr::TaskBuildExpr(IAst2ArlContext *ctxt) : m_ctxt(ctxt),
     m_val(ctxt->ctxt()->mkModelValU(0, 32)) {
-    DEBUG_INIT("TaskBuildExpr", ctxt->getDebugMgr());
+    DEBUG_INIT("zsp::fe::parser::TaskBuildExpr", ctxt->getDebugMgr());
 }
 
 TaskBuildExpr::~TaskBuildExpr() {
@@ -469,7 +469,8 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                     m_ctxt->getDebugMgr(),
                     m_ctxt->getRoot()).index(
                         ast_scope,
-                        elem->getTarget());
+                        elem->getTarget(),
+                        elem->getSuper());
             }
 
             zsp::ast::IScopeChild *func_t = ast_scope;
@@ -536,7 +537,8 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                     m_ctxt->getDebugMgr(),
                     m_ctxt->getRoot()).index(
                         ast_scope,
-                        elem->getTarget());
+                        elem->getTarget(),
+                        elem->getSuper());
             }
         }
     }

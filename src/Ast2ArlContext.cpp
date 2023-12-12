@@ -72,14 +72,18 @@ void Ast2ArlContext::popSymScope() {
     DEBUG_ENTER("popSymScope %s -> %d", 
         m_scope_s.back().back()->getName().c_str(),
         (m_scope_s.size())?m_scope_s.back().size()-1:0);
-    m_scope_s.back().pop_back();
 
     if (m_scope_s.back().size() == 0) {
         DEBUG("WARNING: size is now zero");
     }
 
-    if (m_scope_s.size() && TaskIsTopDownScope().check(m_scope_s.back().back())) {
-        m_type_s_idx = m_scope_s.back().size()-1;
+    if (m_scope_s.size() && m_scope_s.back().size()) {
+        if (m_type_s_idx == m_scope_s.back().size()-1) {
+            m_type_s_idx--;
+        }
+        m_scope_s.back().pop_back();
+//    } && TaskIsTopDownScope().check(m_scope_s.back().back())) {
+//        m_type_s_idx = m_scope_s.back().size()-1;
         DEBUG("POP: m_type_s_idx=%d", m_type_s_idx);
     } else {
         m_type_s_idx = -1;
@@ -136,6 +140,15 @@ int32_t Ast2ArlContext::findBottomUpScope(ast::ISymbolScope *scope) {
     }
 
     DEBUG_LEAVE("findBottomUpScope %d", ret);
+    return ret;
+}
+
+ast::ISymbolScope *Ast2ArlContext::typeScope() const {
+    DEBUG_ENTER("typeScope m_type_s_idx=%d size=%d", m_type_s_idx, m_scope_s.back().size());
+    ast::ISymbolScope *ret = 
+        (m_type_s_idx >= 0 && m_type_s_idx < m_scope_s.back().size())?
+            m_scope_s.back().at(m_type_s_idx):0;
+    DEBUG_LEAVE("typeScope %p", ret);
     return ret;
 }
 

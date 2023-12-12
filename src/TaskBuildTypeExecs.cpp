@@ -50,7 +50,9 @@ void TaskBuildTypeExecs::build(
 static std::vector<ast::ExecKind> prv_kinds = {
     ast::ExecKind::ExecKind_Body,
     ast::ExecKind::ExecKind_PreSolve,
-    ast::ExecKind::ExecKind_PostSolve
+    ast::ExecKind::ExecKind_PostSolve,
+    ast::ExecKind::ExecKind_InitDown,
+    ast::ExecKind::ExecKind_InitUp
 };
 
 void TaskBuildTypeExecs::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
@@ -58,16 +60,18 @@ void TaskBuildTypeExecs::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
 
     if (!m_depth) {
         m_depth++;
-        for (std::vector<ast::ExecKind>::const_iterator
-            k_it=prv_kinds.begin();
-            k_it!=prv_kinds.end(); k_it++) {
+        std::vector<ast::ExecKind>::const_iterator k_it = prv_kinds.begin();
+        while (k_it != prv_kinds.end()) {
             m_target_kind = *k_it;
+
+            DEBUG("Target exec-kind: %d", m_target_kind);
 
             for (std::vector<ast::IScopeChild *>::const_iterator
                 it=i->getChildren().begin();
                 it!=i->getChildren().end(); it++) {
                 (*it)->accept(m_this);
             }
+            k_it++;
         }
         m_depth--;
     } else {
@@ -82,12 +86,14 @@ void TaskBuildTypeExecs::visitSymbolExecScope(ast::ISymbolExecScope *i) {
         m_target_kind,
         i->getChildren().size());
 
-    /*
-    if (dynamic_cast<ast::IExecBlock *>(i->getTarget())->getKind() != m_target_kind) {
-        DEBUG_LEAVE("visitSymbolExecScope -- not target kind");
+    if (dynamic_cast<ast::IExecBlock *>(i->getTarget()) &&
+        dynamic_cast<ast::IExecBlock *>(i->getTarget())->getKind() != m_target_kind) {
+        DEBUG_LEAVE("visitSymbolExecScope -- not target kind (looking for %d ; received %d)",
+            m_target_kind,
+            dynamic_cast<ast::IExecBlock *>(i->getTarget())->getKind());
         return;
     }
-     */
+
 
     arl::dm::ExecKindT kind;
     switch (m_target_kind) {
@@ -100,15 +106,23 @@ void TaskBuildTypeExecs::visitSymbolExecScope(ast::ISymbolExecScope *i) {
         case ast::ExecKind::ExecKind_PostSolve: 
             kind = arl::dm::ExecKindT::PostSolve; 
             break;
+        case ast::ExecKind::ExecKind_InitDown:
+            kind = arl::dm::ExecKindT::InitDown;
+            break;
+        case ast::ExecKind::ExecKind_InitUp:
+            kind = arl::dm::ExecKindT::InitUp;
+            break;
     }
 
     arl::dm::ITypeProcStmtScope *exec_s = m_ctxt->ctxt()->mkTypeProcStmtScope();
 
+    m_ctxt->pushSymScope(i);
     for (std::vector<ast::IScopeChild *>::const_iterator
         it=i->getChildren().begin();
         it!=i->getChildren().end(); it++) {
         TaskBuildTypeExecStmt(m_ctxt).build(exec_s, *it);
     }
+    m_ctxt->popSymScope();
 
     m_target->addExec(m_ctxt->ctxt()->mkTypeExecProc(kind, exec_s));
 

@@ -78,10 +78,7 @@ public:
 
     virtual int32_t findBottomUpScope(ast::ISymbolScope *scope) override;
 
-    virtual ast::ISymbolScope *typeScope() const override {
-        return (m_type_s_idx >= 0 && m_type_s_idx < m_scope_s.back().size())?
-            m_scope_s.back().at(m_type_s_idx):0;
-    }
+    virtual ast::ISymbolScope *typeScope() const override;
 
     virtual vsc::dm::IDataTypeStruct *findType(ast::IScopeChild *t) override;
 
