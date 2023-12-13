@@ -80,9 +80,9 @@ void TaskBuildDataType::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
         DEBUG("Type has parameters");
         if (i_ts->getParams()->getSpecialized()) {
             DEBUG("Type is specialized (%p)", i->getTarget());
-            m_ctxt->pushSymScope(i);
+            m_ctxt->pushSymScopeStack(i);
             i->getTarget()->accept(this);
-            m_ctxt->popSymScope();
+            m_ctxt->popSymScopeStack();
         } else {
             DEBUG("Type is unspecialized (%d specializations)", i->getSpec_types().size());
             for (std::vector<ast::ISymbolTypeScopeUP>::const_iterator
@@ -92,9 +92,9 @@ void TaskBuildDataType::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
             }
         }
     } else {
-        m_ctxt->pushSymScope(i);
+        m_ctxt->pushSymScopeStack(i);
         i->getTarget()->accept(this);
-        m_ctxt->popSymScope();
+        m_ctxt->popSymScopeStack();
     }
 
     DEBUG_LEAVE("visitSymbolTypeScope");

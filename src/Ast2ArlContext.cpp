@@ -43,7 +43,6 @@ Ast2ArlContext::Ast2ArlContext(
                 zsp::parser::MarkerSeverityE::Error,
                 {})) {
     DEBUG_INIT("Ast2ArlContext", dmgr); 
-    m_type_s_idx = -1;
 }
 
 Ast2ArlContext::~Ast2ArlContext() {
@@ -57,14 +56,17 @@ void Ast2ArlContext::pushSymScope(ast::ISymbolScope *s) {
 
     if (!m_scope_s.size()) {
         m_scope_s.push_back({s});
+        m_type_s_idx_s.push_back(-1);
     } else {
         m_scope_s.back().push_back(s);
     }
 
     if (TaskIsTopDownScope().check(s)) {
-        m_type_s_idx = m_scope_s.back().size()-1;
-        DEBUG("PUSH: m_type_s_idx=%d", m_type_s_idx);
+        m_type_s_idx_s.back() = m_scope_s.back().size()-1;
+        DEBUG("PUSH: m_type_s_idx=%d", m_type_s_idx_s.back());
     }
+    DEBUG("m_scope_s.size: %d m_type_s_idx: %d", 
+        m_scope_s.back().size(), m_type_s_idx_s.back());
     DEBUG_LEAVE("pushSymScope");
 }
 
@@ -78,35 +80,54 @@ void Ast2ArlContext::popSymScope() {
     }
 
     if (m_scope_s.size() && m_scope_s.back().size()) {
-        if (m_type_s_idx == m_scope_s.back().size()-1) {
-            m_type_s_idx--;
+        if (m_type_s_idx_s.back() == m_scope_s.back().size()-1) {
+            m_type_s_idx_s.back()--;
         }
         m_scope_s.back().pop_back();
 //    } && TaskIsTopDownScope().check(m_scope_s.back().back())) {
 //        m_type_s_idx = m_scope_s.back().size()-1;
-        DEBUG("POP: m_type_s_idx=%d", m_type_s_idx);
+        DEBUG("POP: m_type_s_idx=%d", m_type_s_idx_s.back());
     } else {
-        m_type_s_idx = -1;
-        DEBUG("POP: m_type_s_idx=%d", m_type_s_idx);
+        m_type_s_idx_s.back() = -1;
+        DEBUG("POP: m_type_s_idx=%d", m_type_s_idx_s.back());
     }
+
+    DEBUG("m_scope_s.size: %d m_type_s_idx: %d", 
+        m_scope_s.back().size(), m_type_s_idx_s.back());
 
     DEBUG_LEAVE("popSymScope");
 }
 
 void Ast2ArlContext::pushSymScopeStack(ast::ISymbolScope *s) {
     DEBUG_ENTER("pushSymScopeStack %s", (s)?s->getName().c_str():"<null>");
-    if (!s) {
-        s = m_scope_s.back().front();
-        DEBUG("Full-push with root scope %s", s->getName().c_str());
+    if (s) {
+        std::vector<ast::ISymbolScope *> elems;
+        ast::ISymbolScope *ss = s;
+        while (ss) {
+            elems.push_back(ss);
+            ss = ss->getUpper();
+        }
+        m_scope_s.push_back(std::vector<ast::ISymbolScope *>());
+        for (std::vector<ast::ISymbolScope *>::const_reverse_iterator
+            it=elems.rbegin();
+            it!=elems.rend(); it++) {
+            DEBUG("Push scope %s", (*it)->getName().c_str());
+            m_scope_s.back().push_back(*it);
+        }
+        m_type_s_idx_s.push_back(m_scope_s.back().size()-1);
+        DEBUG("Full-push with root scope %s", elems.front()->getName().c_str());
+    } else {
+        m_scope_s.push_back({m_scope_s.back().front()});
+        m_type_s_idx_s.push_back(-1);
+        DEBUG("Full-push with cloned stack");
     }
-    DEBUG("s=%s", s->getName().c_str());
-    m_scope_s.push_back({s});
     DEBUG_LEAVE("pushSymScopeStack");
 }
 
 void Ast2ArlContext::popSymScopeStack() {
     DEBUG_ENTER("popSymStack");
     m_scope_s.pop_back();
+    m_type_s_idx_s.pop_back();
     DEBUG_LEAVE("popSymStack");
 }
 
@@ -128,9 +149,10 @@ ast::IScopeChild *Ast2ArlContext::resolveRefPath(const ast::ISymbolRefPath *ref)
 int32_t Ast2ArlContext::findBottomUpScope(ast::ISymbolScope *scope) {
     DEBUG_ENTER("findBottomUpScope %p", scope);
     int32_t ret = -1;
-    if (m_type_s_idx != -1) {
-        DEBUG("search: %d %d", m_scope_s.back().size(), m_type_s_idx);
-        for (int32_t i=m_scope_s.back().size()-1; i>m_type_s_idx; i--) {
+    if (m_type_s_idx_s.back() != -1) {
+        DEBUG("search: %d %d", m_scope_s.back().size(), m_type_s_idx_s.back());
+        for (int32_t i=m_scope_s.back().size()-1; i>m_type_s_idx_s.back(); i--) {
+            DEBUG("  Scope[%d] %p", i, m_scope_s.back().at(i));
             if (m_scope_s.back().at(i) == scope) {
                 DEBUG("Found @ %d", i);
                 ret = m_scope_s.back().size()-i-1;
@@ -144,10 +166,11 @@ int32_t Ast2ArlContext::findBottomUpScope(ast::ISymbolScope *scope) {
 }
 
 ast::ISymbolScope *Ast2ArlContext::typeScope() const {
-    DEBUG_ENTER("typeScope m_type_s_idx=%d size=%d", m_type_s_idx, m_scope_s.back().size());
+    DEBUG_ENTER("typeScope m_type_s_idx=%d size=%d", 
+        m_type_s_idx_s.back(), m_scope_s.back().size());
     ast::ISymbolScope *ret = 
-        (m_type_s_idx >= 0 && m_type_s_idx < m_scope_s.back().size())?
-            m_scope_s.back().at(m_type_s_idx):0;
+        (m_type_s_idx_s.back() >= 0 && m_type_s_idx_s.back() < m_scope_s.back().size())?
+            m_scope_s.back().at(m_type_s_idx_s.back()):0;
     DEBUG_LEAVE("typeScope %p", ret);
     return ret;
 }

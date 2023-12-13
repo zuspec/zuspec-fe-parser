@@ -119,7 +119,7 @@ private:
     zsp::parser::IMarkerUP                                          m_marker;
     std::vector<std::vector<ast::ISymbolScope *>>                   m_scope_s;
     std::map<ast::IScopeChild *, vsc::dm::IDataTypeStruct *>        m_type_m;
-    int32_t                                                         m_type_s_idx;
+    std::vector<int32_t>                                            m_type_s_idx_s;
     std::vector<bool>                                               m_pyref_s;
     std::vector<vsc::dm::ITypeExpr *>                               m_base_s;
 
