@@ -28,6 +28,7 @@
 #include "ElemFactoryAddrClaim.h"
 #include "ElemFactoryReg.h"
 #include "ElemFactoryRegGroup.h"
+#include "ElemFactoryTransparentAddrSpace.h"
 #include "TaskLinkBuiltinTypeElemFactories.h"
 
 
@@ -42,7 +43,9 @@ static struct LinkTabEntry {
 } LinkTab[] = {
     { {"addr_reg_pkg", "addr_claim_s"}, &ElemFactoryAddrClaim::create },
     { {"addr_reg_pkg", "reg_c"}, &ElemFactoryReg::create },
-    { {"addr_reg_pkg", "reg_group_c"}, &ElemFactoryRegGroup::create }
+    { {"addr_reg_pkg", "reg_group_c"}, &ElemFactoryRegGroup::create },
+    { {"addr_reg_pkg", "transparent_addr_space_c"}, &ElemFactoryTransparentAddrSpace::create }
+
 };
 
 
