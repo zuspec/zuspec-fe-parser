@@ -54,6 +54,7 @@ void TaskBuildField::visitField(ast::IField *i) {
     vsc::dm::TypeFieldAttr attr = vsc::dm::TypeFieldAttr::NoAttr;
     vsc::dm::ValRef init; // Default is Void
 
+    m_ret = 0;
     if (assoc_d) {
         IElemFactoryAssocData *elem_f = 
             dynamic_cast<IElemFactoryAssocData *>(assoc_d);
@@ -63,7 +64,9 @@ void TaskBuildField::visitField(ast::IField *i) {
             i->getType(),
             attr,
             init);
-    } else {
+    }
+
+    if (!m_ret) {
         m_ret = m_ctxt->ctxt()->mkTypeFieldPhy(
             i->getName()->getId(),
             dt,

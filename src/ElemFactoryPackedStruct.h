@@ -1,5 +1,5 @@
 /**
- * TaskGetDataTypeAssocData.h
+ * ElemFactoryPackedStruct.h
  *
  * Copyright 2023 Matthew Ballance and Contributors
  *
@@ -19,9 +19,8 @@
  *     Author: 
  */
 #pragma once
-#include "dmgr/IDebug.h"
-#include "zsp/fe/parser/IAst2ArlContext.h"
-#include "zsp/ast/impl/VisitorBase.h"
+#include "dmgr/IDebugMgr.h"
+#include "zsp/fe/parser/impl/ElemFactoryAssocDataBase.h"
 
 namespace zsp {
 namespace fe {
@@ -29,26 +28,23 @@ namespace parser {
 
 
 
-class TaskGetDataTypeAssocData : public virtual ast::VisitorBase {
+class ElemFactoryPackedStruct : public virtual ElemFactoryAssocDataBase {
 public:
-    TaskGetDataTypeAssocData(IAst2ArlContext *ctxt);
+    ElemFactoryPackedStruct(dmgr::IDebugMgr *dmgr);
 
-    virtual ~TaskGetDataTypeAssocData();
+    virtual ~ElemFactoryPackedStruct();
 
-    ast::IAssocData *get(ast::IDataType *dt);
+    virtual vsc::dm::IDataType *mkDataType(
+        IAst2ArlContext         *ctx,
+        const std::string       &name,
+        ast::IScopeChild        *type) override;
 
-    ast::IAssocData *get(ast::IScopeChild *dt);
-
-    virtual void visitSymbolTypeScope(ast::ISymbolTypeScope *i) override;
-
-    virtual void visitTypeScope(ast::ITypeScope *i) override;
-
-    virtual void visitDataTypeUserDefined(ast::IDataTypeUserDefined *i) override;
+    static ElemFactoryPackedStruct *create(dmgr::IDebugMgr *dmgr) {
+        return new ElemFactoryPackedStruct(dmgr);
+    }
 
 private:
-    static dmgr::IDebug                 *m_dbg;
-    IAst2ArlContext                     *m_ctxt;
-    ast::IAssocData                     *m_ret;
+    static dmgr::IDebug         *m_dbg;
 
 };
 

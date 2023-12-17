@@ -45,6 +45,15 @@ ast::IAssocData *TaskGetDataTypeAssocData::get(ast::IDataType *dt) {
     return m_ret;
 }
 
+ast::IAssocData *TaskGetDataTypeAssocData::get(ast::IScopeChild *dt) {
+    DEBUG_ENTER("get (ScopeChild)");
+    m_ret = 0;
+    dt->accept(m_this);
+
+    DEBUG_LEAVE("get %p", m_ret);
+    return m_ret;
+}
+
 void TaskGetDataTypeAssocData::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
     DEBUG_ENTER("visitSymbolTypeScope %s", i->getName().c_str());
     if (i->getAssocData()) {
@@ -54,18 +63,27 @@ void TaskGetDataTypeAssocData::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
             dynamic_cast<ast::ITypeScope *>(i->getTarget());
         if (ts_target->getSuper_t()) {
             DEBUG("TODO: Keep looking through Super");
-            ast::ISymbolScope *scope = m_ctxt->symScopes().at(0);
+            if (!ts_target->getSuper_t()->getTarget()) {
+                ERROR("Unlinked super target of %s", ts_target->getName()->getId().c_str());
+            } else {
+                ast::ISymbolScope *scope = m_ctxt->symScopes().at(0);
 
-            zsp::parser::TaskResolveSymbolPathRefResult result = 
-                zsp::parser::TaskResolveSymbolPathRef(
-                    m_ctxt->getDebugMgr(),
-                    scope).resolveFull(ts_target->getSuper_t()->getTarget());
-            result.val.ts->getTarget()->accept(m_this);
+                zsp::parser::TaskResolveSymbolPathRefResult result = 
+                    zsp::parser::TaskResolveSymbolPathRef(
+                        m_ctxt->getDebugMgr(),
+                        scope).resolveFull(ts_target->getSuper_t()->getTarget());
+                result.val.ts->accept(m_this);
+            }
         } else {
             DEBUG("End of the line. Nothing else to search for");
         }
     }
     DEBUG_LEAVE("visitSymbolTypeScope %s", i->getName().c_str());
+}
+
+void TaskGetDataTypeAssocData::visitTypeScope(ast::ITypeScope *i) {
+    DEBUG_ENTER("visitTypeScope %s", i->getName()->getId().c_str());
+    DEBUG_LEAVE("visitTypeScope %s", i->getName()->getId().c_str());
 }
 
 void TaskGetDataTypeAssocData::visitDataTypeUserDefined(ast::IDataTypeUserDefined *i) { 

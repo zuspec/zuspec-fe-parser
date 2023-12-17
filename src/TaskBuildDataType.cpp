@@ -20,12 +20,14 @@
  */
 #include "dmgr/impl/DebugMacros.h"
 #include "vsc/dm/IDataTypeStruct.h"
+#include "zsp/fe/parser/IElemFactoryAssocData.h"
 #include "TaskBuildActivity.h"
 #include "TaskBuildDataType.h"
 #include "TaskBuildDataTypeFunction.h"
 #include "TaskBuildField.h"
 #include "TaskBuildTypeConstraints.h"
 #include "TaskBuildTypeExecs.h"
+#include "TaskGetDataTypeAssocData.h"
 #include "zsp/parser/impl/TaskResolveSymbolPathRef.h"
 #include "zsp/parser/impl/TaskEvalExpr.h"
 
@@ -279,18 +281,26 @@ void TaskBuildDataType::visitExecScope(ast::IExecScope *i) {
 }
 
 void TaskBuildDataType::visitStruct(ast::IStruct *i) {
-    DEBUG_ENTER("visitStruct %p", i->getParams());
+    DEBUG_ENTER("visitStruct %s", i->getName()->getId().c_str());
     if (!m_depth && !(m_type=findType(i))) {
         if (!i->getParams() || i->getParams()->getSpecialized()) {
 
 //        if (!i->getParams() || i->getParams())
         // We're at top level and the type doesn't exist yet, so let's do it!
     
+        zsp::ast::IAssocData *assoc_d = TaskGetDataTypeAssocData(m_ctxt).get(m_ctxt->symScope());
+        IElemFactoryAssocData *elem_f = dynamic_cast<IElemFactoryAssocData *>(assoc_d);
+
+        vsc::dm::IDataTypeStruct *struct_t = 0;
         std::string fullname = getNamespacePrefix() + i->getName()->getId();
         DEBUG("Fullname: %s", fullname.c_str());
-        vsc::dm::IDataTypeStruct *struct_t = m_ctxt->ctxt()->mkDataTypeStruct(fullname);
+        if (elem_f && (struct_t=dynamic_cast<vsc::dm::IDataTypeStruct *>(
+                elem_f->mkDataType(m_ctxt, fullname, i)))) {
+            DEBUG("Using elem-factory version");
+        } else {
+            struct_t = m_ctxt->ctxt()->mkDataTypeStruct(fullname);
+        }
         m_ctxt->ctxt()->addDataTypeStruct(struct_t);
-
         m_ctxt->addType(m_ctxt->symScope(), struct_t);
 
         buildType(struct_t, dynamic_cast<ast::ISymbolTypeScope *>(m_ctxt->symScope()));

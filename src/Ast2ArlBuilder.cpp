@@ -68,6 +68,7 @@ void Ast2ArlBuilder::visitSymbolScope(ast::ISymbolScope *i) {
 
 void Ast2ArlBuilder::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
     DEBUG_ENTER("visitSymbolTypeScope %s", i->getName().c_str());
+    ast::ITypeScope *i_t = dynamic_cast<ast::ITypeScope *>(i->getTarget());
     if (i->getSpec_types().size()) {
         DEBUG("Type has specializations. Processing those");
         for (std::vector<ast::ISymbolTypeScopeUP>::const_iterator
@@ -75,6 +76,8 @@ void Ast2ArlBuilder::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
             it!=i->getSpec_types().end(); it++) {
             (*it)->accept(m_this);
         }
+    } else if (i_t->getParams()) {
+        DEBUG("Skipping unspecialized parameterized type %s", i->getName().c_str());
     } else {
         if (!m_ctxt->findType(i->getTarget())) {
             DEBUG("Need to build type");

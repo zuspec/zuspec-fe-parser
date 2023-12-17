@@ -43,6 +43,13 @@ public:
         return 0;
     }
 
+    virtual vsc::dm::IDataType *mkDataType(
+        IAst2ArlContext         *ctx,
+        const std::string       &name,
+        ast::IScopeChild        *type) override {
+        return 0;
+    }
+
     virtual void accept(ast::IVisitor *v) { }
 
 protected:

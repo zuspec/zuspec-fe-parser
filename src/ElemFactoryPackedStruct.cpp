@@ -1,5 +1,5 @@
-/**
- * IElemFactoryAssocData.h
+/*
+ * ElemFactoryPackedStruct.cpp
  *
  * Copyright 2023 Matthew Ballance and Contributors
  *
@@ -16,40 +16,43 @@
  * limitations under the License.
  *
  * Created on:
- *     Author: 
+ *     Author:
  */
-#pragma once
-#include "vsc/dm/ITypeField.h"
-#include "zsp/ast/IAssocData.h"
-#include "zsp/fe/parser/IAst2ArlContext.h"
+#include "dmgr/impl/DebugMacros.h"
+#include "ElemFactoryPackedStruct.h"
+
 
 namespace zsp {
 namespace fe {
 namespace parser {
 
 
+ElemFactoryPackedStruct::ElemFactoryPackedStruct(dmgr::IDebugMgr *dmgr) {
+    DEBUG_INIT("zsp::fe::parser::ElemFactoryPackedStruct", dmgr);
+}
 
-class IElemFactoryAssocData : public virtual ast::IAssocData {
-public:
+ElemFactoryPackedStruct::~ElemFactoryPackedStruct() {
 
-    virtual ~IElemFactoryAssocData() { }
+}
 
-    virtual vsc::dm::ITypeField *mkTypeFieldPhy(
+vsc::dm::IDataType *ElemFactoryPackedStruct::mkDataType(
         IAst2ArlContext         *ctx,
         const std::string       &name,
-        ast::IScopeChild        *type,
-        vsc::dm::TypeFieldAttr  attr,
-        const vsc::dm::ValRef   &init) = 0;
-    
-    virtual vsc::dm::IDataType *mkDataType(
-        IAst2ArlContext         *ctx,
-        const std::string       &name,
-        ast::IScopeChild        *type) = 0;
+        ast::IScopeChild        *type) {
+    DEBUG_ENTER("mkDataType");
+    vsc::dm::IDataTypeStruct *ret;
 
-};
+    ret = ctx->ctxt()->mkDataTypePackedStruct(
+        name,
+        arl::dm::Endian::Little
+    );
 
-} /* namespace parser */
-} /* namespace fe */
-} /* namespace zsp */
+    DEBUG_LEAVE("mkDataType");
+    return ret;
+}
 
+dmgr::IDebug *ElemFactoryPackedStruct::m_dbg = 0;
 
+}
+}
+}
