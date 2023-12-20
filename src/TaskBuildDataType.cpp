@@ -145,10 +145,18 @@ void TaskBuildDataType::visitComponent(ast::IComponent *i) {
     arl::dm::IDataTypeComponent *comp_t = 0;
     if (!m_depth && !(m_type=findType(i))) {
         // We're at top level and the type doesn't exist yet, so let's do it!
- 
+        zsp::ast::IAssocData *assoc_d = TaskGetDataTypeAssocData(m_ctxt).get(m_ctxt->symScope());
+        IElemFactoryAssocData *elem_f = dynamic_cast<IElemFactoryAssocData *>(assoc_d);
+
         std::string fullname = getNamespacePrefix() + i->getName()->getId();
         DEBUG("Building Component Type: %s", fullname.c_str());
-        comp_t = m_ctxt->ctxt()->mkDataTypeComponent(fullname);
+        if (elem_f && (comp_t=dynamic_cast<arl::dm::IDataTypeComponent *>(
+                elem_f->mkDataType(m_ctxt, fullname, i)))) {
+            DEBUG("Using elem-factory version");
+        } else {
+            comp_t = m_ctxt->ctxt()->mkDataTypeComponent(fullname);
+        }
+
         m_ctxt->ctxt()->addDataTypeComponent(comp_t);
         m_ctxt->addType(m_ctxt->symScope(), comp_t);
 

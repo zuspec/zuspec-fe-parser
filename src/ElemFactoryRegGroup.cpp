@@ -57,6 +57,14 @@ vsc::dm::ITypeField *ElemFactoryRegGroup::mkTypeFieldPhy(
     return ret;
 }
 
+vsc::dm::IDataType *ElemFactoryRegGroup::mkDataType(
+        IAst2ArlContext         *ctx,
+        const std::string       &name,
+        ast::IScopeChild        *type) {
+    arl::dm::IDataTypeRegGroup *t = ctx->ctxt()->mkDataTypeRegGroup(name);
+    return t;
+}
+
 }
 }
 }

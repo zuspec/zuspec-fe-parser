@@ -41,6 +41,11 @@ public:
         vsc::dm::TypeFieldAttr  attr,
         const vsc::dm::ValRef   &init) override;
 
+    virtual vsc::dm::IDataType *mkDataType(
+        IAst2ArlContext         *ctx,
+        const std::string       &name,
+        ast::IScopeChild        *type) override;
+
     static ElemFactoryRegGroup *create(dmgr::IDebugMgr *dmgr) {
         return new ElemFactoryRegGroup(dmgr);
     }
