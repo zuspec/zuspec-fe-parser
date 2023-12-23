@@ -388,6 +388,7 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                 vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope,
                 bup_scope_idx);
 
+#ifdef UNDEFINED
             if (lscope) {
                 // If the lowest local scope is an Exec scope, then 
                 // we need to remap variable indices
@@ -412,6 +413,7 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
             } else {
                 DEBUG("Target scope is not an Exec scope. No need to remap");
             }
+#endif /* UNDEFINED */
 
             if (ii < i->getTarget()->getPath().size()) {
                 DEBUG("Path elem: %d", i->getTarget()->getPath().at(ii).kind);
