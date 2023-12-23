@@ -66,7 +66,7 @@ void TaskGetDataTypeAssocData::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
             if (!ts_target->getSuper_t()->getTarget()) {
                 ERROR("Unlinked super target of %s", ts_target->getName()->getId().c_str());
             } else {
-                ast::ISymbolScope *scope = m_ctxt->symScopes().at(0);
+                ast::ISymbolScope *scope = m_ctxt->rootSymScopeT<ast::ISymbolScope>();
 
                 zsp::parser::TaskResolveSymbolPathRefResult result = 
                     zsp::parser::TaskResolveSymbolPathRef(
@@ -101,7 +101,7 @@ void TaskGetDataTypeAssocData::visitDataTypeUserDefined(ast::IDataTypeUserDefine
         DEBUG("  Elem: kind=%d idx=%d", it->kind, it->idx);
     }
 
-    ast::ISymbolScope *scope = m_ctxt->symScopes().at(0);
+    ast::ISymbolScope *scope = m_ctxt->rootSymScopeT<ast::ISymbolScope>();
 
     zsp::parser::TaskResolveSymbolPathRefResult result = 
         zsp::parser::TaskResolveSymbolPathRef(

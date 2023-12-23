@@ -105,7 +105,7 @@ void Ast2ArlBuilder::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
 
 std::string Ast2ArlBuilder::getNamespacePrefix() {
     std::string ret;
-    for (std::vector<ast::ISymbolScope *>::const_iterator
+    for (std::vector<ast::ISymbolChildrenScope *>::const_iterator
         it=m_ctxt->symScopes().begin();
         it+1!=m_ctxt->symScopes().end(); it++) {
         if ((*it)->getName() != "") {
@@ -126,13 +126,13 @@ void Ast2ArlBuilder::visitSymbolScopeChildren(ast::ISymbolScope *i) {
 
 ast::IScopeChild *Ast2ArlBuilder::resolvePath(ast::ISymbolRefPath *ref) {
     ast::IScopeChild *ret = 0;
-    ast::ISymbolScope *scope = m_ctxt->symScope();
+    ast::ISymbolChildrenScope *scope = m_ctxt->symScope();
 
     for (uint32_t i=0; i<ref->getPath().size(); i++) {
         ret = scope->getChildren().at(i).get();
 
         if (i+1 < ref->getPath().size()) {
-            scope = dynamic_cast<ast::ISymbolScope *>(ret);
+            scope = dynamic_cast<ast::ISymbolChildrenScope *>(ret);
         }
     }
 

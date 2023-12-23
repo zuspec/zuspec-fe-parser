@@ -44,15 +44,25 @@ public:
 
     virtual arl::dm::IContext *ctxt() const = 0;
 
-    virtual ast::ISymbolScope *symScope() const = 0;
+    virtual ast::ISymbolChildrenScope *symScope() const = 0;
 
-    virtual const std::vector<ast::ISymbolScope *> &symScopes() const = 0;
+    template <class T> T *symScopeT() const {
+        return dynamic_cast<T *>(symScope());
+    }
 
-    virtual void pushSymScope(ast::ISymbolScope *s) = 0;
+    virtual ast::ISymbolChildrenScope *rootSymScope() const = 0;
+
+    template <class T> T *rootSymScopeT() const {
+        return dynamic_cast<T *>(rootSymScope());
+    }
+
+    virtual const std::vector<ast::ISymbolChildrenScope *> &symScopes() const = 0;
+
+    virtual void pushSymScope(ast::ISymbolChildrenScope *s) = 0;
 
     virtual void popSymScope() = 0;
 
-    virtual void pushSymScopeStack(ast::ISymbolScope *s=0) = 0;
+    virtual void pushSymScopeStack(ast::ISymbolChildrenScope *s=0) = 0;
 
     virtual void popSymScopeStack() = 0;
 

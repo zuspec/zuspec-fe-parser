@@ -58,19 +58,23 @@ public:
         return m_ctxt;
     }
 
-    virtual ast::ISymbolScope *symScope() const override {
+    virtual ast::ISymbolChildrenScope *symScope() const override {
         return m_scope_s.back().back();
     }
 
-    virtual const std::vector<ast::ISymbolScope *> &symScopes() const override {
+    virtual ast::ISymbolChildrenScope *rootSymScope() const override {
+        return m_scope_s.back().front();
+    };
+
+    virtual const std::vector<ast::ISymbolChildrenScope *> &symScopes() const override {
         return m_scope_s.back();
     }
 
-    virtual void pushSymScope(ast::ISymbolScope *s) override;
+    virtual void pushSymScope(ast::ISymbolChildrenScope *s) override;
 
     virtual void popSymScope() override;
 
-    virtual void pushSymScopeStack(ast::ISymbolScope *s=0) override;
+    virtual void pushSymScopeStack(ast::ISymbolChildrenScope *s=0) override;
 
     virtual void popSymScopeStack() override; 
 
@@ -117,7 +121,7 @@ private:
     arl::dm::IContext                                               *m_ctxt;
     ast::ISymbolScope                                               *m_root;
     zsp::parser::IMarkerUP                                          m_marker;
-    std::vector<std::vector<ast::ISymbolScope *>>                   m_scope_s;
+    std::vector<std::vector<ast::ISymbolChildrenScope *>>           m_scope_s;
     std::map<ast::IScopeChild *, vsc::dm::IDataTypeStruct *>        m_type_m;
     std::vector<int32_t>                                            m_type_s_idx_s;
     std::vector<bool>                                               m_pyref_s;

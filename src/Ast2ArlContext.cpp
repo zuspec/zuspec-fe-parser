@@ -49,7 +49,7 @@ Ast2ArlContext::~Ast2ArlContext() {
 
 }
 
-void Ast2ArlContext::pushSymScope(ast::ISymbolScope *s) {
+void Ast2ArlContext::pushSymScope(ast::ISymbolChildrenScope *s) {
     DEBUG_ENTER("pushSymScope %s -> %d", 
         s->getName().c_str(),
         (m_scope_s.size())?m_scope_s.back().size()+1:1);
@@ -72,7 +72,7 @@ void Ast2ArlContext::pushSymScope(ast::ISymbolScope *s) {
 
 void Ast2ArlContext::popSymScope() {
     DEBUG_ENTER("popSymScope %s -> %d", 
-        m_scope_s.back().back()->getName().c_str(),
+        (m_scope_s.back().size())?m_scope_s.back().back()->getName().c_str():"<empty>",
         (m_scope_s.size())?m_scope_s.back().size()-1:0);
 
     if (m_scope_s.back().size() == 0) {
@@ -98,17 +98,17 @@ void Ast2ArlContext::popSymScope() {
     DEBUG_LEAVE("popSymScope");
 }
 
-void Ast2ArlContext::pushSymScopeStack(ast::ISymbolScope *s) {
+void Ast2ArlContext::pushSymScopeStack(ast::ISymbolChildrenScope *s) {
     DEBUG_ENTER("pushSymScopeStack %s", (s)?s->getName().c_str():"<null>");
     if (s) {
-        std::vector<ast::ISymbolScope *> elems;
-        ast::ISymbolScope *ss = s;
+        std::vector<ast::ISymbolChildrenScope *> elems;
+        ast::ISymbolChildrenScope *ss = s;
         while (ss) {
             elems.push_back(ss);
             ss = ss->getUpper();
         }
-        m_scope_s.push_back(std::vector<ast::ISymbolScope *>());
-        for (std::vector<ast::ISymbolScope *>::const_reverse_iterator
+        m_scope_s.push_back(std::vector<ast::ISymbolChildrenScope *>());
+        for (std::vector<ast::ISymbolChildrenScope *>::const_reverse_iterator
             it=elems.rbegin();
             it!=elems.rend(); it++) {
             DEBUG("Push scope %s", (*it)->getName().c_str());
@@ -168,11 +168,11 @@ int32_t Ast2ArlContext::findBottomUpScope(ast::ISymbolScope *scope) {
 ast::ISymbolScope *Ast2ArlContext::typeScope() const {
     DEBUG_ENTER("typeScope m_type_s_idx=%d size=%d", 
         m_type_s_idx_s.back(), m_scope_s.back().size());
-    ast::ISymbolScope *ret = 
+    ast::ISymbolChildrenScope *ret = 
         (m_type_s_idx_s.back() >= 0 && m_type_s_idx_s.back() < m_scope_s.back().size())?
             m_scope_s.back().at(m_type_s_idx_s.back()):0;
     DEBUG_LEAVE("typeScope %p", ret);
-    return ret;
+    return dynamic_cast<ast::ISymbolScope *>(ret);
 }
 
 vsc::dm::IDataTypeStruct *Ast2ArlContext::findType(ast::IScopeChild *t) {

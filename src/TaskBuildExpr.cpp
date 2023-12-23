@@ -124,7 +124,7 @@ void TaskBuildExpr::visitExprBitSlice(ast::IExprBitSlice *i) {
 void TaskBuildExpr::visitExprBool(ast::IExprBool *i) {
     DEBUG_ENTER("visitExprBool");
     m_expr = m_ctxt->ctxt()->mkTypeExprVal(
-        m_ctxt->ctxt()->mkValRefInt(0, false, 1));
+        m_ctxt->ctxt()->mkValRefBool(i->getValue()));
     DEBUG_LEAVE("visitExprBool");
 }
     
@@ -235,7 +235,7 @@ void TaskBuildExpr::visitExprRefPathId(ast::IExprRefPathId *i) {
     DEBUG("Path size=%d ; scope depth=%d", 
         i->getTarget()->getPath().size(),
         m_ctxt->symScopes().size());
-    ast::ISymbolScope *scope = m_ctxt->symScopes().at(0);
+    ast::ISymbolScope *scope = m_ctxt->rootSymScopeT<ast::ISymbolScope>();
     int32_t type_scope_idx = -1;
     for (uint32_t ii=0; ii<i->getTarget()->getPath().size(); ii++) {
         DEBUG("Scope: %s ;   ii=%d", scope->getName().c_str(), i->getTarget()->getPath().at(ii));
@@ -314,7 +314,7 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
         DEBUG("Path size=%d ; scope depth=%d", 
             i->getTarget()->getPath().size(),
             m_ctxt->symScopes().size());
-        ast::ISymbolScope *scope = m_ctxt->symScopes().at(0);
+        ast::ISymbolScope *scope = m_ctxt->rootSymScopeT<ast::ISymbolScope>();
         int32_t type_scope_idx=-1, bup_scope_idx=-1;
         uint32_t ii;
         for (ii=0; ii<i->getTarget()->getPath().size(); ii++) {
@@ -378,7 +378,6 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                     break;
                 }
             }
-            fflush(stdout);
 
             DEBUG("Processing bottom-up reference");
             ast::ISymbolExecScope *lscope = dynamic_cast<ast::ISymbolExecScope *>(
@@ -430,7 +429,10 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                 DEBUG("Adding extra elem %d", i->getTarget()->getPath().at(li).idx);
                 field_ref->addPathElem(i->getTarget()->getPath().at(li).idx);
             }
-            DEBUG("Ref has %d elements", field_ref->getPath().size());
+            DEBUG("Ref: kind=%d root_off=%d has %d elements", 
+                field_ref->getRootRefKind(),
+                field_ref->getRootRefOffset(),
+                field_ref->getPath().size());
             for (uint32_t li=0; li<field_ref->getPath().size(); li++) {
                 DEBUG("  Elem[%d] %d", li, field_ref->getPath().at(li));
             }

@@ -32,7 +32,7 @@ public:
 
     virtual ~TaskIsTopDownScope() { }
 
-    bool check(ast::ISymbolScope *s) {
+    bool check(ast::ISymbolChildrenScope *s) {
         m_is = false;
         s->accept(m_this);
         return m_is;

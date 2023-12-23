@@ -454,7 +454,7 @@ void TaskBuildDataType::buildTypeExecs(
 
 std::string TaskBuildDataType::getNamespacePrefix() {
     std::string ret;
-    for (std::vector<ast::ISymbolScope *>::const_iterator
+    for (std::vector<ast::ISymbolChildrenScope *>::const_iterator
         it=m_ctxt->symScopes().begin();
         it+1!=m_ctxt->symScopes().end(); it++) {
         if ((*it)->getName() != "") {
@@ -470,14 +470,14 @@ vsc::dm::IDataType *TaskBuildDataType::findType(ast::IScopeChild *ast_t) {
 }
 
 ast::IScopeChild *TaskBuildDataType::resolvePath(ast::ISymbolRefPath *ref) {
-    ast::ISymbolScope *scope = m_ctxt->symScopes().at(0);
+    ast::ISymbolScope *scope = m_ctxt->rootSymScopeT<ast::ISymbolScope>();
     return zsp::parser::TaskResolveSymbolPathRef(
         m_ctxt->getDebugMgr(), 
         scope).resolve(ref);
 }
 
 zsp::parser::TaskResolveSymbolPathRefResult TaskBuildDataType::resolveTypePath(ast::ISymbolRefPath *ref) {
-    ast::ISymbolScope *scope = m_ctxt->symScopes().at(0);
+    ast::ISymbolScope *scope = m_ctxt->rootSymScopeT<ast::ISymbolScope>();
     return zsp::parser::TaskResolveSymbolPathRef(
         m_ctxt->getDebugMgr(), 
         scope).resolveFull(ref);

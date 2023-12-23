@@ -71,10 +71,13 @@ public:
 
     virtual void visitSymbolExecScope(ast::ISymbolExecScope *i) override;
 
+    virtual void visitSymbolChildrenScope(ast::ISymbolChildrenScope *i) override;
+
 private:
     static dmgr::IDebug                             *m_dbg;
     IAst2ArlContext                                 *m_ctxt;
     ast::IExecStmt                                  *m_root;
+    ast::ISymbolChildrenScope                       *m_wrapper_s;
     arl::dm::ITypeProcStmt                          *m_stmt;
 
 };
