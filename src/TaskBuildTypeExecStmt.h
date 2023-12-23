@@ -39,9 +39,7 @@ public:
 
     virtual ~TaskBuildTypeExecStmt();
 
-    virtual void build(
-        arl::dm::ITypeProcStmtScope     *scope,
-        ast::IScopeChild                *stmt);
+    virtual arl::dm::ITypeProcStmt *build(ast::IScopeChild *stmt);
 
     virtual void visitProceduralStmtAssignment(ast::IProceduralStmtAssignment *i) override;
     
@@ -71,13 +69,12 @@ public:
     
     virtual void visitProceduralStmtDataDeclaration(ast::IProceduralStmtDataDeclaration *i) override;
 
-    virtual void visitProceduralStmtSequenceBlock(ast::IProceduralStmtSequenceBlock *i) override;
+    virtual void visitSymbolExecScope(ast::ISymbolExecScope *i) override;
 
 private:
     static dmgr::IDebug                             *m_dbg;
     IAst2ArlContext                                 *m_ctxt;
     ast::IExecStmt                                  *m_root;
-    std::vector<arl::dm::ITypeProcStmtScope *>      m_scope_s;
     arl::dm::ITypeProcStmt                          *m_stmt;
 
 };

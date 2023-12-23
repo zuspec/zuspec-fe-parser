@@ -57,7 +57,7 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
     bool is_target = proto->getIs_target();
     bool is_solve  = proto->getIs_solve();
 
-    if (!i->getDefinition()) {
+    if (!i->getBody()) {
         for (std::vector<ast::IFunctionImport *>::const_iterator
             it=i->getImport_specs().begin();
             it!=i->getImport_specs().end(); it++) {
@@ -111,20 +111,25 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
     }
     m_ctxt->ctxt()->addDataTypeFunction(func);
 
-    if (i->getDefinition()) {
+    if (i->getBody()) {
         // Local implementation
         DEBUG("PSS-native function");
 
         m_ctxt->pushSymScope(i);
 
 
-        m_ctxt->pushSymScope(i->getBody());
-        for (std::vector<ast::IExecStmtUP>::const_iterator
-            it=i->getDefinition()->getBody()->getChildren().begin();
-            it!= i->getDefinition()->getBody()->getChildren().end(); it++) {
-            TaskBuildTypeExecStmt(m_ctxt).build(
-                func->getBody(),
-                it->get());
+        m_ctxt->pushSymScope(i);
+        for (std::vector<ast::IScopeChildUP>::const_iterator
+            it=i->getChildren().begin();
+            it!= i->getChildren().end(); it++) {
+            arl::dm::ITypeProcStmt *stmt = TaskBuildTypeExecStmt(m_ctxt).build(it->get());
+
+            if (dynamic_cast<arl::dm::ITypeProcStmtVarDecl *>(stmt)) {
+                func->getBody()->addVariable(
+                    dynamic_cast<arl::dm::ITypeProcStmtVarDecl *>(stmt));
+            } else if (stmt) {
+                func->getBody()->addStatement(stmt);
+            }
         }
 
         m_ctxt->popSymScope();

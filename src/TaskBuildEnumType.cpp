@@ -43,7 +43,7 @@ vsc::dm::IDataTypeEnum *TaskBuildEnumType::build(
     m_ns_prefix = ns_prefix;
     m_dt_enum = m_ctxt->ctxt()->mkDataTypeEnum(ns_prefix + ast_enum->getName(), true);
     m_ctxt->ctxt()->addDataTypeEnum(m_dt_enum);
-    for (std::vector<ast::IScopeChild *>::const_iterator
+    for (std::vector<ast::IScopeChildUP>::const_iterator
         it=ast_enum->getChildren().begin();
         it!=ast_enum->getChildren().end(); it++) {
         (*it)->accept(this);

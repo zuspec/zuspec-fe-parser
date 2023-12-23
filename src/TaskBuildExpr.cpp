@@ -240,7 +240,7 @@ void TaskBuildExpr::visitExprRefPathId(ast::IExprRefPathId *i) {
     for (uint32_t ii=0; ii<i->getTarget()->getPath().size(); ii++) {
         DEBUG("Scope: %s ;   ii=%d", scope->getName().c_str(), i->getTarget()->getPath().at(ii));
         ast::IScopeChild *c = scope->getChildren().at(
-            i->getTarget()->getPath().at(ii).idx);
+            i->getTarget()->getPath().at(ii).idx).get();
         
         DEBUG("Scope=%p typeScope=%p symScope=%p",
             c, m_ctxt->typeScope(), m_ctxt->symScope());
@@ -323,7 +323,7 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                 ii,
                 i->getTarget()->getPath().at(ii).idx);
             ast::IScopeChild *c = scope->getChildren().at(
-                i->getTarget()->getPath().at(ii).idx);
+                i->getTarget()->getPath().at(ii).idx).get();
 
             DEBUG("Scope=%s typeScope=%s symScope=%s",
                 scope->getName().c_str(), 
@@ -337,10 +337,12 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                 type_scope_idx = ii+1;
 //                break;
             }
-            if ((bup_scope_idx=m_ctxt->findBottomUpScope(scope)) != -1) {
+            int32_t bup_scope_idx_t = m_ctxt->findBottomUpScope(scope);
+            if (bup_scope_idx_t != -1) {
                 // Find the first scope on the top-down path
                 // that matches a bottom-up scope.
-                DEBUG("bottom-up scope %d", bup_scope_idx);
+                DEBUG("bottom-up scope %d", bup_scope_idx_t);
+                bup_scope_idx = bup_scope_idx_t;
                 break;
             }
 
@@ -349,8 +351,8 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
             }
         }
 
-        DEBUG("type_scope_idx=%d bup_scope_idx=%d", 
-            type_scope_idx, bup_scope_idx);
+        DEBUG("type_scope_idx=%d bup_scope_idx=%d ii=%d path.size=%d", 
+            type_scope_idx, bup_scope_idx, ii, i->getTarget()->getPath().size());
 
         // Determine how to get to the root identifier
         // - It's a field within the current action
@@ -365,7 +367,7 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
             for (; ii<i->getTarget()->getPath().size()-1; ii++) {
                 int32_t t_bup_scope_idx;
                 ast::IScopeChild *c = scope->getChildren().at(
-                    i->getTarget()->getPath().at(ii).idx);
+                    i->getTarget()->getPath().at(ii).idx).get();
                 scope = dynamic_cast<ast::ISymbolScope *>(c);
 
                 if ((t_bup_scope_idx=m_ctxt->findBottomUpScope(scope)) != -1) {
@@ -390,7 +392,6 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                 // If the lowest local scope is an Exec scope, then 
                 // we need to remap variable indices
                 DEBUG("Must transform first element ii=%d idx=%d", ii, i->getTarget()->getPath().at(ii).idx);
-                DEBUG("Children: %d locals: %d", lscope->getChildren().size(), lscope->getLocals().size());
                 int32_t target_idx = -1;
                 int32_t var_child_idx = i->getTarget()->getPath().at(ii).idx;
                 for (uint32_t vi=0; vi<lscope->getLocals().size(); vi++) {
@@ -412,10 +413,25 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                 DEBUG("Target scope is not an Exec scope. No need to remap");
             }
 
+            if (ii < i->getTarget()->getPath().size()) {
+                DEBUG("Path elem: %d", i->getTarget()->getPath().at(ii).kind);
+                switch (i->getTarget()->getPath().at(ii).kind) {
+                    case ast::SymbolRefPathElemKind::ElemKind_ArgIdx: {
+                        // The parameters scope will be above the function scope
+                        DEBUG("Redirect to handle parameter reference");
+                        field_ref->setRootRefOffset(field_ref->getRootRefOffset()+1);
+                    } break;
+                }
+            }
+
             for (uint32_t li=ii; li<i->getTarget()->getPath().size(); li++) {
+                DEBUG("Adding extra elem %d", i->getTarget()->getPath().at(li).idx);
                 field_ref->addPathElem(i->getTarget()->getPath().at(li).idx);
             }
             DEBUG("Ref has %d elements", field_ref->getPath().size());
+            for (uint32_t li=0; li<field_ref->getPath().size(); li++) {
+                DEBUG("  Elem[%d] %d", li, field_ref->getPath().at(li));
+            }
             expr = field_ref;
         } else if (type_scope_idx != -1) {
             DEBUG("type_scope_idx=%d (PathSize-1)=%d",

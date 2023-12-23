@@ -30,7 +30,7 @@ namespace parser {
 
 
 TaskBuildTypeExecStmt::TaskBuildTypeExecStmt(IAst2ArlContext *ctxt) : m_ctxt(ctxt) {
-    DEBUG_INIT("TaskBuildTypeExecStmt", ctxt->getDebugMgr());
+    DEBUG_INIT("zsp::fe::parser::TaskBuildTypeExecStmt", ctxt->getDebugMgr());
     m_root = 0;
 }
 
@@ -38,14 +38,12 @@ TaskBuildTypeExecStmt::~TaskBuildTypeExecStmt() {
 
 }
 
-void TaskBuildTypeExecStmt::build(
-        arl::dm::ITypeProcStmtScope     *scope,
-        ast::IScopeChild                *stmt) {
+arl::dm::ITypeProcStmt *TaskBuildTypeExecStmt::build(ast::IScopeChild *stmt) {
     DEBUG_ENTER("build");
-    m_scope_s.push_back(scope);
+    m_stmt = 0;
     stmt->accept(m_this);
-    m_scope_s.pop_back();
     DEBUG_LEAVE("build");
+    return m_stmt;
 }
 
 static std::map<ast::AssignOp, arl::dm::TypeProcStmtAssignOp> assign_op_m = {
@@ -60,7 +58,7 @@ void TaskBuildTypeExecStmt::visitProceduralStmtAssignment(ast::IProceduralStmtAs
 
     vsc::dm::ITypeExprFieldRef *lhs_lv = dynamic_cast<vsc::dm::ITypeExprFieldRef *>(lhs);
 
-    m_scope_s.back()->addStatement(m_ctxt->ctxt()->mkTypeProcStmtAssign(lhs_lv, op, rhs));
+    m_stmt = m_ctxt->ctxt()->mkTypeProcStmtAssign(lhs_lv, op, rhs);
 
     DEBUG_LEAVE("visitProceduralStmtAssignment");
 }
@@ -69,8 +67,7 @@ void TaskBuildTypeExecStmt::visitProceduralStmtExpr(ast::IProceduralStmtExpr *i)
     DEBUG_ENTER("visitProceduralStmtExpr");
     vsc::dm::ITypeExpr *expr = TaskBuildExpr(m_ctxt).build(i->getExpr());
 
-    m_scope_s.back()->addStatement(
-        m_ctxt->ctxt()->mkTypeProcStmtExpr(expr));
+    m_stmt = m_ctxt->ctxt()->mkTypeProcStmtExpr(expr);
 
     DEBUG_LEAVE("visitProceduralStmtExpr");
 }
@@ -88,8 +85,7 @@ void TaskBuildTypeExecStmt::visitProceduralStmtReturn(ast::IProceduralStmtReturn
         expr = TaskBuildExpr(m_ctxt).build(i->getExpr());
     }
 
-    DEBUG("Add return to %p", m_scope_s.back());
-    m_scope_s.back()->addStatement(m_ctxt->ctxt()->mkTypeProcStmtReturn(expr));
+    m_stmt = m_ctxt->ctxt()->mkTypeProcStmtReturn(expr);
 
     DEBUG_LEAVE("visitProceduralStmtReturn");
 }
@@ -112,28 +108,21 @@ void TaskBuildTypeExecStmt::visitProceduralStmtForeach(ast::IProceduralStmtForea
     
 void TaskBuildTypeExecStmt::visitProceduralStmtIfElse(ast::IProceduralStmtIfElse *i) { 
     DEBUG_ENTER("visitProceduralStmtIfElse");
-    vsc::dm::ITypeExpr *cond = TaskBuildExpr(m_ctxt).build(i->getCond());
+    arl::dm::ITypeProcStmtIfElse *if_else = m_ctxt->ctxt()->mkTypeProcStmtIfElse(
+        {}, 
+        (i->getElse_then())?TaskBuildTypeExecStmt(m_ctxt).build(i->getElse_then()):0);
 
-    arl::dm::ITypeProcStmtScope *true_s = m_ctxt->ctxt()->mkTypeProcStmtScope();
-    m_scope_s.push_back(true_s);
-    i->getTrue_s()->accept(m_this);
-    m_scope_s.pop_back();
-    DEBUG("%p %d statements in 'true'", true_s, true_s->getStatements().size());
 
-    arl::dm::ITypeProcStmtScope *false_s = 0;
-    if (i->getFalse_s()) {
-        false_s = m_ctxt->ctxt()->mkTypeProcStmtScope();
-        m_scope_s.push_back(false_s);
-        i->getFalse_s()->accept(m_this);
-        m_scope_s.pop_back();
+    for (std::vector<ast::IProceduralStmtIfClauseUP>::const_iterator
+        it=i->getIf_then().begin();
+        it!=i->getIf_then().end(); it++) {
+        if_else->addIfClause(m_ctxt->ctxt()->mkTypeProcStmtIfClause(
+            TaskBuildExpr(m_ctxt).build((*it)->getCond()),
+            TaskBuildTypeExecStmt(m_ctxt).build((*it)->getBody())
+        ));
     }
 
-    arl::dm::ITypeProcStmtIfElse *stmt = m_ctxt->ctxt()->mkTypeProcStmtIfElse(
-        cond,
-        true_s,
-        false_s);
-
-    m_scope_s.back()->addStatement(stmt);
+    m_stmt = if_else;
 
     DEBUG_LEAVE("visitProceduralStmtIfElse");
 }
@@ -148,49 +137,49 @@ void TaskBuildTypeExecStmt::visitProceduralStmtMatchChoice(ast::IProceduralStmtM
     
 void TaskBuildTypeExecStmt::visitProceduralStmtBreak(ast::IProceduralStmtBreak *i) { 
     DEBUG_ENTER("visitProceduralStmtBreak");
-    m_scope_s.back()->addStatement(m_ctxt->ctxt()->mkTypeProcStmtBreak());
+    m_stmt = m_ctxt->ctxt()->mkTypeProcStmtBreak();
     DEBUG_LEAVE("visitProceduralStmtBreak");
 }
     
 void TaskBuildTypeExecStmt::visitProceduralStmtContinue(ast::IProceduralStmtContinue *i) { 
     DEBUG_ENTER("visitProceduralStmtContinue");
-    m_scope_s.back()->addStatement(m_ctxt->ctxt()->mkTypeProcStmtContinue());
+    m_stmt = m_ctxt->ctxt()->mkTypeProcStmtContinue();
     DEBUG_LEAVE("visitProceduralStmtContinue");
 }
     
 void TaskBuildTypeExecStmt::visitProceduralStmtDataDeclaration(ast::IProceduralStmtDataDeclaration *i) { 
     DEBUG_ENTER("visitProceduralStmtDataDeclaration");
-    m_scope_s.back()->addVariable(
-        m_ctxt->ctxt()->mkTypeProcStmtVarDecl(
-            i->getName()->getId(),
-            TaskBuildDataType(m_ctxt).build(i->getDatatype()),
-            false,
-            (i->getInit())?TaskBuildExpr(m_ctxt).build(i->getInit()):0
-        ));
+    m_stmt = m_ctxt->ctxt()->mkTypeProcStmtVarDecl(
+        i->getName()->getId(),
+        TaskBuildDataType(m_ctxt).build(i->getDatatype()),
+        false,
+        (i->getInit())?TaskBuildExpr(m_ctxt).build(i->getInit()):0
+    );
 
     DEBUG_LEAVE("visitProceduralStmtDataDeclaration");
 }
 
-void TaskBuildTypeExecStmt::visitProceduralStmtSequenceBlock(ast::IProceduralStmtSequenceBlock *i) {
-    DEBUG_ENTER("visitProceduralStmtSequenceBlock");
-    // If this *is* the root block, don't create a duplicate scope
-    arl::dm::ITypeProcStmtScope *scope = 0;
-    if (m_root != i) {
-        scope = m_ctxt->ctxt()->mkTypeProcStmtScope();
-        m_scope_s.push_back(scope);
-    }
+void TaskBuildTypeExecStmt::visitSymbolExecScope(ast::ISymbolExecScope *i) {
+    DEBUG_ENTER("visitSymbolExecScope");
+    arl::dm::ITypeProcStmtScope *scope = m_ctxt->ctxt()->mkTypeProcStmtScope();
+    m_ctxt->pushSymScope(i);
 
-    for (std::vector<ast::IExecStmtUP>::const_iterator
+    for (std::vector<ast::IScopeChildUP>::const_iterator
         it=i->getChildren().begin();
         it!=i->getChildren().end(); it++) {
-        (*it)->accept(m_this);
+        arl::dm::ITypeProcStmt *stmt = build(it->get());
+        if (dynamic_cast<arl::dm::ITypeProcStmtVarDecl *>(stmt)) {
+            scope->addVariable(
+                dynamic_cast<arl::dm::ITypeProcStmtVarDecl *>(stmt));
+        } else if (stmt) {
+            scope->addStatement(stmt);
+        }
     }
+    m_ctxt->popSymScope();
 
-    if (m_root != i) {
-        m_scope_s.pop_back();
-        m_scope_s.back()->addStatement(scope);
-    }
-    DEBUG_LEAVE("visitProceduralStmtSequenceBlock");
+    m_stmt = scope;
+
+    DEBUG_LEAVE("visitSymbolExecScope");
 }
 
 dmgr::IDebug *TaskBuildTypeExecStmt::m_dbg = 0;

@@ -164,7 +164,7 @@ void TaskBuildDataType::visitComponent(ast::IComponent *i) {
 
         // Now, back at depth 0, visit children to build out other types
         m_type_s.push_back(comp_t);
-        for (std::vector<ast::IScopeChild *>::const_iterator
+        for (std::vector<ast::IScopeChildUP>::const_iterator
             it=m_ctxt->symScope()->getChildren().begin();
             it!=m_ctxt->symScope()->getChildren().end(); it++) {
             (*it)->accept(this);
@@ -435,7 +435,7 @@ void TaskBuildDataType::buildTypeFields(
     // Record how many fields are in 'super'
     off_l.push_back(arl_type->getFields().size());
 
-    for (std::vector<ast::IScopeChild *>::const_iterator
+    for (std::vector<ast::IScopeChildUP>::const_iterator
         it=ast_type->getChildren().begin();
         it!=ast_type->getChildren().end(); it++) {
         (*it)->accept(m_this);

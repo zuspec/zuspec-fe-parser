@@ -99,7 +99,7 @@ ast::IScopeChild *TaskLinkBuiltinTypeElemFactories::findElem(
 
     if (it != root->getSymtab().end()) {
         DEBUG("Found");
-        child = root->getChildren().at(it->second);
+        child = root->getChildren().at(it->second).get();
     } else {
         DEBUG("Failed to find");
     }

@@ -66,7 +66,7 @@ void TaskBuildTypeExecs::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
 
             DEBUG("Target exec-kind: %d", m_target_kind);
 
-            for (std::vector<ast::IScopeChild *>::const_iterator
+            for (std::vector<ast::IScopeChildUP>::const_iterator
                 it=i->getChildren().begin();
                 it!=i->getChildren().end(); it++) {
                 (*it)->accept(m_this);
@@ -117,10 +117,16 @@ void TaskBuildTypeExecs::visitSymbolExecScope(ast::ISymbolExecScope *i) {
     arl::dm::ITypeProcStmtScope *exec_s = m_ctxt->ctxt()->mkTypeProcStmtScope();
 
     m_ctxt->pushSymScope(i);
-    for (std::vector<ast::IScopeChild *>::const_iterator
+    for (std::vector<ast::IScopeChildUP>::const_iterator
         it=i->getChildren().begin();
         it!=i->getChildren().end(); it++) {
-        TaskBuildTypeExecStmt(m_ctxt).build(exec_s, *it);
+        arl::dm::ITypeProcStmt *stmt = TaskBuildTypeExecStmt(m_ctxt).build(it->get());
+        if (dynamic_cast<arl::dm::ITypeProcStmtVarDecl *>(stmt)) {
+            exec_s->addVariable(
+                dynamic_cast<arl::dm::ITypeProcStmtVarDecl *>(stmt));
+        } else if (stmt) {
+            exec_s->addStatement(stmt);
+        }
     }
     m_ctxt->popSymScope();
 
