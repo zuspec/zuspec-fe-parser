@@ -96,11 +96,18 @@ void TaskBuildTypeExecStmt::visitProceduralStmtRepeat(ast::IProceduralStmtRepeat
 }
     
 void TaskBuildTypeExecStmt::visitProceduralStmtRepeatWhile(ast::IProceduralStmtRepeatWhile *i) { 
-
+    DEBUG_ENTER("visitProceduralStmtRepeatWhile");
+    DEBUG_LEAVE("visitProceduralStmtRepeatWhile");
 }
     
 void TaskBuildTypeExecStmt::visitProceduralStmtWhile(ast::IProceduralStmtWhile *i) { 
-
+    DEBUG_ENTER("visitProceduralStmtWhile");
+    arl::dm::ITypeProcStmtWhile *while_s = m_ctxt->ctxt()->mkTypeProcStmtWhile(
+        TaskBuildExpr(m_ctxt).build(i->getExpr()),
+        TaskBuildTypeExecStmt(m_ctxt).build(i->getBody())
+    );
+    m_stmt = while_s;
+    DEBUG_LEAVE("visitProceduralStmtWhile");
 }
     
 void TaskBuildTypeExecStmt::visitProceduralStmtForeach(ast::IProceduralStmtForeach *i) { 
