@@ -150,7 +150,6 @@ void TaskBuildTypeExecStmt::visitProceduralStmtIfElse(ast::IProceduralStmtIfElse
     //         TaskBuildExpr(m_ctxt).build(i->getIf_then().at(ii)->getCond()),
     //         body
     //     ));
-    // }
 
     m_stmt = if_else;
 
