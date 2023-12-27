@@ -62,12 +62,6 @@ vsc::dm::IDataType *TaskBuildDataType::build(ast::IScopeChild *type) {
     return m_type;
 }
 
-void TaskBuildDataType::visitSymbolExecScope(ast::ISymbolExecScope *i) {
-    DEBUG_ENTER("visitSymbolExecScope (depth=%d)", m_depth);
-    DEBUG("TODO: visitSymbolExecScope");
-    DEBUG_LEAVE("visitSymbolExecScope (depth=%d)", m_depth);
-}
-
 void TaskBuildDataType::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
     DEBUG_ENTER("visitSymbolFunctionScope");
     TaskBuildDataTypeFunction(m_ctxt).build(i);

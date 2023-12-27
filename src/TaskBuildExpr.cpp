@@ -380,8 +380,6 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
             }
 
             DEBUG("Processing bottom-up reference");
-            ast::ISymbolExecScope *lscope = dynamic_cast<ast::ISymbolExecScope *>(
-                    m_ctxt->symScopes().at(m_ctxt->symScopes().size()-bup_scope_idx-1));
             
             field_ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
                 vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope,

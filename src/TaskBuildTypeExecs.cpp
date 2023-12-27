@@ -81,8 +81,8 @@ void TaskBuildTypeExecs::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
     DEBUG_LEAVE("visitSymbolTypeScope");
 }
 
-void TaskBuildTypeExecs::visitSymbolExecScope(ast::ISymbolExecScope *i) {
-    DEBUG_ENTER("visitSymbolExecScope target_kind=%d size=%d",
+void TaskBuildTypeExecs::visitExecScope(ast::IExecScope *i) {
+    DEBUG_ENTER("visitExecScope target_kind=%d size=%d",
         m_target_kind,
         i->getChildren().size());
 
@@ -132,7 +132,7 @@ void TaskBuildTypeExecs::visitSymbolExecScope(ast::ISymbolExecScope *i) {
 
     m_target->addExec(m_ctxt->ctxt()->mkTypeExecProc(kind, exec_s));
 
-    DEBUG_LEAVE("visitSymbolExecScope");
+    DEBUG_LEAVE("visitExecScope");
 }
 
 dmgr::IDebug *TaskBuildTypeExecs::m_dbg = 0;

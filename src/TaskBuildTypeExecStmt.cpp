@@ -116,29 +116,41 @@ void TaskBuildTypeExecStmt::visitProceduralStmtForeach(ast::IProceduralStmtForea
     
 void TaskBuildTypeExecStmt::visitProceduralStmtIfElse(ast::IProceduralStmtIfElse *i) { 
     DEBUG_ENTER("visitProceduralStmtIfElse");
-    ast::ISymbolChildrenScope *sym_c = m_wrapper_s;
+    // ast::ISymbolChildrenScope *sym_c = m_wrapper_s;
     arl::dm::ITypeProcStmt *else_s = 0;
 
-    if (sym_c->getChildren().size() > i->getIf_then().size()) {
-        // Have an 'else'
-        else_s = TaskBuildTypeExecStmt(m_ctxt).build(sym_c->getChildren().back().get());
+
+    if (i->getElse_then()) {
+        else_s = TaskBuildTypeExecStmt(m_ctxt).build(i->getElse_then());
     }
+
+    // if (sym_c->getChildren().size() > i->getIf_then().size()) {
+    //     // Have an 'else'
+    //     else_s = TaskBuildTypeExecStmt(m_ctxt).build(sym_c->getChildren().back().get());
+    // }
 
     arl::dm::ITypeProcStmtIfElse *if_else = m_ctxt->ctxt()->mkTypeProcStmtIfElse({}, else_s);
 
-    for (uint32_t ii=0; ii<i->getIf_then().size(); ii++) {
-        ast::ISymbolCondConnector *cc = dynamic_cast<ast::ISymbolCondConnector *>(
-            sym_c->getChildren().at(ii).get());
-
-        arl::dm::ITypeProcStmt *body = TaskBuildTypeExecStmt(m_ctxt).build(cc->getStmt());
-        if (!body) {
-            body = m_ctxt->ctxt()->mkTypeProcStmtScope();
-        }
-        if_else->addIfClause(m_ctxt->ctxt()->mkTypeProcStmtIfClause(
-            TaskBuildExpr(m_ctxt).build(cc->getCond()),
-            body
-        ));
+    for (std::vector<ast::IProceduralStmtIfClauseUP>::const_iterator
+        it=i->getIf_then().begin();
+        it!=i->getIf_then().end(); it++) {
+        if_else->addIfClause(
+            m_ctxt->ctxt()->mkTypeProcStmtIfClause(
+                TaskBuildExpr(m_ctxt).build((*it)->getCond()),
+                TaskBuildTypeExecStmt(m_ctxt).build((*it)->getBody())));
     }
+
+    // for (uint32_t ii=0; ii<i->getIf_then().size(); ii++) {
+    //     arl::dm::ITypeProcStmt *body = TaskBuildTypeExecStmt(m_ctxt).build(
+    //         i->getIf_then().at(ii)->getBody());
+    //     if (!body) {
+    //         body = m_ctxt->ctxt()->mkTypeProcStmtScope();
+    //     }
+    //     if_else->addIfClause(m_ctxt->ctxt()->mkTypeProcStmtIfClause(
+    //         TaskBuildExpr(m_ctxt).build(i->getIf_then().at(ii)->getCond()),
+    //         body
+    //     ));
+    // }
 
     m_stmt = if_else;
 
@@ -186,8 +198,8 @@ void TaskBuildTypeExecStmt::visitSymbolChildrenScope(ast::ISymbolChildrenScope *
     DEBUG_LEAVE("visitSymbolChildrenScope");
 }
 
-void TaskBuildTypeExecStmt::visitSymbolExecScope(ast::ISymbolExecScope *i) {
-    DEBUG_ENTER("visitSymbolExecScope");
+void TaskBuildTypeExecStmt::visitExecScope(ast::IExecScope *i) {
+    DEBUG_ENTER("visitExecScope");
     arl::dm::ITypeProcStmtScope *scope = m_ctxt->ctxt()->mkTypeProcStmtScope();
 
     m_ctxt->pushSymScope(i);
@@ -205,7 +217,7 @@ void TaskBuildTypeExecStmt::visitSymbolExecScope(ast::ISymbolExecScope *i) {
 
     m_stmt = scope;
 
-    DEBUG_LEAVE("visitSymbolExecScope (%d items)", scope->getStatements().size());
+    DEBUG_LEAVE("visitExecScope (%d items)", scope->getStatements().size());
 }
 
 dmgr::IDebug *TaskBuildTypeExecStmt::m_dbg = 0;

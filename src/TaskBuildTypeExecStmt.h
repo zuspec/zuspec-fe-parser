@@ -69,7 +69,7 @@ public:
     
     virtual void visitProceduralStmtDataDeclaration(ast::IProceduralStmtDataDeclaration *i) override;
 
-    virtual void visitSymbolExecScope(ast::ISymbolExecScope *i) override;
+    virtual void visitExecScope(ast::IExecScope *i) override;
 
     virtual void visitSymbolChildrenScope(ast::ISymbolChildrenScope *i) override;
 
