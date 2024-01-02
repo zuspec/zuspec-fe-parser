@@ -23,6 +23,7 @@
 #include "zsp/parser/impl/TaskResolveSymbolPathRef.h"
 #include "zsp/parser/impl/TaskGetName.h"
 #include "zsp/parser/impl/TaskIndexField.h"
+#include "zsp/parser/impl/TaskIsPyRef.h"
 #include "TaskBuildDataTypeFunction.h"
 #include "TaskBuildExpr.h"
 #include "TaskResolveGlobalRef.h"
@@ -492,13 +493,6 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
             }
 
             zsp::ast::IScopeChild *func_t = ast_scope;
-            std::string fname = zsp::parser::TaskGetName().get(func_t, true);
-            DEBUG("FunctionCallStatic: name=%s", fname.c_str());
-            arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->findDataTypeFunction(fname);
-
-            if (!func) {
-                DEBUG("Error: failed to find function %s", fname.c_str());
-            }
 
             std::vector<vsc::dm::ITypeExpr *> params;
 
@@ -508,28 +502,47 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                 params.push_back(TaskBuildExpr(m_ctxt).build(it->get()));
             }
 
-            if (!expr) {
-                // Static function call
-                DEBUG("Elem %d: Static function call", ii);
+            if (zsp::parser::TaskIsPyRef(m_ctxt->getDebugMgr(), m_ctxt->getRoot()).check(func_t)) {
+                DEBUG("Is a Python ref");
 
-                DEBUG("Function Name: %s", fname.c_str());
-                arl::dm::ITypeExprMethodCallStaticUP call_e(
-                    m_ctxt->ctxt()->mkTypeExprMethodCallStatic(
-                    func,
-                    params));
-                expr = call_e.release();
+                arl::dm::ITypeExprPythonMethodCall *call = m_ctxt->ctxt()->mkTypeExprPythonMethodCall(
+                    expr,
+                    true, 
+                    elem->getId()->getId(),
+                    params);
+                expr = call;
             } else {
-                DEBUG("Elem %d: Context function call", ii);
+                std::string fname = zsp::parser::TaskGetName().get(func_t, true);
+                DEBUG("FunctionCallStatic: name=%s", fname.c_str());
+                arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->findDataTypeFunction(fname);
 
-                // Context method call
-                arl::dm::ITypeExprMethodCallContextUP call_e(
-                    m_ctxt->ctxt()->mkTypeExprMethodCallContext(
+                if (!func) {
+                    ERROR("failed to find function %s", fname.c_str());
+                }
+
+                if (!expr) {
+                    // Static function call
+                    DEBUG("Elem %d: Static function call", ii);
+
+                    DEBUG("Function Name: %s", fname.c_str());
+                    arl::dm::ITypeExprMethodCallStaticUP call_e(
+                        m_ctxt->ctxt()->mkTypeExprMethodCallStatic(
                         func,
-                        expr,
-                        params
-                    )
-                );
-                expr = call_e.release();
+                        params));
+                    expr = call_e.release();
+                } else {
+                    DEBUG("Elem %d: Context function call", ii);
+
+                    // Context method call
+                    arl::dm::ITypeExprMethodCallContextUP call_e(
+                        m_ctxt->ctxt()->mkTypeExprMethodCallContext(
+                            func,
+                            expr,
+                            params
+                        )
+                    );
+                    expr = call_e.release();
+                }
             }
         } else if (elem->getSubscript()) {
             DEBUG("TODO: array subscript reference");

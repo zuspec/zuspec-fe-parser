@@ -63,6 +63,8 @@ public:
 
     virtual void visitDataTypeInt(ast::IDataTypeInt *i) override;
 
+    virtual void visitDataTypePyObj(ast::IDataTypePyObj *i) override;
+
     virtual void visitDataTypeString(ast::IDataTypeString *i) override;
 
     virtual void visitDataTypeUserDefined(ast::IDataTypeUserDefined *i) override;

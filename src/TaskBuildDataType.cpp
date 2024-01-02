@@ -231,6 +231,12 @@ void TaskBuildDataType::visitDataTypeInt(ast::IDataTypeInt *i) {
     DEBUG_LEAVE("visitDataTypeInt");
 }
 
+void TaskBuildDataType::visitDataTypePyObj(ast::IDataTypePyObj *i) {
+    DEBUG_ENTER("visitDataTypePyObj");
+    m_type = m_ctxt->ctxt()->getDataTypeCoreArl(arl::dm::DataTypeCoreE::PyObj);
+    DEBUG_LEAVE("visitDataTypePyObj");
+}
+
 void TaskBuildDataType::visitDataTypeString(ast::IDataTypeString *i) {
     DEBUG_ENTER("visitDataTypeString");
     m_type = m_ctxt->ctxt()->getDataTypeCore(vsc::dm::DataTypeCoreE::String);
