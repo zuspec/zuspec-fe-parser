@@ -175,9 +175,11 @@ void TaskBuildExpr::visitExprMemberPathElem(ast::IExprMemberPathElem *i) {
             m_ctxt->popBaseExpr();
 
             arl::dm::ITypeExprPythonMethodCall *call = m_ctxt->ctxt()->mkTypeExprPythonMethodCall(
-                m_ctxt->baseExpr(),
+                m_ctxt->ctxt()->mkTypeExprPythonFieldRef(
+                    m_ctxt->baseExpr(),
+                    true,
+                    i->getId()->getId()),
                 true,
-                i->getId()->getId(),
                 params);
             m_expr = call;
         } else {
@@ -505,10 +507,19 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
             if (zsp::parser::TaskIsPyRef(m_ctxt->getDebugMgr(), m_ctxt->getRoot()).check(func_t)) {
                 DEBUG("Is a Python ref");
 
+                vsc::dm::ITypeExpr *target;
+
+                if (ii == 0) {
+                    target = expr;
+                } else {
+                    target = m_ctxt->ctxt()->mkTypeExprPythonFieldRef(
+                        expr,
+                        true, 
+                        elem->getId()->getId());
+                }
                 arl::dm::ITypeExprPythonMethodCall *call = m_ctxt->ctxt()->mkTypeExprPythonMethodCall(
-                    expr,
-                    true, 
-                    elem->getId()->getId(),
+                    target,
+                    true,
                     params);
                 expr = call;
             } else {

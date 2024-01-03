@@ -56,7 +56,7 @@ static std::vector<ast::ExecKind> prv_kinds = {
 };
 
 void TaskBuildTypeExecs::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
-    DEBUG_ENTER("visitSymbolTypeScope");
+    DEBUG_ENTER("visitSymbolTypeScope %s", i->getName().c_str());
 
     if (!m_depth) {
         m_depth++;
@@ -81,20 +81,11 @@ void TaskBuildTypeExecs::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
     DEBUG_LEAVE("visitSymbolTypeScope");
 }
 
-void TaskBuildTypeExecs::visitExecScope(ast::IExecScope *i) {
-    DEBUG_ENTER("visitExecScope target_kind=%d size=%d",
-        m_target_kind,
-        i->getChildren().size());
-
-    if (dynamic_cast<ast::IExecBlock *>(i->getTarget()) &&
-        dynamic_cast<ast::IExecBlock *>(i->getTarget())->getKind() != m_target_kind) {
-        DEBUG_LEAVE("visitSymbolExecScope -- not target kind (looking for %d ; received %d)",
-            m_target_kind,
-            dynamic_cast<ast::IExecBlock *>(i->getTarget())->getKind());
-        return;
-    }
-
-
+void TaskBuildTypeExecs::visitExecBlock(ast::IExecBlock *i) {
+    DEBUG_ENTER("visitExecBlock kind=%d target_kind=%d size=%d",
+        i->getKind(), m_target_kind, i->getChildren().size());
+    if (m_target_kind == i->getKind()) {
+        DEBUG("Matching kind/target-kind");
     arl::dm::ExecKindT kind;
     switch (m_target_kind) {
         case ast::ExecKind::ExecKind_Body: 
@@ -132,7 +123,10 @@ void TaskBuildTypeExecs::visitExecScope(ast::IExecScope *i) {
 
     m_target->addExec(m_ctxt->ctxt()->mkTypeExecProc(kind, exec_s));
 
-    DEBUG_LEAVE("visitExecScope");
+    } else {
+        DEBUG("Skipping, due to kind/target-kind mismatch");
+    }
+    DEBUG_LEAVE("visitExecBlock");
 }
 
 dmgr::IDebug *TaskBuildTypeExecs::m_dbg = 0;
