@@ -26,6 +26,7 @@
 #include "zsp/ast/ISymbolTypeScope.h"
 #include "zsp/fe/parser/IElemFactoryAssocData.h"
 #include "ElemFactoryAddrClaim.h"
+#include "ElemFactoryAddrHandle.h"
 #include "ElemFactoryPackedStruct.h"
 #include "ElemFactoryReg.h"
 #include "ElemFactoryRegGroup.h"
@@ -46,6 +47,7 @@ static struct LinkTabEntry {
     { {"addr_reg_pkg", "reg_c"}, &ElemFactoryReg::create },
     { {"addr_reg_pkg", "reg_group_c"}, &ElemFactoryRegGroup::create },
     { {"addr_reg_pkg", "transparent_addr_space_c"}, &ElemFactoryTransparentAddrSpace::create },
+    { {"addr_reg_pkg", "addr_handle_t"}, &ElemFactoryAddrHandle::create },
     { {"std_pkg", "packed_s"}, &ElemFactoryPackedStruct::create }
 
 };

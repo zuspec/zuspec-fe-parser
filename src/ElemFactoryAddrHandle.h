@@ -1,5 +1,5 @@
 /**
- * ElemFactoryTransparentAddrSpace.h
+ * ElemFactoryAddrHandle.h
  *
  * Copyright 2023 Matthew Ballance and Contributors
  *
@@ -28,30 +28,23 @@ namespace parser {
 
 
 
-class ElemFactoryTransparentAddrSpace : public virtual ElemFactoryAssocDataBase {
+class ElemFactoryAddrHandle : public virtual ElemFactoryAssocDataBase {
 public:
-    ElemFactoryTransparentAddrSpace(dmgr::IDebugMgr *dmgr);
+    ElemFactoryAddrHandle(dmgr::IDebugMgr *dmgr);
 
-    virtual ~ElemFactoryTransparentAddrSpace();
-
-/*
-    virtual vsc::dm::ITypeField *mkTypeFieldPhy(
-        IAst2ArlContext         *ctx,
-        const std::string       &name,
-        ast::IScopeChild        *type,
-        vsc::dm::TypeFieldAttr  attr,
-        const vsc::dm::ValRef   &init) override;
- */
+    virtual ~ElemFactoryAddrHandle();
 
     virtual vsc::dm::IDataType *mkDataType(
         IAst2ArlContext         *ctx,
         const std::string       &name,
         ast::IScopeChild        *type) override;
 
-    static ElemFactoryTransparentAddrSpace *create(dmgr::IDebugMgr *dmgr) {
-        return new ElemFactoryTransparentAddrSpace(dmgr);
+    static ElemFactoryAddrHandle *create(dmgr::IDebugMgr *dmgr) {
+        return new ElemFactoryAddrHandle(dmgr);
     }
 
+private:
+    static dmgr::IDebug             *m_dbg;
 };
 
 }

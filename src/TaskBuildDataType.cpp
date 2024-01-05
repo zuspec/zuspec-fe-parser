@@ -98,13 +98,13 @@ void TaskBuildDataType::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
 
 void TaskBuildDataType::visitAction(ast::IAction *i) {
     DEBUG_ENTER("visitAction %s", i->getName()->getId().c_str());
-    if (!m_depth && !(m_type=findType(i))) {
+    if (!m_depth && !(m_type=findType(m_ctxt->symScope()))) {
         // We're at top level and the type doesn't exist yet, so let's do it!
     
         std::string fullname = getNamespacePrefix() + i->getName()->getId();
         DEBUG("Building Action Type: %s", fullname.c_str());
         arl::dm::IDataTypeAction *action_t = m_ctxt->ctxt()->mkDataTypeAction(fullname);
-        m_ctxt->ctxt()->addDataTypeAction(action_t);
+        m_ctxt->ctxt()->addDataTypeStruct(action_t);
 
         m_ctxt->addType(m_ctxt->symScope(), action_t);
 
@@ -137,7 +137,7 @@ void TaskBuildDataType::visitComponent(ast::IComponent *i) {
     DEBUG_ENTER("visitComponent m_depth=%d", m_depth);
 //    if (!m_depth) {
     arl::dm::IDataTypeComponent *comp_t = 0;
-    if (!m_depth && !(m_type=findType(i))) {
+    if (!m_depth && !(m_type=findType(m_ctxt->symScope()))) {
         // We're at top level and the type doesn't exist yet, so let's do it!
         zsp::ast::IAssocData *assoc_d = TaskGetDataTypeAssocData(m_ctxt).get(m_ctxt->symScope());
         IElemFactoryAssocData *elem_f = dynamic_cast<IElemFactoryAssocData *>(assoc_d);
@@ -151,7 +151,7 @@ void TaskBuildDataType::visitComponent(ast::IComponent *i) {
             comp_t = m_ctxt->ctxt()->mkDataTypeComponent(fullname);
         }
 
-        m_ctxt->ctxt()->addDataTypeComponent(comp_t);
+        m_ctxt->ctxt()->addDataTypeStruct(comp_t);
         m_ctxt->addType(m_ctxt->symScope(), comp_t);
 
         buildType(comp_t, dynamic_cast<ast::ISymbolTypeScope *>(m_ctxt->symScope()));
@@ -290,7 +290,7 @@ void TaskBuildDataType::visitExecScope(ast::IExecScope *i) {
 
 void TaskBuildDataType::visitStruct(ast::IStruct *i) {
     DEBUG_ENTER("visitStruct %s", i->getName()->getId().c_str());
-    if (!m_depth && !(m_type=findType(i))) {
+    if (!m_depth && !(m_type=findType(m_ctxt->symScope()))) {
         if (!i->getParams() || i->getParams()->getSpecialized()) {
 
 //        if (!i->getParams() || i->getParams())

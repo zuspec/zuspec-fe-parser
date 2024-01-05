@@ -47,7 +47,7 @@ void TaskBuildDataTypeReg::visitComponent(ast::IComponent *i) {
         std::string fullname = getNamespacePrefix() + i->getName()->getId();
         DEBUG("Building Component Type: %s", fullname.c_str());
         comp_t = m_ctxt->ctxt()->mkDataTypeComponent(fullname);
-        m_ctxt->ctxt()->addDataTypeComponent(comp_t);
+        m_ctxt->ctxt()->addDataTypeStruct(comp_t);
         m_ctxt->addType(m_ctxt->symScope(), comp_t);
 
         buildType(comp_t, dynamic_cast<ast::ISymbolTypeScope *>(m_ctxt->symScope()));

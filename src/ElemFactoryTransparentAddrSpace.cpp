@@ -30,9 +30,11 @@ namespace parser {
 
 
 ElemFactoryTransparentAddrSpace::ElemFactoryTransparentAddrSpace(dmgr::IDebugMgr *dmgr) {
+    DEBUG_INIT("zsp::fe::parser::ElemFactoryTransparentAddrSpace", dmgr);
 
 }
 
+#ifdef UNDEFINED
 vsc::dm::ITypeField *ElemFactoryTransparentAddrSpace::mkTypeFieldPhy(
         IAst2ArlContext         *ctx,
         const std::string       &name,
@@ -53,6 +55,18 @@ vsc::dm::ITypeField *ElemFactoryTransparentAddrSpace::mkTypeFieldPhy(
 
     DEBUG_LEAVE("mkTypeFieldPhy");
     return ret;
+}
+#endif /* UNDEFINED */
+
+vsc::dm::IDataType *ElemFactoryTransparentAddrSpace::mkDataType(
+        IAst2ArlContext         *ctx,
+        const std::string       &name,
+        ast::IScopeChild        *type) {
+    DEBUG_ENTER("mkDataTtype %s", name.c_str());
+    arl::dm::IDataTypeAddrSpaceTransparentC *t = 
+        ctx->ctxt()->mkDataTypeAddrSpaceTransparentC(name);
+    DEBUG_LEAVE("mkDataTtype %s", name.c_str());
+    return t;
 }
 
 ElemFactoryTransparentAddrSpace::~ElemFactoryTransparentAddrSpace() {
