@@ -26,6 +26,7 @@
 #include "zsp/parser/impl/TaskIsPyRef.h"
 #include "TaskBuildDataTypeFunction.h"
 #include "TaskBuildExpr.h"
+#include "TaskCalculateFieldOffset.h"
 #include "TaskResolveGlobalRef.h"
 
 
@@ -388,33 +389,6 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                 vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope,
                 bup_scope_idx);
 
-#ifdef UNDEFINED
-            if (lscope) {
-                // If the lowest local scope is an Exec scope, then 
-                // we need to remap variable indices
-                DEBUG("Must transform first element ii=%d idx=%d", ii, i->getTarget()->getPath().at(ii).idx);
-                int32_t target_idx = -1;
-                int32_t var_child_idx = i->getTarget()->getPath().at(ii).idx;
-                for (uint32_t vi=0; vi<lscope->getLocals().size(); vi++) {
-                    if (lscope->getLocals().at(vi) == lscope->getChildren().at(var_child_idx)) {
-                        DEBUG("Found local @ %d", vi);
-                        target_idx = vi;
-                        break;
-                    }
-                }
-                fflush(stdout);
-                if (target_idx != -1) {
-                    DEBUG("Remapped reference to local-var @ %d", target_idx);
-                    field_ref->addPathElem(target_idx);
-                } else {
-                    FATAL("Failed to remap locals index");
-                }
-                ii++;
-            } else {
-                DEBUG("Target scope is not an Exec scope. No need to remap");
-            }
-#endif /* UNDEFINED */
-
             if (ii < i->getTarget()->getPath().size()) {
                 DEBUG("Path elem: %d", i->getTarget()->getPath().at(ii).kind);
                 switch (i->getTarget()->getPath().at(ii).kind) {
@@ -430,6 +404,7 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                 DEBUG("Adding extra elem %d", i->getTarget()->getPath().at(li).idx);
                 field_ref->addPathElem(i->getTarget()->getPath().at(li).idx);
             }
+
             DEBUG("Ref: kind=%d root_off=%d has %d elements", 
                 field_ref->getRootRefKind(),
                 field_ref->getRootRefOffset(),
@@ -480,6 +455,11 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
 
     for (uint32_t ii=0; ii<i->getHier_id()->getElems().size(); ii++) {
         ast::IExprMemberPathElem *elem = i->getHier_id()->getElems().at(ii).get();
+        int32_t target = elem->getTarget();
+
+        if (elem->getSuper() > 0) {
+            DEBUG("TODO: handle super of %d", elem->getSuper());
+        }
 
         if (elem->getParams()) {
             // Func
@@ -563,24 +543,34 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
         } else {
             if (ii) {
                 DEBUG("TODO: field subref expr=%p idx=%d", expr, elem->getTarget());
+                TaskCalculateFieldOffset::Res res = TaskCalculateFieldOffset(m_ctxt).calculate(
+                    ast_scope,
+                    elem->getTarget(),
+                    elem->getSuper());
+                DEBUG("field_idx=%d super_idx=%d ; res.field_idx=%d",
+                    elem->getTarget(),
+                    elem->getSuper(),
+                    res.index);
+
                 if (!field_ref) {
-                    field_ref = m_ctxt->ctxt()->mkTypeExprFieldRef(
-                        expr, 
-                        elem->getTarget());
+                    field_ref = m_ctxt->ctxt()->mkTypeExprFieldRef(expr, res.index);
 
                     if (field_ref->getPath().size() == 0) {
                         ERROR("bottom-up reference path is empty");
                     }
                     expr = field_ref;
                 } else {
-                    field_ref->addPathElem(elem->getTarget());
+                    field_ref->addPathElem(res.index);
                 }
+                ast_scope = res.target;
+                /*
                 ast_scope = zsp::parser::TaskIndexField(
                     m_ctxt->getDebugMgr(),
                     m_ctxt->getRoot()).index(
                         ast_scope,
                         elem->getTarget(),
                         elem->getSuper());
+                 */
             }
         }
     }
