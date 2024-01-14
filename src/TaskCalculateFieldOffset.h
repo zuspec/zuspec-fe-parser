@@ -66,6 +66,7 @@ private:
     ast::IScopeChild                *m_target;
     bool                            m_hit_field;
     int32_t                         m_depth;
+    int32_t                         m_super_depth; 
     int32_t                         m_field_idx;
     int32_t                         m_super_idx;
     int32_t                         m_field_cnt;

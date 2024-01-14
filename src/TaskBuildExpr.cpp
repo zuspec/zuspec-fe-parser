@@ -552,6 +552,10 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                     elem->getSuper(),
                     res.index);
 
+                if (!res.target) {
+                    ERROR("null target");
+                }
+
                 if (!field_ref) {
                     field_ref = m_ctxt->ctxt()->mkTypeExprFieldRef(expr, res.index);
 

@@ -20,6 +20,7 @@
  */
 #include "dmgr/impl/DebugMacros.h"
 #include "zsp/parser/impl/TaskResolveSymbolPathRef.h"
+#include "zsp/parser/impl/TaskGetFieldType.h"
 #include "TaskCalculateFieldOffset.h"
 
 
@@ -42,7 +43,9 @@ TaskCalculateFieldOffset::Res TaskCalculateFieldOffset::calculate(
         int32_t             super_idx) {
     DEBUG_ENTER("calculate");
     m_field_cnt = 0;
+    m_target = 0;
     m_depth = 0;
+    m_super_depth = 0;
     m_super_idx = (super_idx < 0)?0:super_idx;
     m_field_idx = field_idx;
     m_hit_field = false;
@@ -74,7 +77,11 @@ void TaskCalculateFieldOffset::visitField(ast::IField *i) {
 
 void TaskCalculateFieldOffset::visitFieldCompRef(ast::IFieldCompRef *i) {
     DEBUG_ENTER("visitFieldFieldCompRef");
-    m_field_cnt++;
+    if (!m_depth) {
+        i->getType()->accept(m_this);
+    } else {
+        m_field_cnt++;
+    }
     DEBUG_LEAVE("visitFieldFieldCompRef");
 }
 
@@ -104,15 +111,16 @@ void TaskCalculateFieldOffset::visitSymbolChildrenScope(ast::ISymbolChildrenScop
 void TaskCalculateFieldOffset::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
     DEBUG_ENTER("visitSymbolTypeScope depth=%d", m_depth);
     ast::ITypeScope *ts = dynamic_cast<ast::ITypeScope *>(i->getTarget());
+    m_depth++;
     if (ts->getSuper_t()) {
         ast::IScopeChild *super_t = zsp::parser::TaskResolveSymbolPathRef(
             m_ctxt->getDebugMgr(),
             m_ctxt->rootSymScope()
         ).resolve(ts->getSuper_t()->getTarget());
         DEBUG_ENTER("visit Super");
-        m_depth++;
+        m_super_depth++;
         super_t->accept(m_this);
-        m_depth--;
+        m_super_depth--;
         DEBUG_LEAVE("visit Super");
     }
 
@@ -120,7 +128,7 @@ void TaskCalculateFieldOffset::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
         for (uint32_t ii=0; ii<i->getChildren().size(); ii++) {
             DEBUG("m_super_idx=%d m_depth=%d m_field_idx=%d ii=%d",
                 m_super_idx, m_depth, m_field_idx, ii);
-            if (m_super_idx == m_depth && m_field_idx == ii) {
+            if (m_super_idx == m_super_depth && m_field_idx == ii) {
                 m_target = i->getChildren().at(ii).get();
                 m_hit_field = true;
                 break;
@@ -128,7 +136,15 @@ void TaskCalculateFieldOffset::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
                 i->getChildren().at(ii)->accept(m_this);
             }
         }
+
+        // Now, get the type of the field
+        if (m_target) {
+            m_target = zsp::parser::TaskGetFieldType(
+                m_ctxt->getDebugMgr(),
+                m_ctxt->rootSymScope()).get(m_target);
+        }
     }
+    m_depth--;
     DEBUG_LEAVE("visitSymbolTypeScope");
 }
 
