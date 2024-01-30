@@ -40,3 +40,6 @@ python/zsp_fe_parser/*.so
 
 __pycache__/
 
+.eggs/
+*.egg-info/
+
