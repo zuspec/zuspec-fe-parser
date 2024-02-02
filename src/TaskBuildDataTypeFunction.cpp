@@ -58,7 +58,7 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
     bool is_solve  = proto->getIs_solve();
 
     if (!i->getBody()) {
-        for (std::vector<ast::IFunctionImport *>::const_iterator
+        for (std::vector<ast::IFunctionImportUP>::const_iterator
             it=i->getImport_specs().begin();
             it!=i->getImport_specs().end(); it++) {
             if ((*it)->getPlat() == ast::PlatQual::PlatQual_Target) {
@@ -69,7 +69,11 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
             }
         }
 
-        flags = flags | arl::dm::DataTypeFunctionFlags::Import;
+        // Core functions do not have import qualifiers, and should
+        // not be marked as import
+        if (i->getImport_specs().size()) {
+            flags = flags | arl::dm::DataTypeFunctionFlags::Import;
+        }
 
         if (is_target && is_solve) {
             is_target = false;
