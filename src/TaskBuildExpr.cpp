@@ -321,13 +321,35 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
         ast::ISymbolScope *scope = m_ctxt->rootSymScopeT<ast::ISymbolScope>();
         int32_t type_scope_idx=-1, bup_scope_idx=-1;
         uint32_t ii;
+        if (DEBUG_EN) {
+            for (ii=0; ii<i->getTarget()->getPath().size(); ii++) {
+                DEBUG("Path[%d]: %d::%d", ii, 
+                    i->getTarget()->getPath().at(ii).kind,
+                    i->getTarget()->getPath().at(ii).idx);
+            }
+        }
         for (ii=0; ii<i->getTarget()->getPath().size(); ii++) {
-            DEBUG("Scope: %s ; ii=%d idx=%d", 
+            DEBUG("Scope: %s ; ii=%d idx=%d children=%d", 
                 scope->getName().c_str(), 
                 ii,
-                i->getTarget()->getPath().at(ii).idx);
-            ast::IScopeChild *c = scope->getChildren().at(
-                i->getTarget()->getPath().at(ii).idx).get();
+                i->getTarget()->getPath().at(ii).idx,
+                scope->getChildren().size());
+            ast::IScopeChild *c = 0;
+            
+            switch (i->getTarget()->getPath().at(ii).kind) {
+                case ast::SymbolRefPathElemKind::ElemKind_ArgIdx: {
+                    // scope is a function and we need to look in the
+                    // parameters scope
+                    ast::ISymbolFunctionScope *func = dynamic_cast<ast::ISymbolFunctionScope *>(scope);
+                    scope = func->getPlist();
+                    c = scope->getChildren().at(
+                        i->getTarget()->getPath().at(ii).idx).get();
+                } break;
+                default:
+                    c = scope->getChildren().at(
+                        i->getTarget()->getPath().at(ii).idx).get();
+                    break;
+            }
 
             DEBUG("Scope=%s typeScope=%s symScope=%s",
                 scope->getName().c_str(), 

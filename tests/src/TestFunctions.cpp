@@ -122,6 +122,50 @@ TEST_F(TestFunctions, param_ref) {
     dumpJSON({m_ctxt->findDataTypeFunction("doit")});
 }
 
+TEST_F(TestFunctions, context_func_param_ref) {
+    const char *content = R"(
+        component my_reg_group {
+            function bit[64] get_offset(string name, int index) {
+                return (index*32);
+            }
+        }
+    )";
+
+    enableDebug(true);
+
+    IMarkerCollectorUP marker_c(m_zsp_factory->mkMarkerCollector());
+    std::vector<ast::IGlobalScopeUP> files;
+    files.push_back(ast::IGlobalScopeUP(parse(
+        marker_c.get(),
+        content,
+        "smoke.pss"
+    )));
+
+    ASSERT_FALSE(marker_c->hasSeverity(MarkerSeverityE::Error));
+
+    ast::ISymbolScopeUP root(link(
+        marker_c.get(),
+        files
+    ));
+
+    ASSERT_FALSE(marker_c->hasSeverity(MarkerSeverityE::Error));
+
+    ast2Arl(
+        marker_c.get(),
+        root.get(),
+        m_ctxt.get()
+    );
+
+    ASSERT_FALSE(marker_c->hasSeverity(MarkerSeverityE::Error));
+
+    ASSERT_TRUE(m_ctxt->findDataTypeFunction("my_reg_group::get_offset"));
+    // ASSERT_TRUE(m_ctxt->findDataTypeAction("pss_top::A"));
+    // ASSERT_TRUE(m_ctxt->findDataTypeAction("pss_top::B"));
+    // ASSERT_EQ(m_ctxt->findDataTypeComponent("pss_top")->getActionTypes().size(), 2);
+
+//    dumpJSON({m_ctxt->findDataTypeFunction("doit")});
+}
+
 TEST_F(TestFunctions, global_func_call) {
     const char *content = R"(
         function void doit_s(int a) {
