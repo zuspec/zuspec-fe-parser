@@ -112,7 +112,7 @@ void TaskBuildActivity::visitActivityActionTypeTraversal(ast::IActivityActionTyp
     for (uint32_t j=0; j<i->getTarget()->getType_id()->getElems().size(); j++) {
         DEBUG("  Elem: %s", i->getTarget()->getType_id()->getElems().at(j)->getId()->getId().c_str());
     }
-    vsc::dm::IDataTypeStruct *dt = m_ctxt->getType(t);
+    vsc::dm::IDataTypeStruct *dt = dynamic_cast<vsc::dm::IDataTypeStruct *>(m_ctxt->getType(t));
 
     if (dt) {
         arl::dm::IDataTypeAction *at = dynamic_cast<arl::dm::IDataTypeAction *>(dt);

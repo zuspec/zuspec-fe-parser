@@ -326,6 +326,28 @@ void TaskBuildDataType::visitStruct(ast::IStruct *i) {
     DEBUG_LEAVE("visitStruct");
 }
 
+void TaskBuildDataType::visitTypeScope(ast::ITypeScope *i) {
+    DEBUG_ENTER("visitTypeScope %s", i->getName()->getId().c_str());
+
+    if (!m_depth && !(m_type=findType(m_ctxt->symScope()))) {
+        zsp::ast::IAssocData *assoc_d = TaskGetDataTypeAssocData(m_ctxt).get(m_ctxt->symScope());
+        IElemFactoryAssocData *elem_f = dynamic_cast<IElemFactoryAssocData *>(assoc_d);
+
+        vsc::dm::IDataType *dt = 0;
+        std::string fullname = getNamespacePrefix() + i->getName()->getId();
+        if (elem_f && (dt=elem_f->mkDataType(m_ctxt, fullname, i))) {
+            DEBUG("Using result of element factory");
+            m_ctxt->addType(m_ctxt->symScope(), dt);
+
+            m_type = dt;
+        } else {
+            ERROR("Bare TypeScope must provide an element factory");
+        }
+    }
+
+    DEBUG_LEAVE("visitTypeScope %s", i->getName()->getId().c_str());
+}
+
 void TaskBuildDataType::visitField(ast::IField *i) { 
     DEBUG_ENTER("visitField %s %d", i->getName()->getId().c_str(), m_depth);
 

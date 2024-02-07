@@ -175,8 +175,8 @@ ast::ISymbolScope *Ast2ArlContext::typeScope() const {
     return dynamic_cast<ast::ISymbolScope *>(ret);
 }
 
-vsc::dm::IDataTypeStruct *Ast2ArlContext::findType(ast::IScopeChild *t) {
-    std::map<ast::IScopeChild *, vsc::dm::IDataTypeStruct *>::const_iterator it;
+vsc::dm::IDataType *Ast2ArlContext::findType(ast::IScopeChild *t) {
+    std::map<ast::IScopeChild *, vsc::dm::IDataType *>::const_iterator it;
     
     if ((it=m_type_m.find(t)) != m_type_m.end()) {
         return it->second;
@@ -185,13 +185,13 @@ vsc::dm::IDataTypeStruct *Ast2ArlContext::findType(ast::IScopeChild *t) {
     }
 }
 
-void Ast2ArlContext::addType(ast::IScopeChild *t, vsc::dm::IDataTypeStruct *dmt) {
+void Ast2ArlContext::addType(ast::IScopeChild *t, vsc::dm::IDataType *dmt) {
     m_type_m.insert({t, dmt});
 }
 
-vsc::dm::IDataTypeStruct *Ast2ArlContext::getType(ast::IScopeChild *t) {
-    std::map<ast::IScopeChild *, vsc::dm::IDataTypeStruct *>::const_iterator it;
-    vsc::dm::IDataTypeStruct *ret = 0;
+vsc::dm::IDataType *Ast2ArlContext::getType(ast::IScopeChild *t) {
+    std::map<ast::IScopeChild *, vsc::dm::IDataType *>::const_iterator it;
+    vsc::dm::IDataType *ret = 0;
     it = m_type_m.find(t);
 
     if (it == m_type_m.end()) {
@@ -199,7 +199,9 @@ vsc::dm::IDataTypeStruct *Ast2ArlContext::getType(ast::IScopeChild *t) {
         DEBUG("TODO: failed to find type %p (%s)", 
             t, zsp::parser::TaskGetName().get(t).c_str());
         for (it=m_type_m.begin(); it!=m_type_m.end(); it++) {
-            DEBUG("  Type: %p %s", it->first, it->second->name().c_str());
+            DEBUG("  Type: %p %s", it->first, 
+                dynamic_cast<vsc::dm::IDataTypeStruct *>(it->second)?
+                    dynamic_cast<vsc::dm::IDataTypeStruct *>(it->second)->name().c_str():"<primitive>");
         }
     } else {
         ret = it->second;

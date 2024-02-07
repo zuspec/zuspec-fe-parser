@@ -75,6 +75,8 @@ public:
 
     virtual void visitStruct(ast::IStruct *i) override;
 
+    virtual void visitTypeScope(ast::ITypeScope *i) override;
+
     /**
      * Build body elements
      */

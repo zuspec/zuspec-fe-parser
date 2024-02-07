@@ -84,11 +84,11 @@ public:
 
     virtual ast::ISymbolScope *typeScope() const override;
 
-    virtual vsc::dm::IDataTypeStruct *findType(ast::IScopeChild *t) override;
+    virtual vsc::dm::IDataType *findType(ast::IScopeChild *t) override;
 
-    virtual void addType(ast::IScopeChild *t, vsc::dm::IDataTypeStruct *dmt) override;
+    virtual void addType(ast::IScopeChild *t, vsc::dm::IDataType *dmt) override;
 
-    vsc::dm::IDataTypeStruct *getType(ast::IScopeChild *t);
+    vsc::dm::IDataType *getType(ast::IScopeChild *t);
     
     virtual ast::ISymbolScope *getRoot() override {
         return m_root;
@@ -122,7 +122,7 @@ private:
     ast::ISymbolScope                                               *m_root;
     zsp::parser::IMarkerUP                                          m_marker;
     std::vector<std::vector<ast::ISymbolChildrenScope *>>           m_scope_s;
-    std::map<ast::IScopeChild *, vsc::dm::IDataTypeStruct *>        m_type_m;
+    std::map<ast::IScopeChild *, vsc::dm::IDataType *>              m_type_m;
     std::vector<int32_t>                                            m_type_s_idx_s;
     std::vector<bool>                                               m_pyref_s;
     std::vector<vsc::dm::ITypeExpr *>                               m_base_s;

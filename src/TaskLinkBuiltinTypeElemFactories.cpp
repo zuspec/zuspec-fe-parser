@@ -28,6 +28,7 @@
 #include "ElemFactoryAddrClaim.h"
 #include "ElemFactoryAddrHandle.h"
 #include "ElemFactoryPackedStruct.h"
+#include "ElemFactoryPyObj.h"
 #include "ElemFactoryReg.h"
 #include "ElemFactoryRegGroup.h"
 #include "ElemFactoryTransparentAddrSpace.h"
@@ -43,6 +44,7 @@ static struct LinkTabEntry {
     std::function<IElemFactoryAssocData *(dmgr::IDebugMgr *)>   ctor;
 //    IElemFactoryAssocData *(*ctor)();
 } LinkTab[] = {
+    { {"pyobj"}, &ElemFactoryPyObj::create },
     { {"addr_reg_pkg", "addr_claim_s"}, &ElemFactoryAddrClaim::create },
     { {"addr_reg_pkg", "reg_c"}, &ElemFactoryReg::create },
     { {"addr_reg_pkg", "reg_group_c"}, &ElemFactoryRegGroup::create },

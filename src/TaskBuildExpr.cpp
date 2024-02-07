@@ -341,8 +341,7 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                     // scope is a function and we need to look in the
                     // parameters scope
                     ast::ISymbolFunctionScope *func = dynamic_cast<ast::ISymbolFunctionScope *>(scope);
-                    scope = func->getPlist();
-                    c = scope->getChildren().at(
+                    c = func->getPlist()->getChildren().at(
                         i->getTarget()->getPath().at(ii).idx).get();
                 } break;
                 default:
@@ -471,8 +470,10 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
             m_ctxt->getDebugMgr(),
             m_ctxt->getRoot());
     ast::IScopeChild *ast_scope = resolver.resolve(i->getTarget());
-    for (uint32_t ii=0; ii<i->getHier_id()->getElems().size(); ii++) {
-        DEBUG("Path[%d]: %d", ii, i->getHier_id()->getElems().at(ii)->getTarget());
+    if (DEBUG_EN) {
+        for (uint32_t ii=0; ii<i->getHier_id()->getElems().size(); ii++) {
+            DEBUG("Path[%d]: %d", ii, i->getHier_id()->getElems().at(ii)->getTarget());
+        }
     }
 
     for (uint32_t ii=0; ii<i->getHier_id()->getElems().size(); ii++) {
@@ -604,6 +605,10 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
     } else {
         // Root is an expression
         DEBUG("Note: root is an expression");
+    }
+
+    if (!m_expr) {
+        ERROR("Failed to build RefPathContext expression");
     }
 
 
@@ -739,6 +744,9 @@ vsc::dm::ITypeExpr *TaskBuildExpr::expr(ast::IExpr *e) {
     DEBUG_ENTER("expr");
     m_expr = 0;
     e->accept(m_this);
+    if (!m_expr) {
+        ERROR("Failed to build expression");
+    }
     DEBUG_LEAVE("expr");
     return m_expr;
 }
