@@ -57,9 +57,7 @@ void TaskBuildTypeExecStmt::visitProceduralStmtAssignment(ast::IProceduralStmtAs
     vsc::dm::ITypeExpr *rhs = TaskBuildExpr(m_ctxt).build(i->getRhs());
     arl::dm::TypeProcStmtAssignOp op = arl::dm::TypeProcStmtAssignOp::Eq;
 
-    vsc::dm::ITypeExprFieldRef *lhs_lv = dynamic_cast<vsc::dm::ITypeExprFieldRef *>(lhs);
-
-    m_stmt = m_ctxt->ctxt()->mkTypeProcStmtAssign(lhs_lv, op, rhs);
+    m_stmt = m_ctxt->ctxt()->mkTypeProcStmtAssign(lhs, op, rhs);
 
     DEBUG_LEAVE("visitProceduralStmtAssignment");
 }

@@ -106,7 +106,22 @@ public:
 
 private:
 
+    using RefElemT=std::pair<vsc::dm::ITypeExpr *, ast::IScopeChild *>;
+    using RootRefT=std::pair<vsc::dm::ITypeExpr *, int32_t>;
+
     vsc::dm::ITypeExpr *expr(ast::IExpr *e);
+
+    RootRefT mkRootFieldRef(ast::IExprRefPathContext *i);
+
+    void extendHierFieldRef(
+        vsc::dm::ITypeExprFieldRef      *root_ref,
+        ast::IExprRefPathContext        *i);
+
+    vsc::dm::ITypeExpr *buildRefExpr(
+        vsc::dm::ITypeExpr              *root,
+        ast::IExprRefPathContext        *i,
+        int32_t                         idx,
+        ast::IScopeChild                *ast_scope);
 
 private:
     static dmgr::IDebug             *m_dbg;

@@ -109,7 +109,7 @@ void TaskCalculateFieldOffset::visitSymbolChildrenScope(ast::ISymbolChildrenScop
 }
 
 void TaskCalculateFieldOffset::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
-    DEBUG_ENTER("visitSymbolTypeScope depth=%d", m_depth);
+    DEBUG_ENTER("visitSymbolTypeScope %s depth=%d", i->getName().c_str(), m_depth);
     ast::ITypeScope *ts = dynamic_cast<ast::ITypeScope *>(i->getTarget());
     m_depth++;
     if (ts->getSuper_t()) {
@@ -125,7 +125,7 @@ void TaskCalculateFieldOffset::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
     }
 
     if (!m_hit_field) {
-        for (uint32_t ii=0; ii<i->getChildren().size(); ii++) {
+        for (int32_t ii=0; ii<i->getChildren().size(); ii++) {
             DEBUG("m_super_idx=%d m_depth=%d m_field_idx=%d ii=%d",
                 m_super_idx, m_depth, m_field_idx, ii);
             if (m_super_idx == m_super_depth && m_field_idx == ii) {

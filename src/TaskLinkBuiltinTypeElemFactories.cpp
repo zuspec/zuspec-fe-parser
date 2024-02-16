@@ -27,6 +27,7 @@
 #include "zsp/fe/parser/IElemFactoryAssocData.h"
 #include "ElemFactoryAddrClaim.h"
 #include "ElemFactoryAddrHandle.h"
+#include "ElemFactoryArray.h"
 #include "ElemFactoryPackedStruct.h"
 #include "ElemFactoryPyObj.h"
 #include "ElemFactoryReg.h"
@@ -44,6 +45,7 @@ static struct LinkTabEntry {
     std::function<IElemFactoryAssocData *(dmgr::IDebugMgr *)>   ctor;
 //    IElemFactoryAssocData *(*ctor)();
 } LinkTab[] = {
+    { {"array"}, &ElemFactoryArray::create },
     { {"pyobj"}, &ElemFactoryPyObj::create },
     { {"addr_reg_pkg", "addr_claim_s"}, &ElemFactoryAddrClaim::create },
     { {"addr_reg_pkg", "reg_c"}, &ElemFactoryReg::create },
