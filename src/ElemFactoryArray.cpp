@@ -20,9 +20,12 @@
  */
 #include "dmgr/impl/DebugMacros.h"
 #include "zsp/parser/impl/TaskEvalExpr.h"
+#include "zsp/parser/impl/TaskResolveExprRef.h"
+#include "zsp/parser/impl/TaskResolveTypeRef.h"
 #include "ElemFactoryPyObj.h"
 #include "ElemFactoryArray.h"
 #include "TaskBuildDataType.h"
+#include "TaskGetDataTypeAssocData.h"
 
 
 namespace zsp {
@@ -73,6 +76,66 @@ vsc::dm::IDataType *ElemFactoryArray::mkDataType(
     }
 
     DEBUG_LEAVE("mkDataType %p", ret);
+    return ret;
+}
+
+vsc::dm::ITypeField *ElemFactoryArray::mkTypeFieldPhy(
+        IAst2ArlContext         *ctx,
+        const std::string       &name,
+        ast::IScopeChild        *type,
+        vsc::dm::TypeFieldAttr  attr,
+        const vsc::dm::ValRef   &init) {
+    DEBUG_ENTER("mkTypeFieldPhy %s", name.c_str());
+    vsc::dm::ITypeField *ret = 0;
+
+    // Get the element type and check if an elem factory exist for that type
+    // If it does, ask whether the type wants a special array-type field
+    ast::IScopeChild *res = zsp::parser::TaskResolveTypeRef(
+        ctx->getDebugMgr(),
+        ctx->getRoot()).resolve(type);
+    ast::ISymbolTypeScope *ts = dynamic_cast<ast::ISymbolTypeScope *>(res);
+
+    if (ts) {
+        DEBUG("SymbolTypeScope: %s", ts->getName().c_str());
+        ast::ITypeScope *ts_t = dynamic_cast<ast::ITypeScope *>(ts->getTarget());
+
+        ast::IScopeChild *elem_t = zsp::parser::TaskResolveTypeRef(
+            ctx->getDebugMgr(),
+            ctx->getRoot()).resolve(ts_t->getParams()->getParams().at(0).get());
+
+        ast::ISymbolTypeScope *elem_ts = dynamic_cast<ast::ISymbolTypeScope *>(elem_t);
+
+        if (elem_ts) {
+            DEBUG("Element type: %s", elem_ts->getName().c_str());
+            zsp::ast::IAssocData *assoc_d = TaskGetDataTypeAssocData(ctx).get(elem_ts);
+            IElemFactoryAssocData *elem_f;
+
+
+
+            if (assoc_d && (elem_f=dynamic_cast<IElemFactoryAssocData *>(assoc_d))) {
+                DEBUG("Have associated data");
+                ast::IExpr *size = zsp::parser::TaskResolveExprRef(
+                    ctx->getDebugMgr(),
+                    ctx->getRoot()).resolve(
+                        ts_t->getParams()->getParams().at(1).get());
+                
+                DEBUG("size=%p", size);
+
+                ret = elem_f->mkTypeFieldArr(
+                    ctx, 
+                    name, 
+                    type, 
+                    elem_ts,
+                    size,
+                    attr, 
+                    init);
+            }
+        }
+    } else {
+        ERROR("Not a type scope");
+    }
+
+    DEBUG_LEAVE("mkTypeFieldPhy %p", ret);
     return ret;
 }
 

@@ -20,10 +20,11 @@
  */
 #include "dmgr/impl/DebugMacros.h"
 #include "vsc/dm/impl/ValRefBool.h"
-#include "zsp/parser/impl/TaskResolveSymbolPathRef.h"
 #include "zsp/parser/impl/TaskGetName.h"
+#include "zsp/parser/impl/TaskGetSubscriptSymbolScope.h"
 #include "zsp/parser/impl/TaskIndexField.h"
 #include "zsp/parser/impl/TaskIsPyRef.h"
+#include "zsp/parser/impl/TaskResolveSymbolPathRef.h"
 #include "TaskBuildDataTypeFunction.h"
 #include "TaskBuildExpr.h"
 #include "TaskCalculateFieldOffset.h"
@@ -913,14 +914,6 @@ vsc::dm::ITypeExpr *TaskBuildExpr::buildRefExpr(
                 ctxt,
                 params);
         }
-
-    } else if (elem->getSubscript()) {
-        // Array subscript
-        expr = m_ctxt->ctxt()->mkTypeExprArrIndex(
-            root,
-            true,
-            TaskBuildExpr(m_ctxt).build(elem->getSubscript()),
-            true);
     } else {
         // Just a regular subfield reference
         TaskCalculateFieldOffset::Res res = TaskCalculateFieldOffset(m_ctxt).calculate(
@@ -949,6 +942,19 @@ vsc::dm::ITypeExpr *TaskBuildExpr::buildRefExpr(
             zsp::parser::TaskGetName().get(ast_scope).c_str(),
             zsp::parser::TaskGetName().get(res.target).c_str());
         ast_scope = res.target;
+
+        if (elem->getSubscript()) {
+            DEBUG("Subscript @ idx=%d", idx);
+            // Array subscript
+            expr = m_ctxt->ctxt()->mkTypeExprArrIndex(
+                expr,
+                true,
+                TaskBuildExpr(m_ctxt).build(elem->getSubscript()),
+                true);
+            ast_scope = zsp::parser::TaskGetSubscriptSymbolScope(
+                m_ctxt->getDebugMgr(),
+                m_ctxt->getRoot()).resolve(ast_scope);
+        }
     }
 
     if (!expr) {

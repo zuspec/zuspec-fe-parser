@@ -40,6 +40,15 @@ public:
         ast::IScopeChild        *type,
         vsc::dm::TypeFieldAttr  attr,
         const vsc::dm::ValRef   &init) = 0;
+
+    virtual vsc::dm::ITypeField *mkTypeFieldArr(
+        IAst2ArlContext         *ctx,
+        const std::string       &name,
+        ast::IScopeChild        *type,
+        ast::IScopeChild        *elem_type,
+        ast::IExpr              *size,
+        vsc::dm::TypeFieldAttr  attr,
+        const vsc::dm::ValRef   &init) = 0;
     
     virtual vsc::dm::IDataType *mkDataType(
         IAst2ArlContext         *ctx,

@@ -19,6 +19,7 @@
  *     Author:
  */
 #include "dmgr/impl/DebugMacros.h"
+#include "zsp/parser/impl/TaskEvalExpr.h"
 #include "ElemFactoryRegGroup.h"
 #include "TaskBuildDataType.h"
 
@@ -54,6 +55,32 @@ vsc::dm::ITypeField *ElemFactoryRegGroup::mkTypeFieldPhy(
             false);
 
     DEBUG_LEAVE("mkTypeFieldPhy");
+    return ret;
+}
+
+vsc::dm::ITypeField *ElemFactoryRegGroup::mkTypeFieldArr(
+        IAst2ArlContext         *ctx,
+        const std::string       &name,
+        ast::IScopeChild        *type,
+        ast::IScopeChild        *elem_type,
+        ast::IExpr              *size,
+        vsc::dm::TypeFieldAttr  attr,
+        const vsc::dm::ValRef   &init) {
+    DEBUG_ENTER("mkTypeFieldArr %s", name.c_str());
+    int32_t size_i = 0;
+
+    zsp::parser::IValUP size_v(zsp::parser::TaskEvalExpr(
+            ctx->factory(), ctx->getRoot()).eval(size));
+
+    vsc::dm::ITypeField *ret = ctx->ctxt()->mkTypeFieldRegGroupArr(
+        name,
+        TaskBuildDataType(ctx).build(type),
+        false,
+        TaskBuildDataType(ctx).build(elem_type),
+        false,
+        size_i);
+
+    DEBUG_LEAVE("mkTypeFieldArr %s %p", name.c_str(), ret);
     return ret;
 }
 

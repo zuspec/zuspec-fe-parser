@@ -38,6 +38,13 @@ public:
         const std::string       &name,
         ast::IScopeChild        *type) override;
 
+    virtual vsc::dm::ITypeField *mkTypeFieldPhy(
+        IAst2ArlContext         *ctx,
+        const std::string       &name,
+        ast::IScopeChild        *type,
+        vsc::dm::TypeFieldAttr  attr,
+        const vsc::dm::ValRef   &init) override;
+
     static ElemFactoryArray *create(dmgr::IDebugMgr *dmgr) {
         return new ElemFactoryArray(dmgr);
     }
