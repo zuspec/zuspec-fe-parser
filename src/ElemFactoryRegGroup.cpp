@@ -71,6 +71,12 @@ vsc::dm::ITypeField *ElemFactoryRegGroup::mkTypeFieldArr(
 
     zsp::parser::IValUP size_v(zsp::parser::TaskEvalExpr(
             ctx->factory(), ctx->getRoot()).eval(size));
+    if (size_v->getKind() == zsp::parser::ValKind::Int) {
+        size_i = dynamic_cast<zsp::parser::IValInt *>(size_v.get())->getValU();
+        DEBUG("size_i=%d", size_i);
+    } else {
+        ERROR("Array size is not integral");
+    }
 
     vsc::dm::ITypeField *ret = ctx->ctxt()->mkTypeFieldRegGroupArr(
         name,
