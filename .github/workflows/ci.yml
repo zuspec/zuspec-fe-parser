@@ -5,52 +5,52 @@ on:
   - workflow_dispatch
 
 jobs:
-    ci-linux:
-        runs-on: 'ubuntu-latest'
-        container: quay.io/pypa/manylinux2014_x86_64
-        strategy:
-            matrix:
-                include:
-                - pyversion: 'cp37-cp37m'
-                - pyversion: 'cp38-cp38'
-                - pyversion: 'cp39-cp39'
-                - pyversion: 'cp310-cp310'
-                - pyversion: 'cp311-cp311'
-                - pyversion: 'cp312-cp312'
-        steps:
-          - uses: actions/checkout@v2
-          - name: Fetch python build dependencies
-            run: |
-              yum update -y
-              yum install -y glibc-static 
-              yum install -y java-11-openjdk-devel uuid-devel libuuid-devel
-              py=${{ matrix.pyversion }}
-              /opt/python/${py}/bin/python -m pip install ivpm
-          - name: Fetch source dependencies
-            run: |
-              py=${{ matrix.pyversion }}
-              /opt/python/$py/bin/python -m ivpm update -a
-              ./packages/python/bin/python -m pip install ninja wheel cython ivpm twine auditwheel
-          - name: Build packages
-            run: |
-              echo "BUILD_NUM=$GITHUB_RUN_ID" >> python/zsp_fe_parser/__build_num__.py
-              ./packages/python/bin/python setup.py bdist_wheel
-          - name: Audit Wheels
-            run: |
-              export LD_LIBRARY_PATH=`pwd`/build/lib:`pwd`/build/lib64
-              for whl in dist/*.whl; do
-                  #./packages/python/bin/auditwheel -v show $whl
-                  #./packages/python/bin/auditwheel -v repair --exclude libantlr4-runtime.so.4.8 $whl
-                  ./packages/python/bin/auditwheel -v repair $whl
-                  rm $whl
-              done
-              cp wheelhouse/*.whl dist
-          - name: Publish to PyPi
-            if: startsWith(github.ref, 'refs/heads/main')
-            uses: pypa/gh-action-pypi-publish@release/v1
-            with:
-              user: __token__
-              password: ${{ secrets.PYPI_API_TOKEN }} 
+  linux:
+    runs-on: 'ubuntu-latest'
+    container: quay.io/pypa/manylinux2014_x86_64
+    strategy:
+      matrix:
+        include:
+        - pyversion: 'cp37-cp37m'
+        - pyversion: 'cp38-cp38'
+        - pyversion: 'cp39-cp39'
+        - pyversion: 'cp310-cp310'
+        - pyversion: 'cp311-cp311'
+        - pyversion: 'cp312-cp312'
+    steps:
+    - uses: actions/checkout@v2
+    - name: Fetch python build dependencies
+      run: |
+        yum update -y
+        yum install -y glibc-static 
+        yum install -y java-11-openjdk-devel uuid-devel libuuid-devel
+        py=${{ matrix.pyversion }}
+        /opt/python/${py}/bin/python -m pip install ivpm
+    - name: Fetch source dependencies
+      run: |
+        py=${{ matrix.pyversion }}
+        /opt/python/$py/bin/python -m ivpm update -a
+        ./packages/python/bin/python -m pip install ninja wheel cython ivpm twine auditwheel
+    - name: Build packages
+      run: |
+        echo "BUILD_NUM=$GITHUB_RUN_ID" >> python/zsp_fe_parser/__build_num__.py
+        ./packages/python/bin/python setup.py bdist_wheel
+    - name: Audit Wheels
+      run: |
+        export LD_LIBRARY_PATH=`pwd`/build/lib:`pwd`/build/lib64
+        for whl in dist/*.whl; do
+            #./packages/python/bin/auditwheel -v show $whl
+            #./packages/python/bin/auditwheel -v repair --exclude libantlr4-runtime.so.4.8 $whl
+            ./packages/python/bin/auditwheel -v repair $whl
+            rm $whl
+        done
+        cp wheelhouse/*.whl dist
+    - name: Publish to PyPi
+      if: startsWith(github.ref, 'refs/heads/main')
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_API_TOKEN }} 
     
     #   ci-linux-docs:
     #     runs-on: ubuntu-latest
@@ -74,31 +74,31 @@ jobs:
     #           branch: gh-pages
     #           folder: doc/build/html
     
-      ci-windows:
+  ci-windows:
         runs-on: ${{ matrix.platform }}
         strategy:
-            matrix:
-                include:
-                - platform: windows-latest
-                  build_arch: x64
-                  python_arch: x64
-                  spec: '3.8'
-                - platform: windows-latest
-                  build_arch: x64
-                  python_arch: x64
-                  spec: '3.9'
-                - platform: windows-latest
-                  build_arch: x64
-                  python_arch: x64
-                  spec: '3.10'
-                - platform: windows-latest
-                  build_arch: x64
-                  python_arch: x64
-                  spec: '3.11'
-                - platform: windows-latest
-                  build_arch: x64
-                  python_arch: x64
-                  spec: '3.12'
+          matrix:
+            include:
+            - platform: windows-latest
+              build_arch: x64
+              python_arch: x64
+              spec: '3.8'
+            - platform: windows-latest
+              build_arch: x64
+              python_arch: x64
+              spec: '3.9'
+            - platform: windows-latest
+              build_arch: x64
+              python_arch: x64
+              spec: '3.10'
+            - platform: windows-latest
+              build_arch: x64
+              python_arch: x64
+              spec: '3.11'
+            - platform: windows-latest
+              build_arch: x64
+              python_arch: x64
+              spec: '3.12'
         steps:
         - name: checkout
           uses: actions/checkout@v2
@@ -123,7 +123,7 @@ jobs:
             ./packages/python/Scripts/python setup.py build bdist_wheel
                 
     
-      macos:
+  macos:
         runs-on: macos-latest
         steps:
           - uses: actions/checkout@v2
