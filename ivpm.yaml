@@ -34,8 +34,8 @@ package:
        url: https://github.com/mballance-utils/ciostream.git
      - name: gtest
        url: https://github.com/google/googletest/archive/release-1.10.0.tar.gz
-       #     - name: ivpm
-       #       url: https://github.com/fvutils/ivpm.git
+     - name: ivpm
+       url: https://github.com/fvutils/ivpm.git
      - name: ninja
        src: pypi
      - name: cython
