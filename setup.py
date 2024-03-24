@@ -12,6 +12,9 @@ if "IVPM_PYTHONPATH" in os.environ.keys():
     ps = ";" if platform.system() == "Windows" else ":"
     for i,p in enumerate(os.environ["IVPM_PYTHONPATH"].split(ps)):
         sys.path.insert(i, p)
+    print("Updated PYTHONPATH: %s" % str(sys.path))
+else:
+    print("No IVPM_PYTHONPATH: %s" % str(sys.path))
 
 version="0.0.1"
 
