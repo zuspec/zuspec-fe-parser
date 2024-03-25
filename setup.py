@@ -30,7 +30,7 @@ except ImportError as e:
 isSrcBuild = False
 
 try:
-    from setuptools import setup as setup
+    from ivpm.setup import setup
     isSrcBuild = os.path.isdir(os.path.join(proj_dir, "src"))
     print("zuspec-fe-parser: isSrcBuild: %s" % str(isSrcBuild), flush=True)
 except ImportError as e:
