@@ -80,7 +80,7 @@ setup_args = dict(
         'cython', 'ciostream'
     ],
     install_requires=[
-        'zuspec-arl-dm', 'zuspec-parser'
+        'ciostream', 'zuspec-arl-dm', 'zuspec-parser'
     ],
     entry_points={
         "ivpm.pkginfo": {
