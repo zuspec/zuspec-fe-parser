@@ -76,6 +76,12 @@ setup_args = dict(
     long_description="""
     Zuspec front-end to bring in parsed PSS
     """,
+    setup_requires=[
+        'cython', 'ciostream'
+    ],
+    install_requires=[
+        'zuspec-arl-dm', 'zuspec-parser'
+    ],
     entry_points={
         "ivpm.pkginfo": {
             'zuspec-fe-parser = zsp_fe_parser.pkginfo:PkgInfo'
