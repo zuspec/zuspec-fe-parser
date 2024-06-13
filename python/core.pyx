@@ -62,10 +62,18 @@ cdef class Factory:
         if _inst is None:
             ext_dir = os.path.dirname(os.path.abspath(__file__))
 
-            core_lib = os.path.join(ext_dir, "libzsp-fe-parser.so")
-            if not os.path.isfile(core_lib):
-                raise Exception("Extension library core \"%s\" doesn't exist" % core_lib)
+            core_lib = None
+            build_dir = os.path.abspath(os.path.join(ext_dir, "../../build"))
 
+            for path in (
+                os.path.join(build_dir, "lib64"), 
+                os.path.join(build_dir, "lib"), ext_dir):
+                if os.path.isfile(os.path.join(path, "libzsp-fe-parser.so")):
+                    core_lib = os.path.join(path, "libzsp-fe-parser.so")
+                    break
+
+            if core_lib is None:
+                raise Exception("Extension library core \"libzsp-fe-parser.so\" doesn't exist")
             so = ctypes.cdll.LoadLibrary(core_lib)
 
             func = so.zsp_fe_parser_getFactory

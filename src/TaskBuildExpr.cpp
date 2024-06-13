@@ -18,6 +18,7 @@
  * Created on:
  *     Author:
  */
+#include <map>
 #include "dmgr/impl/DebugMacros.h"
 #include "vsc/dm/impl/ValRefBool.h"
 #include "zsp/parser/impl/TaskGetName.h"

@@ -19,6 +19,7 @@
  *     Author:
  */
 #include <functional>
+#include <unordered_map>
 #include <vector>
 #include <string>
 #include "dmgr/impl/DebugMacros.h"
@@ -99,7 +100,7 @@ ast::IScopeChild *TaskLinkBuiltinTypeElemFactories::findElem(
         const std::vector<std::string>  &path,
         int32_t                         idx) {
     DEBUG_ENTER("findElem: %s", path.at(idx).c_str());
-    std::map<std::string, int32_t>::const_iterator it = 
+    std::unordered_map<std::string, int32_t>::const_iterator it = 
         root->getSymtab().find(path.at(idx));
     ast::IScopeChild *child = 0;
 
