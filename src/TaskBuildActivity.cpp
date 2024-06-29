@@ -21,6 +21,7 @@
 #include "dmgr/impl/DebugMacros.h"
 #include "TaskBuildActivity.h"
 #include "TaskBuildExpr.h"
+#include "zsp/arl/dm/IDataTypeActivityTraverseType.h"
 #include "zsp/ast/IActivityDecl.h"
 #include "zsp/parser/impl/TaskResolveSymbolPathRef.h"
 
@@ -119,21 +120,9 @@ void TaskBuildActivity::visitActivityActionTypeTraversal(ast::IActivityActionTyp
         if (!at) {
             DEBUG("TODO: bad type (%s)", dt->name().c_str());
         }
-        vsc::dm::ITypeField *f = m_ctxt->ctxt()->mkTypeFieldPhy(
-            "__anonymous",
-            at,
-            false,
-            vsc::dm::TypeFieldAttr::NoAttr,
-            vsc::dm::ValRef());
-
-        seq->addField(f);
-        arl::dm::IDataTypeActivityTraverse *dt_t = 
-            m_ctxt->ctxt()->mkDataTypeActivityTraverse(
-                m_ctxt->ctxt()->mkTypeExprFieldRef(
-                    vsc::dm::ITypeExprFieldRef::RootRefKind::BottomUpScope,
-                    0,
-                    {f->getIndex()}
-                ),
+        arl::dm::IDataTypeActivityTraverseType *dt_t = 
+            m_ctxt->ctxt()->mkDataTypeActivityTraverseType(
+                at,
                 with_c
             );
         seq->addActivity(m_ctxt->ctxt()->mkTypeFieldActivity("", dt_t, true));
