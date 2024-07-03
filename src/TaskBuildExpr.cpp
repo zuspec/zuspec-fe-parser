@@ -360,7 +360,8 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
         }
 
         if (i->getHier_id()->getElems().size() > 1) {
-            DEBUG("Building out result of mkRootFieldRef");
+            DEBUG("Building out result of mkRootFieldRef(idx=%d size=%d)",
+                root_ref.second, i->getHier_id()->getElems().size());
             m_expr = buildRefExpr(
                 root_ref.first,
                 i,
@@ -861,10 +862,13 @@ vsc::dm::ITypeExpr *TaskBuildExpr::buildRefExpr(
         ast::IExprRefPathContext        *i,
         int32_t                         idx,
         ast::IScopeChild                *ast_scope) {
-    DEBUG_ENTER("buildRefExpr idx=%d offset=%d", idx, i->getHier_id()->getElems().at(idx)->getTarget());
+    DEBUG_ENTER("buildRefExpr idx=%d offset=%d", 
+        idx, 
+        i->getHier_id()->getElems().at(idx)->getTarget());
 
     // Build this expression level
     ast::IExprMemberPathElem *elem = i->getHier_id()->getElems().at(idx).get();
+    DEBUG("elem: %s", elem->getId()->getId().c_str());
 
     vsc::dm::ITypeExpr *expr = 0;
 
@@ -926,7 +930,7 @@ vsc::dm::ITypeExpr *TaskBuildExpr::buildRefExpr(
 
 //        if (idx > 1) {
             std::string ast_scope_name = (ast_scope)?zsp::parser::TaskGetName().get(ast_scope, true):"<initial>";
-            std::string ast_scope_name_n = zsp::parser::TaskGetName().get(res.target, true);
+            std::string ast_scope_name_n = (res.target)?zsp::parser::TaskGetName().get(res.target, true):"<unknown>";
             DEBUG("SubField: scope=%s target=%d super=%d new_scope=%s",
                 ast_scope_name.c_str(), 
                 elem->getTarget(),
@@ -940,8 +944,8 @@ vsc::dm::ITypeExpr *TaskBuildExpr::buildRefExpr(
             res.index);
 
         DEBUG("Source ast_scope: %s ; next_ast_scope: %s",
-            zsp::parser::TaskGetName().get(ast_scope).c_str(),
-            zsp::parser::TaskGetName().get(res.target).c_str());
+            (ast_scope)?zsp::parser::TaskGetName().get(ast_scope).c_str():"<unknown>",
+            (res.target)?zsp::parser::TaskGetName().get(res.target).c_str():"<unknown>");
         ast_scope = res.target;
 
         if (elem->getSubscript()) {

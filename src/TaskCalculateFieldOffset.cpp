@@ -70,8 +70,13 @@ void TaskCalculateFieldOffset::visitDataTypeUserDefined(ast::IDataTypeUserDefine
 }
 
 void TaskCalculateFieldOffset::visitField(ast::IField *i) {
-    DEBUG_ENTER("visitField");
-    m_field_cnt++;
+    DEBUG_ENTER("visitField %s super_idx=%d super_depth=%d m_field_idx=%d m_field_cnt=%d",
+        i->getName()->getId().c_str(), m_super_idx, m_super_depth, m_field_idx, m_field_cnt);
+    if (!m_depth) {
+        i->getType()->accept(m_this);
+    } else {
+        m_field_cnt++;
+    }
     DEBUG_LEAVE("visitField");
 }
 
@@ -87,13 +92,21 @@ void TaskCalculateFieldOffset::visitFieldCompRef(ast::IFieldCompRef *i) {
 
 void TaskCalculateFieldOffset::visitFieldRef(ast::IFieldRef *i) {
     DEBUG_ENTER("visitFieldFieldRef");
-    m_field_cnt++;
+    if (!m_depth) {
+        i->getType()->accept(m_this);
+    } else {
+        m_field_cnt++;
+    }
     DEBUG_LEAVE("visitFieldFieldRef");
 }
 
 void TaskCalculateFieldOffset::visitFieldClaim(ast::IFieldClaim *i) {
     DEBUG_ENTER("visitFieldFieldClaim");
-    m_field_cnt++;
+    if (!m_depth) {
+        i->getType()->accept(m_this);
+    } else {
+        m_field_cnt++;
+    }
     DEBUG_LEAVE("visitFieldFieldClaim");
 }
 
