@@ -27,6 +27,7 @@
 #include "zsp/ast/ISymbolTypeScope.h"
 #include "zsp/fe/parser/IElemFactoryAssocData.h"
 #include "ElemFactoryAddrClaim.h"
+#include "ElemFactoryTransparentAddrClaim.h"
 #include "ElemFactoryAddrHandle.h"
 #include "ElemFactoryArray.h"
 #include "ElemFactoryPackedStruct.h"
@@ -49,6 +50,7 @@ static struct LinkTabEntry {
     { {"array"}, &ElemFactoryArray::create },
     { {"pyobj"}, &ElemFactoryPyObj::create },
     { {"addr_reg_pkg", "addr_claim_s"}, &ElemFactoryAddrClaim::create },
+    { {"addr_reg_pkg", "transparent_addr_claim_s"}, &ElemFactoryTransparentAddrClaim::create },
     { {"addr_reg_pkg", "reg_c"}, &ElemFactoryReg::create },
     { {"addr_reg_pkg", "reg_group_c"}, &ElemFactoryRegGroup::create },
     { {"addr_reg_pkg", "transparent_addr_space_c"}, &ElemFactoryTransparentAddrSpace::create },

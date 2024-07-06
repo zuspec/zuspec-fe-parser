@@ -20,6 +20,8 @@
  */
 #include "dmgr/impl/DebugMacros.h"
 #include "ElemFactoryAddrClaim.h"
+#include "TaskBuildDataType.h"
+#include "TaskGetAddrClaimTrait.h"
 
 
 namespace zsp {
@@ -35,13 +37,36 @@ ElemFactoryAddrClaim::~ElemFactoryAddrClaim() {
 
 }
 
+vsc::dm::IDataType *ElemFactoryAddrClaim::mkDataType(
+        IAst2ArlContext         *ctx,
+        const std::string       &name,
+        ast::IScopeChild        *type) {
+    DEBUG_ENTER("mkDataType");
+    vsc::dm::IDataType *ret = ctx->ctxt()->mkDataTypeAddrClaim(name);
+    DEBUG_LEAVE("mkDataType");
+    return ret;
+}
+
 vsc::dm::ITypeField *ElemFactoryAddrClaim::mkTypeFieldPhy(
         IAst2ArlContext         *ctx,
         const std::string       &name,
         ast::IScopeChild        *type,
         vsc::dm::TypeFieldAttr  attr,
         const vsc::dm::ValRef   &init) {
-    return 0;
+    DEBUG_ENTER("mkTypeFieldPhy %s", name.c_str());
+    vsc::dm::IDataType *type_dt = TaskBuildDataType(ctx).build(type);
+    ast::IScopeChild *trait_t = TaskGetAddrClaimTrait(
+        ctx->getDebugMgr(), ctx->getRoot()).get(type);
+    vsc::dm::IDataType *trait_dt = TaskBuildDataType(ctx).build(trait_t);
+
+    vsc::dm::ITypeField *ret = ctx->ctxt()->mkTypeFieldAddrClaim(
+        name,
+        type_dt,
+        false,
+        dynamic_cast<vsc::dm::IDataTypeStruct *>(trait_dt));
+    
+    DEBUG_LEAVE("mkTypeFieldPhy %s", name.c_str());
+    return ret;
 }
 
 }

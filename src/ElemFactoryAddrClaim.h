@@ -34,6 +34,11 @@ public:
 
     virtual ~ElemFactoryAddrClaim();
 
+    virtual vsc::dm::IDataType *mkDataType(
+        IAst2ArlContext         *ctx,
+        const std::string       &name,
+        ast::IScopeChild        *type) override;
+
     virtual vsc::dm::ITypeField *mkTypeFieldPhy(
         IAst2ArlContext         *ctx,
         const std::string       &name,

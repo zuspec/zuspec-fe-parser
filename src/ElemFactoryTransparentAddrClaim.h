@@ -19,6 +19,8 @@
  *     Author: 
  */
 #pragma once
+#include "dmgr/IDebugMgr.h"
+#include "zsp/fe/parser/impl/ElemFactoryAssocDataBase.h"
 
 namespace zsp {
 namespace fe {
@@ -26,11 +28,26 @@ namespace parser {
 
 
 
-class ElemFactoryTransparentAddrClaim {
+class ElemFactoryTransparentAddrClaim :
+    public virtual ElemFactoryAssocDataBase {
 public:
-    ElemFactoryTransparentAddrClaim();
+    ElemFactoryTransparentAddrClaim(dmgr::IDebugMgr *dmgr);
 
     virtual ~ElemFactoryTransparentAddrClaim();
+
+    virtual vsc::dm::ITypeField *mkTypeFieldPhy(
+        IAst2ArlContext         *ctx,
+        const std::string       &name,
+        ast::IScopeChild        *type,
+        vsc::dm::TypeFieldAttr  attr,
+        const vsc::dm::ValRef   &init) override;
+
+    static ElemFactoryTransparentAddrClaim *create(dmgr::IDebugMgr *dmgr) {
+        return new ElemFactoryTransparentAddrClaim(dmgr);
+    }
+
+private:
+    static dmgr::IDebug             *m_dbg;
 
 };
 

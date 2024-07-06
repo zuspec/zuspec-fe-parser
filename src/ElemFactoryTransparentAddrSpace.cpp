@@ -22,6 +22,7 @@
 #include "vsc/dm/impl/ValRef.h"
 #include "ElemFactoryTransparentAddrSpace.h"
 #include "TaskBuildDataType.h"
+#include "TaskGetAddrClaimTrait.h"
 
 
 namespace zsp {
@@ -63,8 +64,13 @@ vsc::dm::IDataType *ElemFactoryTransparentAddrSpace::mkDataType(
         const std::string       &name,
         ast::IScopeChild        *type) {
     DEBUG_ENTER("mkDataTtype %s", name.c_str());
+    ast::IScopeChild *trait_t = TaskGetAddrClaimTrait(
+        ctx->getDebugMgr(), ctx->getRoot()).get(type);
+    vsc::dm::IDataType *trait_dt = TaskBuildDataType(ctx).build(trait_t);
     arl::dm::IDataTypeAddrSpaceTransparentC *t = 
-        ctx->ctxt()->mkDataTypeAddrSpaceTransparentC(name);
+        ctx->ctxt()->mkDataTypeAddrSpaceTransparentC(
+            name, 
+            dynamic_cast<vsc::dm::IDataTypeStruct *>(trait_dt));
     DEBUG_LEAVE("mkDataTtype %s", name.c_str());
     return t;
 }

@@ -18,7 +18,10 @@
  * Created on:
  *     Author:
  */
+#include "dmgr/impl/DebugMacros.h"
 #include "ElemFactoryTransparentAddrClaim.h"
+#include "TaskBuildDataType.h"
+#include "TaskGetAddrClaimTrait.h"
 
 
 namespace zsp {
@@ -26,13 +29,37 @@ namespace fe {
 namespace parser {
 
 
-ElemFactoryTransparentAddrClaim::ElemFactoryTransparentAddrClaim() {
-
+ElemFactoryTransparentAddrClaim::ElemFactoryTransparentAddrClaim(dmgr::IDebugMgr *dmgr) {
+    DEBUG_INIT("zsp::fe::parser::ElemFactoryTransparentAddrClaim", dmgr);
 }
 
 ElemFactoryTransparentAddrClaim::~ElemFactoryTransparentAddrClaim() {
 
 }
+
+vsc::dm::ITypeField *ElemFactoryTransparentAddrClaim::mkTypeFieldPhy(
+        IAst2ArlContext         *ctx,
+        const std::string       &name,
+        ast::IScopeChild        *type,
+        vsc::dm::TypeFieldAttr  attr,
+        const vsc::dm::ValRef   &init) {
+    DEBUG_ENTER("mkTypeFieldPhy %s", name.c_str());
+    vsc::dm::IDataType *type_dt = TaskBuildDataType(ctx).build(type);
+    ast::IScopeChild *trait_t = TaskGetAddrClaimTrait(
+        ctx->getDebugMgr(), ctx->getRoot()).get(type);
+    vsc::dm::IDataType *trait_dt = TaskBuildDataType(ctx).build(trait_t);
+
+    vsc::dm::ITypeField *ret = ctx->ctxt()->mkTypeFieldAddrClaimTransparent(
+        name,
+        type_dt,
+        false,
+        dynamic_cast<vsc::dm::IDataTypeStruct *>(trait_dt));
+    
+    DEBUG_LEAVE("mkTypeFieldPhy %s", name.c_str());
+    return ret;
+}
+
+dmgr::IDebug *ElemFactoryTransparentAddrClaim::m_dbg = 0;
 
 }
 }
