@@ -186,6 +186,12 @@ void TaskBuildTypeExecStmt::visitProceduralStmtDataDeclaration(ast::IProceduralS
     DEBUG_LEAVE("visitProceduralStmtDataDeclaration");
 }
 
+void TaskBuildTypeExecStmt::visitProceduralStmtYield(ast::IProceduralStmtYield *i) {
+    DEBUG_ENTER("visitProcedurlStmtYield");
+    m_stmt = m_ctxt->ctxt()->mkTypeProcStmtYield();
+    DEBUG_LEAVE("visitProcedurlStmtYield");
+}
+
 void TaskBuildTypeExecStmt::visitSymbolChildrenScope(ast::ISymbolChildrenScope *i) {
     DEBUG_ENTER("visitSymbolChildrenScope");
     ast::ISymbolChildrenScope *wrapper_s = m_wrapper_s;

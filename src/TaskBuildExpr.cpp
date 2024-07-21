@@ -360,8 +360,7 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
         }
 
         if (i->getHier_id()->getElems().size() > 1) {
-            DEBUG("Building out result of mkRootFieldRef(idx=%d size=%d)",
-                root_ref.second, i->getHier_id()->getElems().size());
+            DEBUG("Building out result of mkRootFieldRef(idx=%d size=%d)");
             m_expr = buildRefExpr(
                 root_ref.first,
                 i,
