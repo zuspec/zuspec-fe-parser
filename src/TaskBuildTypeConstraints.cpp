@@ -115,6 +115,15 @@ void TaskBuildTypeConstraints::visitConstraintStmtForall(ast::IConstraintStmtFor
 
 void TaskBuildTypeConstraints::visitConstraintStmtUnique(ast::IConstraintStmtUnique *i) { }
 
+void TaskBuildTypeConstraints::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
+    if (!m_depth) {
+        // TODO: consider super
+        m_depth++;
+        VisitorBase::visitSymbolScope(i);
+        m_depth--;
+    }
+}
+
 dmgr::IDebug *TaskBuildTypeConstraints::m_dbg = 0;
 
 }

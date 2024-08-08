@@ -50,7 +50,7 @@ vsc::dm::ITypeExpr *TaskBuildExpr::build(ast::IExpr *e) {
     DEBUG_ENTER("build");
     vsc::dm::ITypeExpr *e_dm = expr(e);
     if (!e_dm) {
-        ERROR("Failed to build expression");
+        DEBUG_ERROR("Failed to build expression");
     }
     DEBUG_LEAVE("build %p", e_dm);
     return e_dm;
@@ -304,7 +304,7 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
 
     if (!m_ctxt->baseExpr()) {
         if (!i->getTarget()) {
-            ERROR("expression target is null");
+            DEBUG_ERROR("expression target is null");
             DEBUG_LEAVE("visitExprRefPathContext");
             return;
         }
@@ -356,7 +356,7 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
         DEBUG("ast_scope: %s", zsp::parser::TaskGetName().get(ast_scope, true).c_str());
 
         if (!root_ref.first) {
-            ERROR("mkRootFieldRef returns null root");
+            DEBUG_ERROR("mkRootFieldRef returns null root");
         }
 
         if (i->getHier_id()->getElems().size() > 1) {
@@ -383,11 +383,11 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
         }
     } else {
         // Root is an expression
-        ERROR("Note: root is an expression");
+        DEBUG_ERROR("Note: root is an expression");
     }
 
     if (!m_expr) {
-        ERROR("Failed to build RefPathContext expression");
+        DEBUG_ERROR("Failed to build RefPathContext expression");
     }
 
 
@@ -410,7 +410,7 @@ void TaskBuildExpr::visitExprRefPathStaticRooted(ast::IExprRefPathStaticRooted *
     m_ctxt->popBaseExpr();
 
     if (!m_expr) {
-        ERROR("Building root expression failed");
+        DEBUG_ERROR("Building root expression failed");
         DEBUG_LEAVE("visitExprRefPathStaticRooted -- failed to build root expr");
         return;
     }
@@ -490,7 +490,7 @@ void TaskBuildExpr::visitExprRefPathStatic(ast::IExprRefPathStatic *i) {
         }
 
     } else {
-        ERROR("non-python static ref path unimplemented");
+        DEBUG_ERROR("non-python static ref path unimplemented");
     }
     DEBUG_LEAVE("visitExprRefPathStatic");
 }
@@ -524,7 +524,7 @@ vsc::dm::ITypeExpr *TaskBuildExpr::expr(ast::IExpr *e) {
     m_expr = 0;
     e->accept(m_this);
     if (!m_expr) {
-        ERROR("Failed to build expression");
+        DEBUG_ERROR("Failed to build expression");
     }
     DEBUG_LEAVE("expr");
     return m_expr;
@@ -678,7 +678,7 @@ TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *
 
             // TODO: determine if this is actually a static reference
 //        } else {
-//            ERROR("Failed consistency check type_scope_idx=%d path.size=%d",
+//            DEBUG_ERROR("Failed consistency check type_scope_idx=%d path.size=%d",
 //                type_scope_idx,
 //                i->getTarget()->getPath().size());
 //        }
@@ -698,7 +698,7 @@ TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *
             );
             ii = 1;
         } else {
-            ERROR("Neither bottom-up or top-down");
+            DEBUG_ERROR("Neither bottom-up or top-down");
         }
     }
 
@@ -779,7 +779,7 @@ void TaskBuildExpr::extendHierFieldRef(
                 arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->findDataTypeFunction(fname);
 
                 if (!func) {
-                    ERROR("failed to find function %s", fname.c_str());
+                    DEBUG_ERROR("failed to find function %s", fname.c_str());
                 }
 
                 if (!expr) {
@@ -826,7 +826,7 @@ void TaskBuildExpr::extendHierFieldRef(
                     res.index);
 
                 if (!res.target) {
-                    ERROR("null target");
+                    DEBUG_ERROR("null target");
                 }
 
                 if (!root_ref) {
@@ -834,7 +834,7 @@ void TaskBuildExpr::extendHierFieldRef(
                     root_ref = m_ctxt->ctxt()->mkTypeExprFieldRef(expr, res.index);
 
                     if (root_ref->getPath().size() == 0) {
-                        ERROR("bottom-up reference path is empty");
+                        DEBUG_ERROR("bottom-up reference path is empty");
                     }
                     expr = field_ref;
                      */
@@ -896,7 +896,7 @@ vsc::dm::ITypeExpr *TaskBuildExpr::buildRefExpr(
         arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->findDataTypeFunction(fname);
 
         if (!func) {
-            ERROR("failed to find function %s", fname.c_str());
+            DEBUG_ERROR("failed to find function %s", fname.c_str());
         }
 
         vsc::dm::ITypeExpr *ctxt = root;
@@ -962,7 +962,7 @@ vsc::dm::ITypeExpr *TaskBuildExpr::buildRefExpr(
     }
 
     if (!expr) {
-        ERROR("Failed to build ref-path expression");
+        DEBUG_ERROR("Failed to build ref-path expression");
     }
 
     if ((idx+1) < i->getHier_id()->getElems().size()) {

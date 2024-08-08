@@ -64,7 +64,7 @@ void TaskGetDataTypeAssocData::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
         if (ts_target->getSuper_t()) {
             DEBUG("TODO: Keep looking through Super");
             if (!ts_target->getSuper_t()->getTarget()) {
-                ERROR("Unlinked super target of %s", ts_target->getName()->getId().c_str());
+                DEBUG_ERROR("Unlinked super target of %s", ts_target->getName()->getId().c_str());
             } else {
                 ast::ISymbolScope *scope = m_ctxt->rootSymScopeT<ast::ISymbolScope>();
 
@@ -128,7 +128,7 @@ void TaskGetDataTypeAssocData::visitDataTypeUserDefined(ast::IDataTypeUserDefine
                                 scope).resolveFull(ts_target->getSuper_t()->getTarget());
                         result.val.ts->accept(m_this);
                     } else {
-                        ERROR("Failed to resolve super type");
+                        DEBUG_ERROR("Failed to resolve super type");
                     }
                 } else {
                     DEBUG("End of the line. Nothing else to search for");

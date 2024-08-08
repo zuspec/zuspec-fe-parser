@@ -54,7 +54,7 @@ vsc::dm::IDataType *TaskBuildDataType::build(ast::IScopeChild *type) {
     type->accept(this);
 
     if (!m_type) {
-        ERROR("Failed to produce a data type");
+        DEBUG_ERROR("Failed to produce a data type");
         m_type = m_ctxt->ctxt()->findDataTypeInt(true, 32);
     }
 
@@ -341,7 +341,7 @@ void TaskBuildDataType::visitTypeScope(ast::ITypeScope *i) {
 
             m_type = dt;
         } else {
-            ERROR("Bare TypeScope must provide an element factory");
+            DEBUG_ERROR("Bare TypeScope must provide an element factory");
         }
     }
 
@@ -449,7 +449,7 @@ void TaskBuildDataType::buildTypeFields(
             // Now, build the super-type fields
             buildTypeFields(off_l, arl_type, dynamic_cast<ast::ISymbolTypeScope *>(super_t_ast));
         } else {
-            ERROR("Super type not resolved for %s", 
+            DEBUG_ERROR("Super type not resolved for %s", 
                 target_t->getName()->getId().c_str());
         }
     }

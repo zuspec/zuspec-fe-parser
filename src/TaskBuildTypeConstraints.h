@@ -71,6 +71,8 @@ public:
 
     virtual void visitConstraintStmtUnique(ast::IConstraintStmtUnique *i) override;
 
+    virtual void visitSymbolTypeScope(ast::ISymbolTypeScope *i) override;
+
 
 private:
     static dmgr::IDebug                                 *m_dbg;

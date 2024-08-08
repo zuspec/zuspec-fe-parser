@@ -69,10 +69,10 @@ vsc::dm::IDataType *ElemFactoryArray::mkDataType(
                 dynamic_cast<zsp::parser::IValInt *>(size_v)->getValU(),
                 true);
          } else {
-            ERROR("data-type width expression is %d, not int", size_v->getKind());
+            DEBUG_ERROR("data-type width expression is %d, not int", size_v->getKind());
         }
     } else {
-        ERROR("data-type width expression produced null result");
+        DEBUG_ERROR("data-type width expression produced null result");
     }
 
     DEBUG_LEAVE("mkDataType %p", ret);
@@ -132,7 +132,7 @@ vsc::dm::ITypeField *ElemFactoryArray::mkTypeFieldPhy(
             }
         }
     } else {
-        ERROR("Not a type scope");
+        DEBUG_ERROR("Not a type scope");
     }
 
     DEBUG_LEAVE("mkTypeFieldPhy %p", ret);

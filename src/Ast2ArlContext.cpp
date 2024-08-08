@@ -235,7 +235,7 @@ void Ast2ArlContext::setIsPyRef(bool v) {
     if (m_pyref_s.size()) {
         m_pyref_s.back() = v;
     } else if (v) {
-        ERROR("Attempting to setIsPyRef==true with empty stack");
+        DEBUG_ERROR("Attempting to setIsPyRef==true with empty stack");
     }
 }
 

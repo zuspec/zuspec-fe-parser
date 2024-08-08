@@ -75,7 +75,7 @@ vsc::dm::ITypeField *ElemFactoryRegGroup::mkTypeFieldArr(
         size_i = dynamic_cast<zsp::parser::IValInt *>(size_v.get())->getValU();
         DEBUG("size_i=%d", size_i);
     } else {
-        ERROR("Array size is not integral");
+        DEBUG_ERROR("Array size is not integral");
     }
 
     vsc::dm::ITypeField *ret = ctx->ctxt()->mkTypeFieldRegGroupArr(
