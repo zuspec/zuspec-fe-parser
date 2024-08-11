@@ -20,7 +20,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build packages
       env:
-        IVPM_PYTHON: /opt/python/${{ matrix.spec }}/bin/python
+        IVPM_PYTHON: /opt/python/${{ matrix.pyversion }}/bin/python
         BUILD_NUM: ${{ github.run_id }}
       run: >
         docker run --rm
