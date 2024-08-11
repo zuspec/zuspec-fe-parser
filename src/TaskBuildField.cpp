@@ -54,6 +54,10 @@ void TaskBuildField::visitField(ast::IField *i) {
     vsc::dm::TypeFieldAttr attr = vsc::dm::TypeFieldAttr::NoAttr;
     vsc::dm::ValRef init; // Default is Void
 
+    if ((i->getAttr() & ast::FieldAttr::Rand) != ast::FieldAttr::NoFlags) {
+        attr = attr | vsc::dm::TypeFieldAttr::Rand;
+    }
+
     m_ret = 0;
     if (assoc_d) {
         IElemFactoryAssocData *elem_f = 
