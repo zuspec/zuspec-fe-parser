@@ -47,7 +47,9 @@ vsc::dm::ITypeField *TaskBuildField::build(ast::IScopeChild *f) {
 }
 
 void TaskBuildField::visitField(ast::IField *i) { 
-    DEBUG_ENTER("visitField %s", i->getName()->getId().c_str());
+    DEBUG_ENTER("visitField %s attr=0x%08x", 
+        i->getName()->getId().c_str(),
+        i->getAttr());
     zsp::ast::IDataType *adt = i->getType();
     zsp::ast::IAssocData *assoc_d = TaskGetDataTypeAssocData(m_ctxt).get(adt);
     vsc::dm::IDataType *dt = TaskBuildDataType(m_ctxt).build(i->getType());
