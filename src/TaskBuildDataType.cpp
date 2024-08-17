@@ -62,6 +62,23 @@ vsc::dm::IDataType *TaskBuildDataType::build(ast::IScopeChild *type) {
     return m_type;
 }
 
+vsc::dm::IDataType *TaskBuildDataType::build(ast::ITypeIdentifier *type) {
+    DEBUG_ENTER("build(type-id)");
+    ast::IScopeChild *ref_t = zsp::parser::TaskResolveSymbolPathRef(
+        m_ctxt->getDebugMgr(),
+        m_ctxt->getRoot()).resolve(type->getTarget());
+
+    ref_t->accept(m_this);
+
+    if (!m_type) {
+        DEBUG_ERROR("Failed to produce a data type");
+        m_type = m_ctxt->ctxt()->findDataTypeInt(true, 32);
+    }
+
+    DEBUG_LEAVE("build(type-id) %p", m_type);
+    return m_type;
+}
+
 void TaskBuildDataType::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
     DEBUG_ENTER("visitSymbolFunctionScope");
     TaskBuildDataTypeFunction(m_ctxt).build(i);
@@ -116,6 +133,12 @@ void TaskBuildDataType::visitAction(ast::IAction *i) {
             comp_t->addActionType(action_t);
         }
 
+        if (i->getSuper_t()) {
+            DEBUG("Has a super type");
+            vsc::dm::IDataType *super_t = TaskBuildDataType(m_ctxt).build(i->getSuper_t());
+            action_t->setSuper(dynamic_cast<vsc::dm::IDataTypeStruct *>(super_t));
+        }
+
         m_type = action_t;
     }
 
@@ -164,6 +187,12 @@ void TaskBuildDataType::visitComponent(ast::IComponent *i) {
             (*it)->accept(this);
         }
         m_type_s.pop_back();
+
+        if (i->getSuper_t()) {
+            DEBUG("Has a super type");
+            vsc::dm::IDataType *super_t = TaskBuildDataType(m_ctxt).build(i->getSuper_t());
+            comp_t->setSuper(dynamic_cast<vsc::dm::IDataTypeStruct *>(super_t));
+        }
 
         m_type = comp_t;
     }
@@ -313,7 +342,13 @@ void TaskBuildDataType::visitStruct(ast::IStruct *i) {
 
         buildType(struct_t, dynamic_cast<ast::ISymbolTypeScope *>(m_ctxt->symScope()));
 
+        if (i->getSuper_t()) {
+            DEBUG("Has a super type");
+            vsc::dm::IDataType *super_t = TaskBuildDataType(m_ctxt).build(i->getSuper_t());
+            struct_t->setSuper(dynamic_cast<vsc::dm::IDataTypeStruct *>(super_t));
+        }
         m_type = struct_t;
+
         } else {
             DEBUG("Skip building type for unspecialized template");
         }
