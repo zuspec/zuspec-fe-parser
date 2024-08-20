@@ -90,7 +90,8 @@ void TaskBuildTypeExecStmt::visitProceduralStmtReturn(ast::IProceduralStmtReturn
 }
     
 void TaskBuildTypeExecStmt::visitProceduralStmtRepeat(ast::IProceduralStmtRepeat *i) { 
-
+    DEBUG_ENTER("visitProceduralStmtRepeat");
+    DEBUG_LEAVE("visitProceduralStmtRepeat");
 }
     
 void TaskBuildTypeExecStmt::visitProceduralStmtRepeatWhile(ast::IProceduralStmtRepeatWhile *i) { 
