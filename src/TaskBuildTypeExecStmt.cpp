@@ -82,11 +82,16 @@ void TaskBuildTypeExecStmt::visitProceduralStmtReturn(ast::IProceduralStmtReturn
     vsc::dm::ITypeExpr *expr = 0;
     if (i->getExpr()) {
         expr = TaskBuildExpr(m_ctxt).build(i->getExpr());
+        vsc::dm::ITypeExprVal *ev = dynamic_cast<vsc::dm::ITypeExprVal *>(expr);
+        DEBUG("expr: %p", expr);
+        DEBUG("  flags: 0x%08x ; vp: 0x%08llx", 
+            ev->val().flags(),
+            ev->val().vp());
     }
 
     m_stmt = m_ctxt->ctxt()->mkTypeProcStmtReturn(expr);
 
-    DEBUG_LEAVE("visitProceduralStmtReturn");
+    DEBUG_LEAVE("visitProceduralStmtReturn %p", m_stmt);
 }
     
 void TaskBuildTypeExecStmt::visitProceduralStmtRepeat(ast::IProceduralStmtRepeat *i) { 

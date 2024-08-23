@@ -451,8 +451,9 @@ void TaskBuildExpr::visitExprSignedNumber(ast::IExprSignedNumber *i) {
 
 void TaskBuildExpr::visitExprUnsignedNumber(ast::IExprUnsignedNumber *i) { 
     DEBUG_ENTER("visitExprUnsignedNumber");
-    m_expr = m_ctxt->ctxt()->mkTypeExprVal(
-        m_ctxt->ctxt()->mkValRefInt(i->getValue(), false, i->getWidth()));
+    vsc::dm::ValRefInt val_i(m_ctxt->ctxt()->mkValRefInt(i->getValue(), false, i->getWidth()));
+    DEBUG("val: %lld", val_i.get_val_s());
+    m_expr = m_ctxt->ctxt()->mkTypeExprVal(val_i);
     DEBUG_LEAVE("visitExprUnsignedNumber");
 }
 
