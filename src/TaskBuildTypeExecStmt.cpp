@@ -57,6 +57,16 @@ void TaskBuildTypeExecStmt::visitProceduralStmtAssignment(ast::IProceduralStmtAs
     vsc::dm::ITypeExpr *rhs = TaskBuildExpr(m_ctxt).build(i->getRhs());
     arl::dm::TypeProcStmtAssignOp op = arl::dm::TypeProcStmtAssignOp::Eq;
 
+    switch (i->getOp()) {
+        case ast::AssignOp::AssignOp_AndEq: op = arl::dm::TypeProcStmtAssignOp::AndEq; break;
+        case ast::AssignOp::AssignOp_Eq: op = arl::dm::TypeProcStmtAssignOp::Eq; break;
+        case ast::AssignOp::AssignOp_MinusEq: op = arl::dm::TypeProcStmtAssignOp::MinusEq; break;
+        case ast::AssignOp::AssignOp_OrEq: op = arl::dm::TypeProcStmtAssignOp::OrEq; break;
+        case ast::AssignOp::AssignOp_PlusEq: op = arl::dm::TypeProcStmtAssignOp::PlusEq; break;
+        case ast::AssignOp::AssignOp_ShlEq: op = arl::dm::TypeProcStmtAssignOp::ShlEq; break;
+        case ast::AssignOp::AssignOp_ShrEq: op = arl::dm::TypeProcStmtAssignOp::ShrEq; break;
+    }
+
     m_stmt = m_ctxt->ctxt()->mkTypeProcStmtAssign(lhs, op, rhs);
 
     DEBUG_LEAVE("visitProceduralStmtAssignment");
@@ -96,6 +106,11 @@ void TaskBuildTypeExecStmt::visitProceduralStmtReturn(ast::IProceduralStmtReturn
     
 void TaskBuildTypeExecStmt::visitProceduralStmtRepeat(ast::IProceduralStmtRepeat *i) { 
     DEBUG_ENTER("visitProceduralStmtRepeat");
+    arl::dm::ITypeProcStmtRepeat *stmt = m_ctxt->ctxt()->mkTypeProcStmtRepeat(
+        TaskBuildExpr(m_ctxt).build(i->getCount()),
+        TaskBuildTypeExecStmt(m_ctxt).build(i->getBody())
+    );
+    m_stmt = stmt;
     DEBUG_LEAVE("visitProceduralStmtRepeat");
 }
     
