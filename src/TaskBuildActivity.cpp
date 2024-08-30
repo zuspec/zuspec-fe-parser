@@ -84,8 +84,7 @@ void TaskBuildActivity::visitActivityLabeledScope(ast::IActivityLabeledScope *i)
 
 void TaskBuildActivity::visitActivityActionHandleTraversal(ast::IActivityActionHandleTraversal *i) { 
     DEBUG_ENTER("visitActivityActionHandleTraversal");
-    vsc::dm::ITypeExprFieldRef *ref = 
-        TaskBuildExpr(m_ctxt).buildT<vsc::dm::ITypeExprFieldRef>(i->getTarget());
+    vsc::dm::ITypeExpr *ref = TaskBuildExpr(m_ctxt).build(i->getTarget());
     vsc::dm::ITypeConstraint *with_c = 0;
     DEBUG("  ref=%p with_c=%p", ref, with_c);
 

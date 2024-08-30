@@ -39,7 +39,7 @@ public:
         const std::string       &name,
         ast::IScopeChild        *type,
         vsc::dm::TypeFieldAttr  attr,
-        const vsc::dm::ValRef   &init) override;
+        vsc::dm::ITypeExpr      *init) override;
 
     virtual vsc::dm::ITypeField *mkTypeFieldArr(
         IAst2ArlContext         *ctx,
@@ -48,7 +48,7 @@ public:
         ast::IScopeChild        *elem_type,
         ast::IExpr              *size,
         vsc::dm::TypeFieldAttr  attr,
-        const vsc::dm::ValRef   &init) override;
+        vsc::dm::ITypeExpr      *init) override;
 
     virtual vsc::dm::IDataType *mkDataType(
         IAst2ArlContext         *ctx,

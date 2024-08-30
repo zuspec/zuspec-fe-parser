@@ -70,25 +70,37 @@ void TaskBuildTypeConstraints::visitStruct(ast::IStruct *i) {
 }
 
 void TaskBuildTypeConstraints::visitConstraintBlock(ast::IConstraintBlock *i) {
-    DEBUG_ENTER("visitConstraintBlock %s", i->getName().c_str());
+    DEBUG_ENTER("visitConstraintBlock %s (%d)", 
+        i->getName().c_str(), i->getConstraints().size());
 
-    if (m_subtype_c.find(i->getName()) !=m_subtype_c.end()) {
+    if (m_subtype_c.find(i->getName()) != m_subtype_c.end()) {
         DEBUG_LEAVE("visitConstraintBlock -- already defined");
         return;
     }
 
     vsc::dm::ITypeConstraintBlock *cb = 
         m_ctxt->ctxt()->mkTypeConstraintBlock(i->getName());
-    m_scope_s.push_back(cb);
     for (std::vector<ast::IConstraintStmtUP>::const_iterator
         it=i->getConstraints().begin();
         it!=i->getConstraints().end(); it++) {
+        DEBUG("--> accept");
+        m_cnstr = 0;
         (*it)->accept(m_this);
+        DEBUG("<-- accept (%p)", m_cnstr);
+        if (m_cnstr) {
+            cb->addConstraint(m_cnstr);
+        }
     }
-    m_scope_s.pop_back();
+    DEBUG("cb: %d", cb->getConstraints().size());
     m_arl_type->addConstraint(cb, true);
 
     DEBUG_LEAVE("visitConstraintBlock %s", i->getName().c_str());
+}
+
+void TaskBuildTypeConstraints::visitConstraintScope(ast::IConstraintScope *i) {
+    DEBUG_ENTER("visitConstraintScope");
+    VisitorBase::visitConstraintScope(i);
+    DEBUG_LEAVE("visitConstraintScope");
 }
 
 void TaskBuildTypeConstraints::visitConstraintStmtDefault(ast::IConstraintStmtDefault *i) { }
@@ -99,15 +111,61 @@ void TaskBuildTypeConstraints::visitConstraintStmtExpr(ast::IConstraintStmtExpr 
     DEBUG_ENTER("visitConstraintStmtExpr");
     vsc::dm::ITypeExpr *expr = TaskBuildExpr(m_ctxt).build(i->getExpr());
     vsc::dm::ITypeConstraintExpr *expr_c = m_ctxt->ctxt()->mkTypeConstraintExpr(expr, true);
-    m_scope_s.back()->addConstraint(expr_c, true);
+    m_cnstr = expr_c;
     DEBUG_LEAVE("visitConstraintStmtExpr");
 }
 
 void TaskBuildTypeConstraints::visitConstraintStmtField(ast::IConstraintStmtField *i) { }
 
-void TaskBuildTypeConstraints::visitConstraintStmtIf(ast::IConstraintStmtIf *i) { }
+void TaskBuildTypeConstraints::visitConstraintStmtIf(ast::IConstraintStmtIf *i) {
+    DEBUG_ENTER("visitConstraintStmtIf");
+    vsc::dm::ITypeExpr *cond = TaskBuildExpr(m_ctxt).build(i->getCond());
+    m_cnstr = 0;
+    i->getTrue_c()->accept(m_this);
+    vsc::dm::ITypeConstraint *true_c = m_cnstr;
+    vsc::dm::ITypeConstraint *false_c = 0;
 
-void TaskBuildTypeConstraints::visitConstraintStmtImplication(ast::IConstraintStmtImplication *i) { }
+    if (i->getFalse_c()) {
+        m_cnstr = 0;
+        i->getFalse_c()->accept(m_this);
+        false_c = m_cnstr;
+    }
+    
+    vsc::dm::ITypeConstraintIfElse *c = m_ctxt->ctxt()->mkTypeConstraintIfElse(
+        cond,
+        true_c,
+        false_c);
+    m_cnstr = c;
+
+    DEBUG_LEAVE("visitConstraintStmtIf");
+}
+
+void TaskBuildTypeConstraints::visitConstraintStmtImplication(ast::IConstraintStmtImplication *i) { 
+    DEBUG_ENTER("visitConstraintStmtImplication");
+
+    m_cnstr = 0;
+    if (i->getConstraints().size() > 1) {
+        vsc::dm::ITypeConstraintScope *cs = m_ctxt->ctxt()->mkTypeConstraintScope();
+        for (std::vector<ast::IConstraintStmtUP>::const_iterator
+            it=i->getConstraints().begin();
+            it!=i->getConstraints().end(); it++) {
+            (*it)->accept(m_this);
+            if (m_cnstr) {
+                cs->addConstraint(m_cnstr);
+            }
+        }
+        m_cnstr = cs;
+    } else {
+        i->getConstraints().at(0)->accept(m_this);
+    }
+
+    vsc::dm::ITypeConstraintImplies *imp = m_ctxt->ctxt()->mkTypeConstraintImplies(
+        TaskBuildExpr(m_ctxt).build(i->getCond()),
+        m_cnstr);
+    m_cnstr = imp;
+
+    DEBUG_LEAVE("visitConstraintStmtImplication");
+}
 
 void TaskBuildTypeConstraints::visitConstraintStmtForeach(ast::IConstraintStmtForeach *i) { }
 

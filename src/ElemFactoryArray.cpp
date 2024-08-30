@@ -84,7 +84,7 @@ vsc::dm::ITypeField *ElemFactoryArray::mkTypeFieldPhy(
         const std::string       &name,
         ast::IScopeChild        *type,
         vsc::dm::TypeFieldAttr  attr,
-        const vsc::dm::ValRef   &init) {
+        vsc::dm::ITypeExpr      *init) {
     DEBUG_ENTER("mkTypeFieldPhy %s", name.c_str());
     vsc::dm::ITypeField *ret = 0;
 

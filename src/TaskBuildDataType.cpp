@@ -413,6 +413,14 @@ void TaskBuildDataType::visitFieldCompRef(ast::IFieldCompRef *i) {
 
 void TaskBuildDataType::visitFieldRef(ast::IFieldRef *i) {
     DEBUG_ENTER("visitFieldRef");
+    if (m_depth) {
+        // Note: we want to control when fields are built, so
+        // we sequence that
+        vsc::dm::ITypeField *field = TaskBuildField(m_ctxt).build(i);
+        if (field) {
+            m_type_s.back()->addField(field, true);
+        }
+    }
 
     DEBUG_LEAVE("visitFieldRef");
 }

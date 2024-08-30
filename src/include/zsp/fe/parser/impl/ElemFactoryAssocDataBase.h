@@ -39,7 +39,7 @@ public:
         const std::string       &name,
         ast::IScopeChild        *type,
         vsc::dm::TypeFieldAttr  attr,
-        const vsc::dm::ValRef   &init) override {
+        vsc::dm::ITypeExpr      *init) override {
         return 0;
     }
 
@@ -50,7 +50,7 @@ public:
         ast::IScopeChild        *elem_type,
         ast::IExpr              *size,
         vsc::dm::TypeFieldAttr  attr,
-        const vsc::dm::ValRef   &init) override {
+        vsc::dm::ITypeExpr      *init) override {
         return 0;
     }
 

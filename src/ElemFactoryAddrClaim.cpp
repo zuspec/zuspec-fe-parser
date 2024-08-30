@@ -52,7 +52,7 @@ vsc::dm::ITypeField *ElemFactoryAddrClaim::mkTypeFieldPhy(
         const std::string       &name,
         ast::IScopeChild        *type,
         vsc::dm::TypeFieldAttr  attr,
-        const vsc::dm::ValRef   &init) {
+        vsc::dm::ITypeExpr      *init) {
     DEBUG_ENTER("mkTypeFieldPhy %s", name.c_str());
     vsc::dm::IDataType *type_dt = TaskBuildDataType(ctx).build(type);
     ast::IScopeChild *trait_t = TaskGetAddrClaimTrait(

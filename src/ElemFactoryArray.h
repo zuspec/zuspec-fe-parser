@@ -43,7 +43,7 @@ public:
         const std::string       &name,
         ast::IScopeChild        *type,
         vsc::dm::TypeFieldAttr  attr,
-        const vsc::dm::ValRef   &init) override;
+        vsc::dm::ITypeExpr      *init) override;
 
     static ElemFactoryArray *create(dmgr::IDebugMgr *dmgr) {
         return new ElemFactoryArray(dmgr);

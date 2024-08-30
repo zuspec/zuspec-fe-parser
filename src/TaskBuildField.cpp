@@ -19,6 +19,7 @@
  *     Author:
  */
 #include "TaskBuildDataType.h"
+#include "TaskBuildExpr.h"
 #include "TaskBuildField.h"
 #include "TaskGetDataTypeAssocData.h"
 #include "dmgr/impl/DebugMacros.h"
@@ -54,11 +55,17 @@ void TaskBuildField::visitField(ast::IField *i) {
     zsp::ast::IAssocData *assoc_d = TaskGetDataTypeAssocData(m_ctxt).get(adt);
     vsc::dm::IDataType *dt = TaskBuildDataType(m_ctxt).build(i->getType());
     vsc::dm::TypeFieldAttr attr = vsc::dm::TypeFieldAttr::NoAttr;
-    vsc::dm::ValRef init; // Default is Void
+    vsc::dm::ITypeExpr *init = 0; // Default is Void
 
     if ((i->getAttr() & ast::FieldAttr::Rand) != ast::FieldAttr::NoFlags) {
         attr = attr | vsc::dm::TypeFieldAttr::Rand;
     }
+
+    if (i->getInit()) {
+        init = TaskBuildExpr(m_ctxt).build(i->getInit());
+    }
+
+    DEBUG("Field init: %p (%p)", init, i->getInit());
 
     m_ret = 0;
     if (assoc_d) {
@@ -92,7 +99,32 @@ void TaskBuildField::visitFieldCompRef(ast::IFieldCompRef *i) {
     
 void TaskBuildField::visitFieldRef(ast::IFieldRef *i) { 
     DEBUG_ENTER("visitFieldRef");
+    zsp::ast::IDataType *adt = i->getType();
+    zsp::ast::IAssocData *assoc_d = TaskGetDataTypeAssocData(m_ctxt).get(adt);
+    vsc::dm::IDataType *dt = TaskBuildDataType(m_ctxt).build(i->getType());
+    vsc::dm::TypeFieldAttr attr = vsc::dm::TypeFieldAttr::NoAttr;
+    vsc::dm::ITypeExpr *init = 0; // Default is Void
 
+    m_ret = 0;
+/*
+    if (assoc_d) {
+        IElemFactoryAssocData *elem_f = 
+            dynamic_cast<IElemFactoryAssocData *>(assoc_d);
+        m_ret = elem_f->mkTypeFieldPhy(
+            m_ctxt,
+            i->getName()->getId(),
+            i->getType(),
+            attr,
+            init);
+    }
+ */
+
+    if (!m_ret) {
+        m_ret = m_ctxt->ctxt()->mkTypeFieldRef(
+            i->getName()->getId(),
+            dt,
+            attr);
+    }
     DEBUG_LEAVE("visitFieldRef");
 }
     

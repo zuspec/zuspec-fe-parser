@@ -53,6 +53,8 @@ public:
         
     virtual void visitConstraintBlock(ast::IConstraintBlock *i) override;
 
+    virtual void visitConstraintScope(ast::IConstraintScope *i) override;
+
     virtual void visitConstraintStmtDefault(ast::IConstraintStmtDefault *i) override;
 
     virtual void visitConstraintStmtDefaultDisable(ast::IConstraintStmtDefaultDisable *i) override;
@@ -80,7 +82,8 @@ private:
     uint32_t                                            m_depth;
     std::map<std::string, ast::IConstraintScope *>      m_subtype_c;
     vsc::dm::IDataTypeStruct                            *m_arl_type;
-    std::vector<vsc::dm::ITypeConstraintScope *>        m_scope_s;
+//    std::vector<vsc::dm::ITypeConstraintScope *>        m_scope_s;
+    vsc::dm::ITypeConstraint                            *m_cnstr;
 };
 
 }

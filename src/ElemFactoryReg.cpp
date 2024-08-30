@@ -40,7 +40,7 @@ vsc::dm::ITypeField *ElemFactoryReg::mkTypeFieldPhy(
         const std::string       &name,
         ast::IScopeChild        *type,
         vsc::dm::TypeFieldAttr  attr,
-        const vsc::dm::ValRef   &init) {
+        vsc::dm::ITypeExpr      *init) {
     DEBUG_ENTER("mkTypeFieldPhy %s", name.c_str());
     ast::IDataTypeUserDefined *type_s = dynamic_cast<ast::IDataTypeUserDefined *>(type);
 //    DEBUG("type_s name=%s", type_s->getName()->getId().c_str());
