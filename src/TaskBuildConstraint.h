@@ -1,5 +1,5 @@
 /**
- * TaskBuildTypeConstraints.h
+ * TaskBuildConstraint.h
  *
  * Copyright 2023 Matthew Ballance and Contributors
  *
@@ -33,26 +33,15 @@ namespace parser {
 
 
 
-class TaskBuildTypeConstraints : public virtual ast::VisitorBase {
+class TaskBuildConstraint :
+    public virtual ast::VisitorBase {
 public:
-    TaskBuildTypeConstraints(
-        IAst2ArlContext                                 *ctxt,
-        vsc::dm::IDataTypeStruct                        *arl_type);
+    TaskBuildConstraint(IAst2ArlContext *ctxt);
 
-    virtual ~TaskBuildTypeConstraints();
+    virtual ~TaskBuildConstraint();
 
-    void build(ast::ISymbolTypeScope *ast_type);
-    
-    virtual void visitAction(ast::IAction *i) override;
+    vsc::dm::ITypeConstraint *build(ast::IConstraintStmt *c);
 
-    virtual void visitActivityDecl(ast::IActivityDecl *i) override { }
-
-    virtual void visitComponent(ast::IComponent *i) override;
-
-    virtual void visitStruct(ast::IStruct *i) override;
-
-    virtual void visitField(ast::IField *i) override { }
-        
     virtual void visitConstraintBlock(ast::IConstraintBlock *i) override;
 
     virtual void visitConstraintScope(ast::IConstraintScope *i) override;
@@ -75,17 +64,12 @@ public:
 
     virtual void visitConstraintStmtUnique(ast::IConstraintStmtUnique *i) override;
 
-    virtual void visitSymbolTypeScope(ast::ISymbolTypeScope *i) override;
-
-
 private:
-    static dmgr::IDebug                                 *m_dbg;
-    IAst2ArlContext                                     *m_ctxt;
-    uint32_t                                            m_depth;
-    std::map<std::string, ast::IConstraintScope *>      m_subtype_c;
-    vsc::dm::IDataTypeStruct                            *m_arl_type;
-//    std::vector<vsc::dm::ITypeConstraintScope *>        m_scope_s;
-    vsc::dm::ITypeConstraint                            *m_cnstr;
+    static dmgr::IDebug                             *m_dbg;
+    IAst2ArlContext                                 *m_ctxt;
+    vsc::dm::ITypeConstraint                        *m_ret;
+    std::vector<vsc::dm::ITypeConstraintScope *>    m_scope_s;
+
 };
 
 }

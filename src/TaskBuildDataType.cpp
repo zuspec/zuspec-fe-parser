@@ -274,7 +274,6 @@ void TaskBuildDataType::visitDataTypeString(ast::IDataTypeString *i) {
 
 void TaskBuildDataType::visitDataTypeUserDefined(ast::IDataTypeUserDefined *i) { 
     DEBUG_ENTER("visitDataTypeUserDefined");
-    i->getType_id()->getElems().size();
     for (std::vector<ast::ITypeIdentifierElemUP>::const_iterator
         it=i->getType_id()->getElems().begin();
         it!=i->getType_id()->getElems().end(); it++) {

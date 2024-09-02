@@ -21,6 +21,7 @@
 #include "dmgr/impl/DebugMacros.h"
 #include "TaskBuildActivity.h"
 #include "TaskBuildExpr.h"
+#include "TaskBuildConstraint.h"
 #include "zsp/arl/dm/IDataTypeActivityTraverseType.h"
 #include "zsp/ast/IActivityDecl.h"
 #include "zsp/parser/impl/TaskResolveSymbolPathRef.h"
@@ -88,6 +89,12 @@ void TaskBuildActivity::visitActivityActionHandleTraversal(ast::IActivityActionH
     vsc::dm::ITypeConstraint *with_c = 0;
     DEBUG("  ref=%p with_c=%p", ref, with_c);
 
+    if (i->getWith_c()) {
+        m_ctxt->pushInlineCtxt(0); // TODO: get type of inline context
+        with_c = TaskBuildConstraint(m_ctxt).build(i->getWith_c());
+        m_ctxt->popInlineCtxt();
+    }
+
     arl::dm::IDataTypeActivityTraverse *t = 
         m_ctxt->ctxt()->mkDataTypeActivityTraverse(ref, with_c);
     m_scope_s.back()->addActivity(m_ctxt->ctxt()->mkTypeFieldActivity(
@@ -113,6 +120,12 @@ void TaskBuildActivity::visitActivityActionTypeTraversal(ast::IActivityActionTyp
         DEBUG("  Elem: %s", i->getTarget()->getType_id()->getElems().at(j)->getId()->getId().c_str());
     }
     vsc::dm::IDataTypeStruct *dt = dynamic_cast<vsc::dm::IDataTypeStruct *>(m_ctxt->getType(t));
+
+    if (i->getWith_c()) {
+        m_ctxt->pushInlineCtxt(ts);
+        with_c = TaskBuildConstraint(m_ctxt).build(i->getWith_c());
+        m_ctxt->popInlineCtxt();
+    }
 
     if (dt) {
         arl::dm::IDataTypeAction *at = dynamic_cast<arl::dm::IDataTypeAction *>(dt);

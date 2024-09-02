@@ -70,6 +70,12 @@ public:
 
     virtual int32_t findBottomUpScope(ast::ISymbolScope *scope) = 0;
 
+    virtual ast::ISymbolScope *inlineCtxt() const = 0;
+
+    virtual void pushInlineCtxt(ast::ISymbolScope *s) = 0;
+
+    virtual void popInlineCtxt() = 0;
+
     virtual ast::ISymbolScope *typeScope() const = 0;
 
     virtual vsc::dm::IDataType *findType(ast::IScopeChild *t) = 0;

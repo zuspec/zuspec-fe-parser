@@ -350,7 +350,8 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
         RootRefT root_ref = mkRootFieldRef(i);
         zsp::parser::TaskResolveSymbolPathRef resolver(
             m_ctxt->getDebugMgr(),
-            m_ctxt->getRoot());
+            m_ctxt->getRoot(),
+            m_ctxt->inlineCtxt());
         ast::IScopeChild *ast_scope = resolver.resolve(i->getTarget());
 
         DEBUG("ast_scope: %s", zsp::parser::TaskGetName().get(ast_scope, true).c_str());
@@ -556,6 +557,7 @@ TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *
         m_ctxt->symScopes().size());
     ast::ISymbolScope *scope = m_ctxt->rootSymScopeT<ast::ISymbolScope>();
     int32_t type_scope_idx=-1, bup_scope_idx=-1;
+    ast::ISymbolScope *inline_ctxt = 0;
     uint32_t ii;
     if (DEBUG_EN) {
         for (ii=0; ii<i->getTarget()->getPath().size(); ii++) {
@@ -565,10 +567,11 @@ TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *
         }
     }
     for (ii=0; ii<i->getTarget()->getPath().size(); ii++) {
-        DEBUG("Scope: %s ; ii=%d idx=%d children=%d", 
+        DEBUG("Scope: %s ; ii=%d idx=%d kind=%d children=%d", 
             scope->getName().c_str(), 
             ii,
             i->getTarget()->getPath().at(ii).idx,
+            i->getTarget()->getPath().at(ii).kind,
             scope->getChildren().size());
         ast::IScopeChild *c = 0;
             
@@ -580,17 +583,26 @@ TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *
                 c = func->getPlist()->getChildren().at(
                     i->getTarget()->getPath().at(ii).idx).get();
             } break;
+            case ast::SymbolRefPathElemKind::ElemKind_Inline: {
+                DEBUG("ElemKind_Inline: %p", m_ctxt->inlineCtxt());
+                inline_ctxt = m_ctxt->inlineCtxt();
+            } break;
             default:
                 c = scope->getChildren().at(
                     i->getTarget()->getPath().at(ii).idx).get();
                 break;
         }
 
-        DEBUG("Scope=%s typeScope=%s symScope=%s",
+        DEBUG("Scope=%s typeScope=%s symScope=%s c=%p inline_ctxt=%p",
             scope->getName().c_str(), 
             m_ctxt->typeScope()->getName().c_str(), 
-            m_ctxt->symScope()->getName().c_str());
-        if (c == m_ctxt->typeScope()) {
+            m_ctxt->symScope()->getName().c_str(),
+            c,
+            inline_ctxt);
+        if (inline_ctxt) {
+            DEBUG("Found inline type scope @ %d ", ii);
+            break;
+        } else if (c == m_ctxt->typeScope()) {
             DEBUG("Found type scope @ %d (%s)", ii,
                 m_ctxt->typeScope()->getName().c_str());
             // we're looking at the *next* entry, so adjust 
@@ -610,98 +622,122 @@ TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *
         }
 
         if (ii+1 < i->getTarget()->getPath().size()) {
+            if (!dynamic_cast<ast::ISymbolScope *>(c)) {
+                DEBUG_ERROR("Failed to convert c to scope");
+            }
             scope = dynamic_cast<ast::ISymbolScope *>(c);
         }
     }
 
-    DEBUG("type_scope_idx=%d bup_scope_idx=%d ii=%d path.size=%d", 
-        type_scope_idx, bup_scope_idx, ii, i->getTarget()->getPath().size());
-
-    // Determine how to get to the root identifier
-    // - It's a field within the current action
-    // - It's a field relative to where we are
-    //
-    // Then, determine how to proceed
-    // - 
-    vsc::dm::ITypeExpr *expr = 0;
-    if (bup_scope_idx != -1) {
-        // First, keep going along the path to find the last
-        // bottom-up scope on the path
-        for (; ii<i->getTarget()->getPath().size()-1; ii++) {
-            int32_t t_bup_scope_idx;
-            ast::IScopeChild *c = scope->getChildren().at(
-                i->getTarget()->getPath().at(ii).idx).get();
-            scope = dynamic_cast<ast::ISymbolScope *>(c);
-
-            if ((t_bup_scope_idx=m_ctxt->findBottomUpScope(scope)) != -1) {
-                DEBUG("Found bottom-up scope %d @ path index %d", t_bup_scope_idx, ii);
-                bup_scope_idx = t_bup_scope_idx;
-            } else {
-                DEBUG("Reached the end of bottom-up scopes @ %d", ii);
-                break;
-            }
-        }
-
-        DEBUG("Processing bottom-up reference");
-
-        if (ii < i->getTarget()->getPath().size()) {
-            DEBUG("Path elem: %d", i->getTarget()->getPath().at(ii).kind);
+    if (inline_ctxt) {
+        field_ref = m_ctxt->ctxt()->mkTypeExprRefInline();
+        DEBUG("inline_ctxt: field_ref=%p (ii=%d/%d)", 
+            field_ref, ii, i->getTarget()->getPath().size());
+        ii++;
+        for (; ii<i->getTarget()->getPath().size(); ii++) {
             switch (i->getTarget()->getPath().at(ii).kind) {
-                case ast::SymbolRefPathElemKind::ElemKind_ArgIdx: {
-                    // The parameters scope will be above the function scope
-                    DEBUG("Expression reference a parameter ; look one level above");
-                    bup_scope_idx += 1;
+                case ast::SymbolRefPathElemKind::ElemKind_ChildIdx: {
+                    field_ref = m_ctxt->ctxt()->mkTypeExprSubField(
+                        field_ref,
+                        true,
+                        i->getTarget()->getPath().at(ii).idx
+                    );
                 } break;
+                default:
+                    DEBUG_ERROR("Unexpected elem-kind %d", i->getTarget()->getPath().at(ii).kind);
+                    break;
             }
         }
+    } else {
+        DEBUG("type_scope_idx=%d bup_scope_idx=%d ii=%d path.size=%d", 
+            type_scope_idx, bup_scope_idx, ii, i->getTarget()->getPath().size());
 
-        field_ref = m_ctxt->ctxt()->mkTypeExprRefBottomUp(
-            bup_scope_idx,
-            i->getTarget()->getPath().at(ii).idx);
+        // Determine how to get to the root identifier
+        // - It's a field within the current action
+        // - It's a field relative to where we are
+        //
+        // Then, determine how to proceed
+        // - 
+        vsc::dm::ITypeExpr *expr = 0;
+        if (bup_scope_idx != -1) {
+            // First, keep going along the path to find the last
+            // bottom-up scope on the path
+            for (; ii<i->getTarget()->getPath().size()-1; ii++) {
+                int32_t t_bup_scope_idx;
+                ast::IScopeChild *c = scope->getChildren().at(
+                    i->getTarget()->getPath().at(ii).idx).get();
+                scope = dynamic_cast<ast::ISymbolScope *>(c);
 
-        DEBUG("Bottom-up Ref: scope_offset=%d subfield_idx=%d", 
-            bup_scope_idx,
-            i->getTarget()->getPath().at(ii).idx);
+                if ((t_bup_scope_idx=m_ctxt->findBottomUpScope(scope)) != -1) {
+                    DEBUG("Found bottom-up scope %d @ path index %d", t_bup_scope_idx, ii);
+                    bup_scope_idx = t_bup_scope_idx;
+                } else {
+                    DEBUG("Reached the end of bottom-up scopes @ %d", ii);
+                    break;
+                }
+            }
 
-        ii = 1;
-    } else if (type_scope_idx != -1) {
-        DEBUG("type_scope_idx=%d (PathSize-1)=%d",
-            type_scope_idx,
-            (i->getTarget()->getPath().size()-1));
-//        if (type_scope_idx == (i->getTarget()->getPath().size()-1)) {
-            // Reference is to a field within the active type
-        DEBUG("Type-context reference");
-        field_ref = m_ctxt->ctxt()->mkTypeExprSubField(
-            m_ctxt->ctxt()->mkTypeExprRefTopDown(),
-            true,
-            i->getTarget()->getPath().back().idx);
-        ii = 1;
+            DEBUG("Processing bottom-up reference");
 
-            // TODO: determine if this is actually a static reference
-//        } else {
-//            DEBUG_ERROR("Failed consistency check type_scope_idx=%d path.size=%d",
-//                type_scope_idx,
-//                i->getTarget()->getPath().size());
-//        }
-    } else { // Neither top-down nor bottom-up context based
-        if (i->getHier_id()->getElems().at(0)->getParams()) {
-            DEBUG("Global function call");
-            zsp::parser::TaskResolveSymbolPathRef resolver(
-                m_ctxt->getDebugMgr(),
-                m_ctxt->getRoot());
-            ast::IScopeChild *ast_scope = resolver.resolve(i->getTarget());
+            if (ii < i->getTarget()->getPath().size()) {
+                DEBUG("Path elem: %d", i->getTarget()->getPath().at(ii).kind);
+                switch (i->getTarget()->getPath().at(ii).kind) {
+                    case ast::SymbolRefPathElemKind::ElemKind_ArgIdx: {
+                        // The parameters scope will be above the function scope
+                        DEBUG("Expression reference a parameter ; look one level above");
+                        bup_scope_idx += 1;
+                    } break;
+                }
+            }
 
-            field_ref = buildRefExpr(
-                0,
-                i,
-                0,
-                ast_scope
-            );
+            field_ref = m_ctxt->ctxt()->mkTypeExprRefBottomUp(
+                bup_scope_idx,
+                i->getTarget()->getPath().at(ii).idx);
+
+            DEBUG("Bottom-up Ref: scope_offset=%d subfield_idx=%d", 
+                bup_scope_idx,
+                i->getTarget()->getPath().at(ii).idx);
+
             ii = 1;
-        } else {
-            DEBUG_ERROR("Neither bottom-up or top-down");
+        } else if (type_scope_idx != -1) {
+            DEBUG("type_scope_idx=%d (PathSize-1)=%d",
+                type_scope_idx,
+                (i->getTarget()->getPath().size()-1));
+    //        if (type_scope_idx == (i->getTarget()->getPath().size()-1)) {
+                // Reference is to a field within the active type
+            DEBUG("Type-context reference");
+            field_ref = m_ctxt->ctxt()->mkTypeExprSubField(
+                m_ctxt->ctxt()->mkTypeExprRefTopDown(),
+                true,
+                i->getTarget()->getPath().back().idx);
+            ii = 1;
+
+                // TODO: determine if this is actually a static reference
+    //        } else {
+    //            DEBUG_ERROR("Failed consistency check type_scope_idx=%d path.size=%d",
+    //                type_scope_idx,
+    //                i->getTarget()->getPath().size());
+    //        }
+        } else { // Neither top-down nor bottom-up context based
+            if (i->getHier_id()->getElems().at(0)->getParams()) {
+                DEBUG("Global function call");
+                zsp::parser::TaskResolveSymbolPathRef resolver(
+                    m_ctxt->getDebugMgr(),
+                    m_ctxt->getRoot());
+                ast::IScopeChild *ast_scope = resolver.resolve(i->getTarget());
+
+                field_ref = buildRefExpr(
+                    0,
+                    i,
+                    0,
+                    ast_scope
+                );
+                ii = 1;
+            } else {
+                DEBUG_ERROR("Neither bottom-up or top-down");
+            }
         }
-    }
+    } // end !inline
 
     DEBUG_LEAVE("mkRootFieldRef {%p, %d}", field_ref, ii);
     return {field_ref, ii};

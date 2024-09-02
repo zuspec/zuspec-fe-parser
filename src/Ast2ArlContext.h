@@ -82,6 +82,18 @@ public:
 
     virtual int32_t findBottomUpScope(ast::ISymbolScope *scope) override;
 
+    virtual ast::ISymbolScope *inlineCtxt() const override {
+        return (m_inline_ctxt_s.size())?m_inline_ctxt_s.back():0;
+    }
+
+    virtual void pushInlineCtxt(ast::ISymbolScope *s) override {
+        m_inline_ctxt_s.push_back(s);
+    }
+
+    virtual void popInlineCtxt() override {
+        m_inline_ctxt_s.pop_back();
+    }
+
     virtual ast::ISymbolScope *typeScope() const override;
 
     virtual vsc::dm::IDataType *findType(ast::IScopeChild *t) override;
@@ -124,6 +136,7 @@ private:
     std::vector<std::vector<ast::ISymbolChildrenScope *>>           m_scope_s;
     std::map<ast::IScopeChild *, vsc::dm::IDataType *>              m_type_m;
     std::vector<int32_t>                                            m_type_s_idx_s;
+    std::vector<ast::ISymbolScope *>                                m_inline_ctxt_s;
     std::vector<bool>                                               m_pyref_s;
     std::vector<vsc::dm::ITypeExpr *>                               m_base_s;
 
