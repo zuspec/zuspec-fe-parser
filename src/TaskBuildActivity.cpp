@@ -116,7 +116,7 @@ void TaskBuildActivity::visitActivityActionTypeTraversal(ast::IActivityActionTyp
     ast::ISymbolTypeScope *ts = dynamic_cast<ast::ISymbolTypeScope *>(t);
     DEBUG("ts.name=%s", ts->getName().c_str());
     DEBUG("t=%p id=%s", t, i->getTarget()->getType_id()->getElems().at(0)->getId()->getId().c_str());
-    for (uint32_t j=0; j<i->getTarget()->getType_id()->getElems().size(); j++) {
+    for (uint32_t j=1; j<i->getTarget()->getType_id()->getElems().size(); j++) {
         DEBUG("  Elem: %s", i->getTarget()->getType_id()->getElems().at(j)->getId()->getId().c_str());
     }
     vsc::dm::IDataTypeStruct *dt = dynamic_cast<vsc::dm::IDataTypeStruct *>(m_ctxt->getType(t));
