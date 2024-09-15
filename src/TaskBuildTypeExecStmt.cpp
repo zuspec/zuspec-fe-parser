@@ -106,16 +106,48 @@ void TaskBuildTypeExecStmt::visitProceduralStmtReturn(ast::IProceduralStmtReturn
     
 void TaskBuildTypeExecStmt::visitProceduralStmtRepeat(ast::IProceduralStmtRepeat *i) { 
     DEBUG_ENTER("visitProceduralStmtRepeat");
+    m_ctxt->pushSymScope(i);
+
     arl::dm::ITypeProcStmtRepeat *stmt = m_ctxt->ctxt()->mkTypeProcStmtRepeat(
         TaskBuildExpr(m_ctxt).build(i->getCount()),
         TaskBuildTypeExecStmt(m_ctxt).build(i->getBody())
     );
+
+    // Build out any iteration variables
+    for (std::vector<ast::IScopeChildUP>::const_iterator
+        it=i->getChildren().begin();
+        it!=i->getChildren().end(); it++) {
+        m_stmt = 0;
+        (*it)->accept(m_this);
+        if (m_stmt) {
+            stmt->addVariable(dynamic_cast<arl::dm::ITypeProcStmtVarDecl *>(m_stmt));
+        }
+    }
+
+    // TODO: think 'cond' and 'body' have different scopes.
+    // 
+
+    // Three-step:
+    // - Create repeat
+    // - Create variables
+    // - Elaborate body
+    // arl::dm::ITypeProcStmtRepeat *stmt = m_ctxt->ctxt()->mkTypeProcStmtRepeat(
+    //     TaskBuildExpr(m_ctxt).build(i->getCount()),
+    //     TaskBuildTypeExecStmt(m_ctxt).build(i->getBody())
+    // );
+    m_ctxt->popSymScope();
     m_stmt = stmt;
     DEBUG_LEAVE("visitProceduralStmtRepeat");
 }
     
 void TaskBuildTypeExecStmt::visitProceduralStmtRepeatWhile(ast::IProceduralStmtRepeatWhile *i) { 
     DEBUG_ENTER("visitProceduralStmtRepeatWhile");
+    arl::dm::ITypeProcStmtRepeatWhile *stmt = m_ctxt->ctxt()->mkTypeProcStmtRepeatWhile(
+        TaskBuildExpr(m_ctxt).build(i->getExpr()),
+        TaskBuildTypeExecStmt(m_ctxt).build(i->getBody())
+    );
+
+    m_stmt = stmt;
     DEBUG_LEAVE("visitProceduralStmtRepeatWhile");
 }
     
@@ -197,9 +229,19 @@ void TaskBuildTypeExecStmt::visitProceduralStmtContinue(ast::IProceduralStmtCont
     
 void TaskBuildTypeExecStmt::visitProceduralStmtDataDeclaration(ast::IProceduralStmtDataDeclaration *i) { 
     DEBUG_ENTER("visitProceduralStmtDataDeclaration");
+    ast::IDataType *ast_dt = i->getDatatype();
+    vsc::dm::IDataType *dm_dt;
+
+    if (ast_dt) {
+        dm_dt = TaskBuildDataType(m_ctxt).build(ast_dt);
+    } else {
+        // TODO:
+        dm_dt = m_ctxt->ctxt()->findDataTypeInt(true, 32);
+    }
+
     m_stmt = m_ctxt->ctxt()->mkTypeProcStmtVarDecl(
         i->getName()->getId(),
-        TaskBuildDataType(m_ctxt).build(i->getDatatype()),
+        dm_dt,
         false,
         (i->getInit())?TaskBuildExpr(m_ctxt).build(i->getInit()):0
     );
