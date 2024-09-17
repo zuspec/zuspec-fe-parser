@@ -81,7 +81,7 @@ vsc::dm::IDataType *TaskBuildDataType::build(ast::ITypeIdentifier *type) {
 
 void TaskBuildDataType::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
     DEBUG_ENTER("visitSymbolFunctionScope");
-    TaskBuildDataTypeFunction(m_ctxt).build(i);
+    TaskBuildDataTypeFunction(m_ctxt).build(i, true);
     DEBUG_LEAVE("visitSymbolFunctionScope");
 }
 

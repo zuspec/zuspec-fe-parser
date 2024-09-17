@@ -33,7 +33,9 @@ public:
 
     virtual ~TaskBuildDataTypeFunction();
 
-    virtual zsp::arl::dm::IDataTypeFunction *build(ast::ISymbolFunctionScope *func);
+    virtual zsp::arl::dm::IDataTypeFunction *build(
+        ast::ISymbolFunctionScope   *func,
+        bool                        ctxt_f=false);
 
 private:
     static dmgr::IDebug                 *m_dbg;

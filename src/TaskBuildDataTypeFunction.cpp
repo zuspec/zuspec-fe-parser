@@ -48,12 +48,18 @@ TaskBuildDataTypeFunction::~TaskBuildDataTypeFunction() {
 }
 
 zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
-    ast::ISymbolFunctionScope *i) {
+    ast::ISymbolFunctionScope   *i,
+    bool                        ctxt_f) {
     std::string fname = zsp::parser::TaskGetName().get(i, true);
     DEBUG_ENTER("build %s (%s)", fname.c_str(), i->getName().c_str());
 
     ast::IFunctionPrototype *proto = i->getPrototypes().at(0);
     arl::dm::DataTypeFunctionFlags flags = arl::dm::DataTypeFunctionFlags::NoFlags;
+
+    if (ctxt_f) {
+        flags = (flags | arl::dm::DataTypeFunctionFlags::Context);
+    }
+
     bool is_target = proto->getIs_target();
     bool is_solve  = proto->getIs_solve();
 
