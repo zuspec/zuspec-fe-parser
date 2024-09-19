@@ -45,6 +45,8 @@ public:
 
     vsc::dm::IDataType *build(ast::IScopeChild *type);
 
+    vsc::dm::IDataType *build(ast::IExpr *type);
+
     vsc::dm::IDataType *build(ast::ITypeIdentifier *type);
 
     virtual void visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) override;
@@ -76,6 +78,8 @@ public:
     virtual void visitExecScope(ast::IExecScope *i) override;
 
     virtual void visitStruct(ast::IStruct *i) override;
+
+    virtual void visitTypeIdentifier(ast::ITypeIdentifier *i) override;
 
     virtual void visitTypeScope(ast::ITypeScope *i) override;
 

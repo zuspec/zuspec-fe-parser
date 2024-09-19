@@ -22,6 +22,7 @@
 #include "zsp/parser/impl/TaskEvalExpr.h"
 #include "zsp/parser/impl/TaskResolveExprRef.h"
 #include "zsp/parser/impl/TaskResolveTypeRef.h"
+#include "zsp/parser/impl/TaskGetTemplateParamDeclDefault.h"
 #include "ElemFactoryPyObj.h"
 #include "ElemFactoryArray.h"
 #include "TaskBuildDataType.h"
@@ -45,21 +46,24 @@ vsc::dm::IDataType *ElemFactoryArray::mkDataType(
         IAst2ArlContext         *ctx,
         const std::string       &name,
         ast::IScopeChild        *type) {
-    DEBUG_ENTER("mkDataType");
+    DEBUG_ENTER("mkDataType %s", name.c_str());
     ast::ITypeScope *ts = dynamic_cast<ast::ITypeScope *>(type);
     const std::vector<ast::ITemplateParamDeclUP> &params = ts->getParams()->getParams();
-    ast::ITemplateGenericTypeParamDecl *Tp = 
-        dynamic_cast<ast::ITemplateGenericTypeParamDecl *>(params.at(0).get());
-    ast::ITemplateValueParamDecl *SZp = 
-        dynamic_cast<ast::ITemplateValueParamDecl *>(params.at(1).get());
+    std::pair<ast::IDataType *, ast::IExpr *> Tp = zsp::parser::TaskGetTemplateParamDeclDefault(
+        ctx->getDebugMgr()).default_val(params.at(0).get());
+    std::pair<ast::IDataType *, ast::IExpr *> SZp = zsp::parser::TaskGetTemplateParamDeclDefault(
+        ctx->getDebugMgr()).default_val(params.at(1).get());
 
-    // TODO: 
-    vsc::dm::IDataType *elem_t = TaskBuildDataType(ctx).build(Tp->getDflt());
-
+    vsc::dm::IDataType *elem_t = 0;
+    if (Tp.first) {
+        elem_t = TaskBuildDataType(ctx).build(Tp.first);
+    } else {
+        elem_t = TaskBuildDataType(ctx).build(Tp.second);
+    }
     
     zsp::parser::IVal *size_v = zsp::parser::TaskEvalExpr(
         ctx->factory(),
-        ctx->getRoot()).eval(SZp->getDflt());
+        ctx->getRoot()).eval(SZp.second);
 
     vsc::dm::IDataTypeArray *ret = 0;
     if (size_v) {

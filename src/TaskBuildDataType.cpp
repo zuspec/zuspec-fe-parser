@@ -62,6 +62,22 @@ vsc::dm::IDataType *TaskBuildDataType::build(ast::IScopeChild *type) {
     return m_type;
 }
 
+vsc::dm::IDataType *TaskBuildDataType::build(ast::IExpr *type) {
+    DEBUG_ENTER("build(expr)");
+    m_type = 0;
+    m_depth = 0;
+
+    type->accept(this);
+
+    if (!m_type) {
+        DEBUG_ERROR("Failed to produce a data type");
+        m_type = m_ctxt->ctxt()->findDataTypeInt(true, 32);
+    }
+
+    DEBUG_LEAVE("build(expr)");
+    return m_type;
+}
+
 vsc::dm::IDataType *TaskBuildDataType::build(ast::ITypeIdentifier *type) {
     DEBUG_ENTER("build(type-id)");
     ast::IScopeChild *ref_t = zsp::parser::TaskResolveSymbolPathRef(
@@ -327,26 +343,32 @@ void TaskBuildDataType::visitStruct(ast::IStruct *i) {
         zsp::ast::IAssocData *assoc_d = TaskGetDataTypeAssocData(m_ctxt).get(m_ctxt->symScope());
         IElemFactoryAssocData *elem_f = dynamic_cast<IElemFactoryAssocData *>(assoc_d);
 
+        vsc::dm::IDataType *type_t = 0;
         vsc::dm::IDataTypeStruct *struct_t = 0;
         std::string fullname = getNamespacePrefix() + i->getName()->getId();
         DEBUG("Fullname: %s", fullname.c_str());
-        if (elem_f && (struct_t=dynamic_cast<vsc::dm::IDataTypeStruct *>(
-                elem_f->mkDataType(m_ctxt, fullname, i)))) {
+        if (elem_f && (type_t=elem_f->mkDataType(m_ctxt, fullname, i))) {
             DEBUG("Using elem-factory version");
+            struct_t = dynamic_cast<vsc::dm::IDataTypeStruct *>(type_t);
         } else {
             struct_t = m_ctxt->ctxt()->mkDataTypeStruct(fullname);
+            type_t = struct_t;
         }
-        m_ctxt->ctxt()->addDataTypeStruct(struct_t);
-        m_ctxt->addType(m_ctxt->symScope(), struct_t);
+        if (struct_t) {
+            m_ctxt->ctxt()->addDataTypeStruct(struct_t);
+        }
+        m_ctxt->addType(m_ctxt->symScope(), type_t);
 
-        buildType(struct_t, dynamic_cast<ast::ISymbolTypeScope *>(m_ctxt->symScope()));
+        if (struct_t) {
+            buildType(struct_t, dynamic_cast<ast::ISymbolTypeScope *>(m_ctxt->symScope()));
+        }
 
         if (i->getSuper_t()) {
             DEBUG("Has a super type");
             vsc::dm::IDataType *super_t = TaskBuildDataType(m_ctxt).build(i->getSuper_t());
             struct_t->setSuper(dynamic_cast<vsc::dm::IDataTypeStruct *>(super_t));
         }
-        m_type = struct_t;
+        m_type = type_t;
 
         } else {
             DEBUG("Skip building type for unspecialized template");
@@ -358,6 +380,21 @@ void TaskBuildDataType::visitStruct(ast::IStruct *i) {
     // Note: there won't be any other types declared inside a struct
 
     DEBUG_LEAVE("visitStruct");
+}
+
+void TaskBuildDataType::visitTypeIdentifier(ast::ITypeIdentifier *i) {
+    DEBUG_ENTER("visitTypeIdentifier");
+    ast::IScopeChild *ref_t = zsp::parser::TaskResolveSymbolPathRef(
+        m_ctxt->getDebugMgr(),
+        m_ctxt->getRoot()).resolve(i->getTarget());
+
+    ref_t->accept(m_this);
+
+    if (!m_type) {
+        DEBUG_ERROR("Failed to produce a data type");
+        m_type = m_ctxt->ctxt()->findDataTypeInt(true, 32);
+    }
+    DEBUG_LEAVE("visitTypeIdentifier");
 }
 
 void TaskBuildDataType::visitTypeScope(ast::ITypeScope *i) {

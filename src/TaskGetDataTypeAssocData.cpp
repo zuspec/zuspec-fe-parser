@@ -62,7 +62,6 @@ void TaskGetDataTypeAssocData::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
         ast::ITypeScope *ts_target = 
             dynamic_cast<ast::ITypeScope *>(i->getTarget());
         if (ts_target->getSuper_t()) {
-            DEBUG("TODO: Keep looking through Super");
             if (!ts_target->getSuper_t()->getTarget()) {
                 DEBUG_ERROR("Unlinked super target of %s", ts_target->getName()->getId().c_str());
             } else {

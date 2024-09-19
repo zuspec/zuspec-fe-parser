@@ -337,7 +337,7 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                 has_fcall = true;
                 has_nonterminal_fcall = (it+1 != i->getHier_id()->getElems().end());
 //                has_pyref |= is_pyref.check()
-            } else if ((*it)->getSubscript()) {
+            } else if ((*it)->getSubscript().size()) {
                 has_index = true;
                 has_nonterminal_index = (it+1 != i->getHier_id()->getElems().end());
             }
@@ -984,17 +984,22 @@ vsc::dm::ITypeExpr *TaskBuildExpr::buildRefExpr(
             (res.target)?zsp::parser::TaskGetName().get(res.target).c_str():"<unknown>");
         ast_scope = res.target;
 
-        if (elem->getSubscript()) {
+        if (elem->getSubscript().size()) {
             DEBUG("Subscript @ idx=%d", idx);
             // Array subscript
-            expr = m_ctxt->ctxt()->mkTypeExprArrIndex(
-                expr,
-                true,
-                TaskBuildExpr(m_ctxt).build(elem->getSubscript()),
-                true);
-            ast_scope = zsp::parser::TaskGetSubscriptSymbolScope(
-                m_ctxt->getDebugMgr(),
-                m_ctxt->getRoot()).resolve(ast_scope);
+            for (std::vector<ast::IExprUP>::const_iterator
+                s_it=elem->getSubscript().begin();
+                s_it!=elem->getSubscript().end(); s_it++) {
+
+                expr = m_ctxt->ctxt()->mkTypeExprArrIndex(
+                    expr,
+                    true,
+                    TaskBuildExpr(m_ctxt).build(s_it->get()),
+                    true);
+                ast_scope = zsp::parser::TaskGetSubscriptSymbolScope(
+                    m_ctxt->getDebugMgr(),
+                    m_ctxt->getRoot()).resolve(ast_scope);
+            }
         }
     }
 
