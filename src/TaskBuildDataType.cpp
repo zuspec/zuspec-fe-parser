@@ -134,7 +134,13 @@ void TaskBuildDataType::visitAction(ast::IAction *i) {
     if (!m_depth && !(m_type=findType(m_ctxt->symScope()))) {
         // We're at top level and the type doesn't exist yet, so let's do it!
     
-        std::string fullname = getNamespacePrefix() + i->getName()->getId();
+        std::string fullname;
+        if (i->getParams()) {
+            fullname = getNamespacePrefix();
+            fullname = fullname.substr(0, fullname.size()-2);
+        } else {
+            fullname = getNamespacePrefix() + i->getName()->getId();
+        }
         DEBUG("Building Action Type: %s", fullname.c_str());
         arl::dm::IDataTypeAction *action_t = m_ctxt->ctxt()->mkDataTypeAction(fullname);
         m_ctxt->ctxt()->addDataTypeStruct(action_t);
@@ -181,7 +187,13 @@ void TaskBuildDataType::visitComponent(ast::IComponent *i) {
         zsp::ast::IAssocData *assoc_d = TaskGetDataTypeAssocData(m_ctxt).get(m_ctxt->symScope());
         IElemFactoryAssocData *elem_f = dynamic_cast<IElemFactoryAssocData *>(assoc_d);
 
-        std::string fullname = getNamespacePrefix() + i->getName()->getId();
+        std::string fullname;
+        if (i->getParams()) {
+            fullname = getNamespacePrefix();
+            fullname = fullname.substr(0, fullname.size()-2);
+        } else {
+            fullname = getNamespacePrefix() + i->getName()->getId();
+        }
         DEBUG("Building Component Type: %s", fullname.c_str());
         if (elem_f && (comp_t=dynamic_cast<arl::dm::IDataTypeComponent *>(
                 elem_f->mkDataType(m_ctxt, fullname, i)))) {
@@ -345,8 +357,15 @@ void TaskBuildDataType::visitStruct(ast::IStruct *i) {
 
         vsc::dm::IDataType *type_t = 0;
         vsc::dm::IDataTypeStruct *struct_t = 0;
-        std::string fullname = getNamespacePrefix() + i->getName()->getId();
-        DEBUG("Fullname: %s", fullname.c_str());
+        std::string fullname;
+        
+        if (i->getParams()) {
+            fullname = getNamespacePrefix();
+            fullname = fullname.substr(0, fullname.size()-2);
+        } else {
+            fullname = getNamespacePrefix() + i->getName()->getId();
+        }
+        DEBUG("Fullname: %s (ns=%s)", fullname.c_str(), getNamespacePrefix().c_str());
         if (elem_f && (type_t=elem_f->mkDataType(m_ctxt, fullname, i))) {
             DEBUG("Using elem-factory version");
             struct_t = dynamic_cast<vsc::dm::IDataTypeStruct *>(type_t);
@@ -558,6 +577,7 @@ std::string TaskBuildDataType::getNamespacePrefix() {
     for (std::vector<ast::ISymbolChildrenScope *>::const_iterator
         it=m_ctxt->symScopes().begin();
         it+1!=m_ctxt->symScopes().end(); it++) {
+
         if ((*it)->getName() != "") {
             ret += (*it)->getName();
             ret += "::";
