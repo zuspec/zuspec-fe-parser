@@ -209,12 +209,6 @@ void TaskBuildExpr::visitExprNumber(ast::IExprNumber *i) {
     DEBUG_LEAVE("visitExprNumber");
 }
     
-void TaskBuildExpr::visitExprAggregateLiteral(ast::IExprAggregateLiteral *i) { 
-    DEBUG_ENTER("visitExprAggregateLiteral");
-    DEBUG("TODO: visitExprAggregateLiteral");
-    DEBUG_LEAVE("visitExprAggregateLiteral");
-}
-    
 void TaskBuildExpr::visitExprOpenRangeList(ast::IExprOpenRangeList *i) { 
     DEBUG_ENTER("visitExprOpenRangeList");
     DEBUG("TODO: visitExprOpenRangeList");
@@ -381,6 +375,16 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
         } else {
             DEBUG("Using return of mkRootFieldRef");
             m_expr = root_ref.first;
+
+            if (i->getHier_id()->getElems().at(0)->getSubscript().size()) {
+                ast::IExpr *idx = i->getHier_id()->getElems().at(0)->getSubscript().at(0).get();
+                DEBUG("Adding a subscript");
+                m_expr = m_ctxt->ctxt()->mkTypeExprArrIndex(
+                    m_expr,
+                    true,
+                    TaskBuildExpr(m_ctxt).build(idx),
+                    true);
+            }
         }
     } else {
         // Root is an expression

@@ -74,8 +74,6 @@ public:
     
     virtual void visitExprNumber(ast::IExprNumber *i) override;
     
-    virtual void visitExprAggregateLiteral(ast::IExprAggregateLiteral *i) override;
-    
     virtual void visitExprOpenRangeList(ast::IExprOpenRangeList *i) override;
     
     virtual void visitExprOpenRangeValue(ast::IExprOpenRangeValue *i) override;

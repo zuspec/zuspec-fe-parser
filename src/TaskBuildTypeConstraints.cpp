@@ -99,7 +99,21 @@ void TaskBuildTypeConstraints::visitConstraintBlock(ast::IConstraintBlock *i) {
 
 void TaskBuildTypeConstraints::visitConstraintScope(ast::IConstraintScope *i) {
     DEBUG_ENTER("visitConstraintScope");
-    VisitorBase::visitConstraintScope(i);
+    if (i->getConstraints().size() == 1) {
+        VisitorBase::visitConstraintScope(i);
+    } else {
+        vsc::dm::ITypeConstraintScope *cnstr_s = m_ctxt->ctxt()->mkTypeConstraintScope();
+        for (std::vector<ast::IConstraintStmtUP>::const_iterator
+            it=i->getConstraints().begin();
+            it!=i->getConstraints().end(); it++) {
+            m_cnstr = 0;
+            (*it)->accept(m_this);
+            if (m_cnstr) {
+                cnstr_s->addConstraint(m_cnstr);
+            }
+        }
+        m_cnstr = cnstr_s;
+    }
     DEBUG_LEAVE("visitConstraintScope");
 }
 
@@ -167,7 +181,11 @@ void TaskBuildTypeConstraints::visitConstraintStmtImplication(ast::IConstraintSt
     DEBUG_LEAVE("visitConstraintStmtImplication");
 }
 
-void TaskBuildTypeConstraints::visitConstraintStmtForeach(ast::IConstraintStmtForeach *i) { }
+void TaskBuildTypeConstraints::visitConstraintStmtForeach(ast::IConstraintStmtForeach *i) { 
+    DEBUG_ENTER("visitConstraintStmtForeach");
+
+    DEBUG_LEAVE("visitConstraintStmtForeach");
+}
 
 void TaskBuildTypeConstraints::visitConstraintStmtForall(ast::IConstraintStmtForall *i) { }
 
