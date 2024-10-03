@@ -243,6 +243,9 @@ void TaskBuildDataType::visitDataTypeChandle(ast::IDataTypeChandle *i) {
 void TaskBuildDataType::visitDataTypeEnum(ast::IDataTypeEnum *i) { 
     DEBUG_ENTER("visitDataTypeEnum");
 
+    // TODO: handle base type (if present)
+
+
     DEBUG_LEAVE("visitDataTypeEnum");
 }
 
@@ -332,6 +335,22 @@ void TaskBuildDataType::visitDataTypeUserDefined(ast::IDataTypeUserDefined *i) {
     }
 
     DEBUG_LEAVE("visitDataTypeUserDefined (%p)", m_type);
+}
+
+void TaskBuildDataType::visitSymbolEnumScope(ast::ISymbolEnumScope *i) {
+    DEBUG_ENTER("visitEnumSymbolScope");
+    std::string fullname = getNamespacePrefix() + i->getName().c_str();
+
+    vsc::dm::IDataTypeEnum *dt = m_ctxt->ctxt()->findDataTypeEnum(fullname);
+
+    if (!dt) {
+        dt = m_ctxt->ctxt()->mkDataTypeEnum(fullname, true);
+        m_ctxt->ctxt()->addDataTypeEnum(dt);
+    }
+
+    m_type = dt;
+
+    DEBUG_LEAVE("visitEnumSymbolScope");
 }
 
 void TaskBuildDataType::visitExecBlock(ast::IExecBlock *i) {

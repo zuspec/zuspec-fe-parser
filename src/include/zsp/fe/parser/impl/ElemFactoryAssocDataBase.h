@@ -53,6 +53,16 @@ public:
         vsc::dm::ITypeExpr      *init) override {
         return 0;
     }
+    
+    virtual vsc::dm::ITypeField *mkTypeFieldList(
+        IAst2ArlContext         *ctx,
+        const std::string       &name,
+        ast::IScopeChild        *type,
+        ast::IScopeChild        *elem_type,
+        vsc::dm::TypeFieldAttr  attr,
+        vsc::dm::ITypeExpr      *init) override {
+        return 0;
+    }
 
     virtual vsc::dm::IDataType *mkDataType(
         IAst2ArlContext         *ctx,

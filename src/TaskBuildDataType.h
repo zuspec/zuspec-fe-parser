@@ -73,6 +73,8 @@ public:
 
     virtual void visitDataTypeUserDefined(ast::IDataTypeUserDefined *i) override;
 
+    virtual void visitSymbolEnumScope(ast::ISymbolEnumScope *i) override;
+
     virtual void visitExecBlock(ast::IExecBlock *i) override;
 
     virtual void visitExecScope(ast::IExecScope *i) override;

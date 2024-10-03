@@ -100,7 +100,7 @@ void TaskBuildTypeExecStmt::visitProceduralStmtReturn(ast::IProceduralStmtReturn
 }
     
 void TaskBuildTypeExecStmt::visitProceduralStmtRepeat(ast::IProceduralStmtRepeat *i) { 
-    DEBUG_ENTER("visitProceduralStmtRepeat");
+    DEBUG_ENTER("visitProceduralStmtRepeat (%d)", i->getChildren().size());
     m_ctxt->pushSymScope(i);
 
     arl::dm::ITypeProcStmtRepeat *stmt = m_ctxt->ctxt()->mkTypeProcStmtRepeat(

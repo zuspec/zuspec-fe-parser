@@ -30,6 +30,7 @@
 #include "ElemFactoryTransparentAddrClaim.h"
 #include "ElemFactoryAddrHandle.h"
 #include "ElemFactoryArray.h"
+#include "ElemFactoryList.h"
 #include "ElemFactoryPackedStruct.h"
 #include "ElemFactoryPyObj.h"
 #include "ElemFactoryReg.h"
@@ -48,6 +49,7 @@ static struct LinkTabEntry {
 //    IElemFactoryAssocData *(*ctor)();
 } LinkTab[] = {
     { {"array"}, &ElemFactoryArray::create },
+    { {"list"}, &ElemFactoryArray::create },
     { {"pyobj"}, &ElemFactoryPyObj::create },
     { {"addr_reg_pkg", "addr_claim_s"}, &ElemFactoryAddrClaim::create },
     { {"addr_reg_pkg", "transparent_addr_claim_s"}, &ElemFactoryTransparentAddrClaim::create },
