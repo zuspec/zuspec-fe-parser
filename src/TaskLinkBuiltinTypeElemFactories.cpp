@@ -49,7 +49,7 @@ static struct LinkTabEntry {
 //    IElemFactoryAssocData *(*ctor)();
 } LinkTab[] = {
     { {"array"}, &ElemFactoryArray::create },
-    { {"list"}, &ElemFactoryArray::create },
+    { {"list"}, &ElemFactoryList::create },
     { {"pyobj"}, &ElemFactoryPyObj::create },
     { {"addr_reg_pkg", "addr_claim_s"}, &ElemFactoryAddrClaim::create },
     { {"addr_reg_pkg", "transparent_addr_claim_s"}, &ElemFactoryTransparentAddrClaim::create },

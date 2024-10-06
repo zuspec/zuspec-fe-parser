@@ -23,6 +23,7 @@
 #include "dmgr/IDebugMgr.h"
 #include "vsc/dm/ITypeExpr.h"
 #include "zsp/parser/IFactory.h"
+#include "zsp/parser/impl/ScopeUtil.h"
 #include "zsp/arl/dm/IContext.h"
 #include "zsp/ast/IScopeChild.h"
 
@@ -56,9 +57,9 @@ public:
         return dynamic_cast<T *>(rootSymScope());
     }
 
-    virtual const std::vector<ast::ISymbolChildrenScope *> &symScopes() const = 0;
+    virtual const std::vector<zsp::parser::ScopeUtil> &symScopes() const = 0;
 
-    virtual void pushSymScope(ast::ISymbolChildrenScope *s) = 0;
+    virtual void pushSymScope(ast::IScopeChild *s) = 0;
 
     virtual void popSymScope() = 0;
 
@@ -68,7 +69,7 @@ public:
 
     virtual ast::IScopeChild *resolveRefPath(const ast::ISymbolRefPath *ref) = 0;
 
-    virtual int32_t findBottomUpScope(ast::ISymbolScope *scope) = 0;
+    virtual int32_t findBottomUpScope(ast::IScopeChild *scope) = 0;
 
     virtual ast::ISymbolScope *inlineCtxt() const = 0;
 

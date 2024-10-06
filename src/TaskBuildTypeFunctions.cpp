@@ -1,5 +1,5 @@
 /*
- * TaskBuildTypeConstraints.cpp
+ * TaskBuildTypeFunctions.cpp
  *
  * Copyright 2023 Matthew Ballance and Contributors
  *
@@ -19,7 +19,8 @@
  *     Author:
  */
 #include "dmgr/impl/DebugMacros.h"
-#include "TaskBuildTypeConstraints.h"
+#include "TaskBuildDataTypeFunction.h"
+#include "TaskBuildTypeFunctions.h"
 #include "TaskBuildExpr.h"
 
 
@@ -28,24 +29,24 @@ namespace fe {
 namespace parser {
 
 
-TaskBuildTypeConstraints::TaskBuildTypeConstraints(
+TaskBuildTypeFunctions::TaskBuildTypeFunctions(
     IAst2ArlContext                                 *ctxt,
     vsc::dm::IDataTypeStruct                        *arl_type) : 
     m_ctxt(ctxt), m_arl_type(arl_type) {
-    DEBUG_INIT("zsp::fe::parser::TaskBuildTypeConstraints", ctxt->getDebugMgr());
+    DEBUG_INIT("zsp::fe::parser::TaskBuildTypeFunctions", ctxt->getDebugMgr());
 }
 
-TaskBuildTypeConstraints::~TaskBuildTypeConstraints() {
+TaskBuildTypeFunctions::~TaskBuildTypeFunctions() {
 
 }
 
-void TaskBuildTypeConstraints::build(ast::ISymbolTypeScope *ast_type) {
+void TaskBuildTypeFunctions::build(ast::ISymbolTypeScope *ast_type) {
     m_subtype_c.clear();
     m_depth = 0;
     ast_type->accept(m_this);
 }
 
-void TaskBuildTypeConstraints::visitAction(ast::IAction *i) {
+void TaskBuildTypeFunctions::visitAction(ast::IAction *i) {
     if (m_depth == 0) {
         m_depth++;
         VisitorBase::visitAction(i);
@@ -53,7 +54,7 @@ void TaskBuildTypeConstraints::visitAction(ast::IAction *i) {
     }
 }
 
-void TaskBuildTypeConstraints::visitComponent(ast::IComponent *i) {
+void TaskBuildTypeFunctions::visitComponent(ast::IComponent *i) {
     if (m_depth == 0) {
         m_depth++;
         VisitorBase::visitComponent(i);
@@ -61,7 +62,7 @@ void TaskBuildTypeConstraints::visitComponent(ast::IComponent *i) {
     }
 }
 
-void TaskBuildTypeConstraints::visitStruct(ast::IStruct *i) {
+void TaskBuildTypeFunctions::visitStruct(ast::IStruct *i) {
     if (m_depth == 0) {
         m_depth++;
         VisitorBase::visitStruct(i);
@@ -69,7 +70,13 @@ void TaskBuildTypeConstraints::visitStruct(ast::IStruct *i) {
     }
 }
 
-void TaskBuildTypeConstraints::visitConstraintBlock(ast::IConstraintBlock *i) {
+void TaskBuildTypeFunctions::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
+    DEBUG_ENTER("visitSymbolFunctionScope");
+    TaskBuildDataTypeFunction(m_ctxt).build(i, true);
+    DEBUG_LEAVE("visitSymbolFunctionScope");
+}
+
+void TaskBuildTypeFunctions::visitConstraintBlock(ast::IConstraintBlock *i) {
     DEBUG_ENTER("visitConstraintBlock %s (%d)", 
         i->getName().c_str(), i->getConstraints().size());
 
@@ -97,14 +104,11 @@ void TaskBuildTypeConstraints::visitConstraintBlock(ast::IConstraintBlock *i) {
     DEBUG_LEAVE("visitConstraintBlock %s", i->getName().c_str());
 }
 
-void TaskBuildTypeConstraints::visitConstraintScope(ast::IConstraintScope *i) {
+void TaskBuildTypeFunctions::visitConstraintScope(ast::IConstraintScope *i) {
     DEBUG_ENTER("visitConstraintScope");
-    /*
     if (i->getConstraints().size() == 1) {
         VisitorBase::visitConstraintScope(i);
     } else {
-     */
-        m_ctxt->pushSymScope(i);
         vsc::dm::ITypeConstraintScope *cnstr_s = m_ctxt->ctxt()->mkTypeConstraintScope();
         for (std::vector<ast::IConstraintStmtUP>::const_iterator
             it=i->getConstraints().begin();
@@ -116,16 +120,15 @@ void TaskBuildTypeConstraints::visitConstraintScope(ast::IConstraintScope *i) {
             }
         }
         m_cnstr = cnstr_s;
-        m_ctxt->popSymScope();
-//    }
+    }
     DEBUG_LEAVE("visitConstraintScope");
 }
 
-void TaskBuildTypeConstraints::visitConstraintStmtDefault(ast::IConstraintStmtDefault *i) { }
+void TaskBuildTypeFunctions::visitConstraintStmtDefault(ast::IConstraintStmtDefault *i) { }
 
-void TaskBuildTypeConstraints::visitConstraintStmtDefaultDisable(ast::IConstraintStmtDefaultDisable *i) { }
+void TaskBuildTypeFunctions::visitConstraintStmtDefaultDisable(ast::IConstraintStmtDefaultDisable *i) { }
 
-void TaskBuildTypeConstraints::visitConstraintStmtExpr(ast::IConstraintStmtExpr *i) { 
+void TaskBuildTypeFunctions::visitConstraintStmtExpr(ast::IConstraintStmtExpr *i) { 
     DEBUG_ENTER("visitConstraintStmtExpr");
     vsc::dm::ITypeExpr *expr = TaskBuildExpr(m_ctxt).build(i->getExpr());
     vsc::dm::ITypeConstraintExpr *expr_c = m_ctxt->ctxt()->mkTypeConstraintExpr(expr, true);
@@ -133,9 +136,9 @@ void TaskBuildTypeConstraints::visitConstraintStmtExpr(ast::IConstraintStmtExpr 
     DEBUG_LEAVE("visitConstraintStmtExpr");
 }
 
-void TaskBuildTypeConstraints::visitConstraintStmtField(ast::IConstraintStmtField *i) { }
+void TaskBuildTypeFunctions::visitConstraintStmtField(ast::IConstraintStmtField *i) { }
 
-void TaskBuildTypeConstraints::visitConstraintStmtIf(ast::IConstraintStmtIf *i) {
+void TaskBuildTypeFunctions::visitConstraintStmtIf(ast::IConstraintStmtIf *i) {
     DEBUG_ENTER("visitConstraintStmtIf");
     vsc::dm::ITypeExpr *cond = TaskBuildExpr(m_ctxt).build(i->getCond());
     m_cnstr = 0;
@@ -158,7 +161,7 @@ void TaskBuildTypeConstraints::visitConstraintStmtIf(ast::IConstraintStmtIf *i) 
     DEBUG_LEAVE("visitConstraintStmtIf");
 }
 
-void TaskBuildTypeConstraints::visitConstraintStmtImplication(ast::IConstraintStmtImplication *i) { 
+void TaskBuildTypeFunctions::visitConstraintStmtImplication(ast::IConstraintStmtImplication *i) { 
     DEBUG_ENTER("visitConstraintStmtImplication");
 
     m_cnstr = 0;
@@ -185,62 +188,17 @@ void TaskBuildTypeConstraints::visitConstraintStmtImplication(ast::IConstraintSt
     DEBUG_LEAVE("visitConstraintStmtImplication");
 }
 
-void TaskBuildTypeConstraints::visitConstraintStmtForeach(ast::IConstraintStmtForeach *i) { 
+void TaskBuildTypeFunctions::visitConstraintStmtForeach(ast::IConstraintStmtForeach *i) { 
     DEBUG_ENTER("visitConstraintStmtForeach");
 
-    vsc::dm::ITypeExpr *target = TaskBuildExpr(m_ctxt).build(i->getExpr());
-    std::string iter_name;
-    
-    if (!i->getIdx()) {
-        char tmp[64];
-        sprintf(tmp, "__%p", i);
-        iter_name = tmp;
-    } else {
-        iter_name = i->getIdx()->getName()->getId();
-    }
-
-    vsc::dm::ITypeConstraint *body;
-
-    m_ctxt->pushSymScope(i->getSymtab());
-
-    /*
-    if (i->getConstraints().size() == 1) {
-        m_cnstr = 0;
-        i->getConstraints().at(0)->accept(m_this);
-        body = m_cnstr;
-    } else {
-     */
-        vsc::dm::ITypeConstraintScope *scope = m_ctxt->ctxt()->mkTypeConstraintScope();
-        for (std::vector<ast::IConstraintStmtUP>::const_iterator
-            it=i->getConstraints().begin();
-            it!=i->getConstraints().end(); it++) {
-            m_cnstr = 0;
-            (*it)->accept(m_this);
-            if (m_cnstr) {
-                scope->addConstraint(m_cnstr);
-            }
-        }
-        body = scope;
-//    }
-
-    m_ctxt->popSymScope();
-
-    vsc::dm::ITypeConstraintForeach *stmt = m_ctxt->ctxt()->mkTypeConstraintForeach(
-        target,
-        true,
-        iter_name,
-        body,
-        true);
-    
-    m_cnstr = stmt;
     DEBUG_LEAVE("visitConstraintStmtForeach");
 }
 
-void TaskBuildTypeConstraints::visitConstraintStmtForall(ast::IConstraintStmtForall *i) { }
+void TaskBuildTypeFunctions::visitConstraintStmtForall(ast::IConstraintStmtForall *i) { }
 
-void TaskBuildTypeConstraints::visitConstraintStmtUnique(ast::IConstraintStmtUnique *i) { }
+void TaskBuildTypeFunctions::visitConstraintStmtUnique(ast::IConstraintStmtUnique *i) { }
 
-void TaskBuildTypeConstraints::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
+void TaskBuildTypeFunctions::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
     if (!m_depth) {
         // TODO: consider super
         m_depth++;
@@ -249,7 +207,7 @@ void TaskBuildTypeConstraints::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
     }
 }
 
-dmgr::IDebug *TaskBuildTypeConstraints::m_dbg = 0;
+dmgr::IDebug *TaskBuildTypeFunctions::m_dbg = 0;
 
 }
 }

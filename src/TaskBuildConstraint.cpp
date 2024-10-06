@@ -42,6 +42,30 @@ vsc::dm::ITypeConstraint *TaskBuildConstraint::build(ast::IConstraintStmt *c) {
     return m_ret;
 }
 
+vsc::dm::ITypeConstraint *TaskBuildConstraint::build(const std::vector<ast::IConstraintStmtUP> &c) {
+    m_ret = 0;
+
+    if (c.size() == 1) {
+        c.at(0)->accept(m_this);
+    } else {
+        vsc::dm::ITypeConstraintScope *scope = m_ctxt->ctxt()->mkTypeConstraintScope();
+        for (std::vector<ast::IConstraintStmtUP>::const_iterator
+            it=c.begin();
+            it!=c.end(); it++) {
+            m_ret = 0;
+            (*it)->accept(m_this);
+
+            if (m_ret) {
+                scope->addConstraint(m_ret);
+            }
+        }
+
+        m_ret = scope;
+    }
+
+    return m_ret;
+}
+
 void TaskBuildConstraint::visitConstraintBlock(ast::IConstraintBlock *i) { 
     DEBUG_ENTER("visitConstraintBlock");
     DEBUG_LEAVE("visitConstraintBlock");
@@ -120,7 +144,31 @@ void TaskBuildConstraint::visitConstraintStmtImplication(ast::IConstraintStmtImp
     m_ret = imp;
 }
 
-void TaskBuildConstraint::visitConstraintStmtForeach(ast::IConstraintStmtForeach *i) { }
+void TaskBuildConstraint::visitConstraintStmtForeach(ast::IConstraintStmtForeach *i) { 
+    DEBUG_ENTER("visitConstraintStmtForeach");
+    vsc::dm::ITypeExpr *target = TaskBuildExpr(m_ctxt).build(i->getExpr());
+    std::string iter_name;
+    
+    if (!i->getIdx()) {
+        char tmp[64];
+        sprintf(tmp, "__%p", i);
+        iter_name = tmp;
+    } else {
+        iter_name = i->getIdx()->getName()->getId();
+    }
+
+    vsc::dm::ITypeConstraint *body = TaskBuildConstraint(m_ctxt).build(i->getConstraints());
+
+    vsc::dm::ITypeConstraintForeach *stmt = m_ctxt->ctxt()->mkTypeConstraintForeach(
+        target,
+        true,
+        iter_name,
+        body,
+        true);
+    
+    m_ret = stmt;
+    DEBUG_LEAVE("visitConstraintStmtForeach");
+}
 
 void TaskBuildConstraint::visitConstraintStmtForall(ast::IConstraintStmtForall *i) { }
 

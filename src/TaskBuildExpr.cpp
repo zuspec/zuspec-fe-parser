@@ -21,6 +21,7 @@
 #include <map>
 #include "dmgr/impl/DebugMacros.h"
 #include "vsc/dm/impl/ValRefBool.h"
+#include "zsp/parser/impl/ScopeUtil.h"
 #include "zsp/parser/impl/TaskGetName.h"
 #include "zsp/parser/impl/TaskGetSubscriptSymbolScope.h"
 #include "zsp/parser/impl/TaskIndexField.h"
@@ -559,7 +560,7 @@ TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *
     DEBUG("Path size=%d ; scope depth=%d", 
         i->getTarget()->getPath().size(),
         m_ctxt->symScopes().size());
-    ast::ISymbolScope *scope = m_ctxt->rootSymScopeT<ast::ISymbolScope>();
+    zsp::parser::ScopeUtil scope(m_ctxt->rootSymScopeT<ast::ISymbolScope>());
     int32_t type_scope_idx=-1, bup_scope_idx=-1;
     ast::ISymbolScope *inline_ctxt = 0;
     uint32_t ii;
@@ -572,18 +573,18 @@ TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *
     }
     for (ii=0; ii<i->getTarget()->getPath().size(); ii++) {
         DEBUG("Scope: %s ; ii=%d idx=%d kind=%d children=%d", 
-            scope->getName().c_str(), 
+            scope.getName().c_str(), 
             ii,
             i->getTarget()->getPath().at(ii).idx,
             i->getTarget()->getPath().at(ii).kind,
-            scope->getChildren().size());
+            scope.getNumChildren());
         ast::IScopeChild *c = 0;
             
         switch (i->getTarget()->getPath().at(ii).kind) {
             case ast::SymbolRefPathElemKind::ElemKind_ArgIdx: {
                 // scope is a function and we need to look in the
                 // parameters scope
-                ast::ISymbolFunctionScope *func = dynamic_cast<ast::ISymbolFunctionScope *>(scope);
+                ast::ISymbolFunctionScope *func = scope.getT<ast::ISymbolFunctionScope>();
                 c = func->getPlist()->getChildren().at(
                     i->getTarget()->getPath().at(ii).idx).get();
             } break;
@@ -591,16 +592,21 @@ TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *
                 DEBUG("ElemKind_Inline: %p", m_ctxt->inlineCtxt());
                 inline_ctxt = m_ctxt->inlineCtxt();
             } break;
-            default:
-                c = scope->getChildren().at(
-                    i->getTarget()->getPath().at(ii).idx).get();
-                break;
+            default: {
+                int32_t idx = i->getTarget()->getPath().at(ii).idx;
+                DEBUG("Default: ii=%d kind=%d idx=%d size=%d",
+                    ii, i->getTarget()->getPath().at(ii).kind, idx,
+                    scope.getNumChildren());
+                c = scope.getChild(idx);
+            } break;
         }
 
+        ast::ISymbolScope *ts = m_ctxt->typeScope();
+        ast::ISymbolChildrenScope *ss = m_ctxt->symScope();
         DEBUG("Scope=%s typeScope=%s symScope=%s c=%p inline_ctxt=%p",
-            scope->getName().c_str(), 
-            m_ctxt->typeScope()->getName().c_str(), 
-            m_ctxt->symScope()->getName().c_str(),
+            scope.getName().c_str(), 
+            ts->getName().c_str(),
+            (ss)?ss->getName().c_str():"<none>",
             c,
             inline_ctxt);
         if (inline_ctxt) {
@@ -616,20 +622,23 @@ TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *
             // Don't halt, since a bottom-up reference initially
             // looks like a top-down reference
         }
-        int32_t bup_scope_idx_t = m_ctxt->findBottomUpScope(scope);
-        if (bup_scope_idx_t != -1) {
-            // Find the first scope on the top-down path
-            // that matches a bottom-up scope.
-            DEBUG("bottom-up scope %d", bup_scope_idx_t);
-            bup_scope_idx = bup_scope_idx_t;
-            break;
-        }
-
         if (ii+1 < i->getTarget()->getPath().size()) {
-            if (!dynamic_cast<ast::ISymbolScope *>(c)) {
+
+            // Search for bottom-up scopes until the penultimate
+            // item. For a bottom-up reference, the last item
+            // will always be a variable reference within the scope
+            int32_t bup_scope_idx_t = m_ctxt->findBottomUpScope(scope.get());
+            if (bup_scope_idx_t != -1) {
+                // Find the first scope on the top-down path
+                // that matches a bottom-up scope.
+                DEBUG("bottom-up scope %d", bup_scope_idx_t);
+                bup_scope_idx = bup_scope_idx_t;
+                break;
+            }
+
+            if (!scope.init(c)) {
                 DEBUG_ERROR("Failed to convert c to scope");
             }
-            scope = dynamic_cast<ast::ISymbolScope *>(c);
         }
     }
 
@@ -668,11 +677,11 @@ TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *
             // bottom-up scope on the path
             for (; ii<i->getTarget()->getPath().size()-1; ii++) {
                 int32_t t_bup_scope_idx;
-                ast::IScopeChild *c = scope->getChildren().at(
-                    i->getTarget()->getPath().at(ii).idx).get();
-                scope = dynamic_cast<ast::ISymbolScope *>(c);
+                int32_t idx = i->getTarget()->getPath().at(ii).idx;
+                ast::IScopeChild *c = scope.getChild(idx);
+                scope.init(c);
 
-                if ((t_bup_scope_idx=m_ctxt->findBottomUpScope(scope)) != -1) {
+                if ((t_bup_scope_idx=m_ctxt->findBottomUpScope(scope.get())) != -1) {
                     DEBUG("Found bottom-up scope %d @ path index %d", t_bup_scope_idx, ii);
                     bup_scope_idx = t_bup_scope_idx;
                 } else {

@@ -59,18 +59,18 @@ public:
     }
 
     virtual ast::ISymbolChildrenScope *symScope() const override {
-        return m_scope_s.back().back();
+        return m_scope_s.back().back().getT<ast::ISymbolChildrenScope>();
     }
 
     virtual ast::ISymbolChildrenScope *rootSymScope() const override {
-        return m_scope_s.back().front();
+        return m_scope_s.back().front().getT<ast::ISymbolChildrenScope>();
     };
 
-    virtual const std::vector<ast::ISymbolChildrenScope *> &symScopes() const override {
+    virtual const std::vector<zsp::parser::ScopeUtil> &symScopes() const override {
         return m_scope_s.back();
     }
 
-    virtual void pushSymScope(ast::ISymbolChildrenScope *s) override;
+    virtual void pushSymScope(ast::IScopeChild *s) override;
 
     virtual void popSymScope() override;
 
@@ -80,7 +80,7 @@ public:
 
     virtual ast::IScopeChild *resolveRefPath(const ast::ISymbolRefPath *ref) override;
 
-    virtual int32_t findBottomUpScope(ast::ISymbolScope *scope) override;
+    virtual int32_t findBottomUpScope(ast::IScopeChild *scope) override;
 
     virtual ast::ISymbolScope *inlineCtxt() const override {
         return (m_inline_ctxt_s.size())?m_inline_ctxt_s.back():0;
@@ -133,7 +133,7 @@ private:
     arl::dm::IContext                                               *m_ctxt;
     ast::ISymbolScope                                               *m_root;
     zsp::parser::IMarkerUP                                          m_marker;
-    std::vector<std::vector<ast::ISymbolChildrenScope *>>           m_scope_s;
+    std::vector<std::vector<zsp::parser::ScopeUtil>>                m_scope_s;
     std::map<ast::IScopeChild *, vsc::dm::IDataType *>              m_type_m;
     std::vector<int32_t>                                            m_type_s_idx_s;
     std::vector<ast::ISymbolScope *>                                m_inline_ctxt_s;

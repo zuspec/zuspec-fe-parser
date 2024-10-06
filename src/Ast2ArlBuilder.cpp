@@ -105,11 +105,12 @@ void Ast2ArlBuilder::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
 
 std::string Ast2ArlBuilder::getNamespacePrefix() {
     std::string ret;
-    for (std::vector<ast::ISymbolChildrenScope *>::const_iterator
+    for (std::vector<zsp::parser::ScopeUtil>::const_iterator
         it=m_ctxt->symScopes().begin();
         it+1!=m_ctxt->symScopes().end(); it++) {
-        if ((*it)->getName() != "") {
-            ret += (*it)->getName();
+        zsp::parser::ScopeUtil &util = const_cast<zsp::parser::ScopeUtil &>(*it);
+        if (util.getName() != "") {
+            ret += util.getName();
             ret += "::";
         }
     }

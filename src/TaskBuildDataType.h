@@ -116,6 +116,11 @@ protected:
         vsc::dm::IDataTypeStruct    *arl_type,
         ast::ISymbolTypeScope       *ast_type);
 
+    void buildTypeFunctions(
+        std::map<std::string, ast::IConstraintScope *>      &c_inherit_m,
+        vsc::dm::IDataTypeStruct                            *arl_type,
+        ast::ISymbolTypeScope                               *ast_type);
+
     std::string getNamespacePrefix();
 
     vsc::dm::IDataType *findType(ast::IScopeChild *ast_t);

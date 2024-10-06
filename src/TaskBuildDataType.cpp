@@ -27,6 +27,7 @@
 #include "TaskBuildField.h"
 #include "TaskBuildTypeConstraints.h"
 #include "TaskBuildTypeExecs.h"
+#include "TaskBuildTypeFunctions.h"
 #include "TaskGetDataTypeAssocData.h"
 #include "zsp/parser/impl/TaskResolveSymbolPathRef.h"
 #include "zsp/parser/impl/TaskEvalExpr.h"
@@ -96,8 +97,8 @@ vsc::dm::IDataType *TaskBuildDataType::build(ast::ITypeIdentifier *type) {
 }
 
 void TaskBuildDataType::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
-    DEBUG_ENTER("visitSymbolFunctionScope");
-    TaskBuildDataTypeFunction(m_ctxt).build(i, true);
+    DEBUG_ENTER("visitSymbolFunctionScope %s", i->getName().c_str());
+//    TaskBuildDataTypeFunction(m_ctxt).build(i, true);
     DEBUG_LEAVE("visitSymbolFunctionScope");
 }
 
@@ -528,6 +529,12 @@ void TaskBuildDataType::buildType(
         arl_type,
         ast_type);
 
+    std::map<std::string, ast::IConstraintScope *> f_inherit_m;
+    buildTypeFunctions(
+        f_inherit_m,
+        arl_type,
+        ast_type);
+
     m_type_s.pop_back();
 
     m_depth--;
@@ -591,14 +598,26 @@ void TaskBuildDataType::buildTypeExecs(
     DEBUG_LEAVE("buildTypeExecs");
 }
 
+void TaskBuildDataType::buildTypeFunctions(
+        std::map<std::string, ast::IConstraintScope *>      &c_inherit_m,
+        vsc::dm::IDataTypeStruct                            *arl_type,
+        ast::ISymbolTypeScope                               *ast_type) {
+    DEBUG_ENTER("buildTypeFunctions");
+
+    TaskBuildTypeFunctions(m_ctxt, arl_type).build(ast_type);
+
+    DEBUG_LEAVE("buildTypeFunctions");
+}
+
 std::string TaskBuildDataType::getNamespacePrefix() {
     std::string ret;
-    for (std::vector<ast::ISymbolChildrenScope *>::const_iterator
+    for (std::vector<zsp::parser::ScopeUtil>::const_iterator
         it=m_ctxt->symScopes().begin();
         it+1!=m_ctxt->symScopes().end(); it++) {
+        zsp::parser::ScopeUtil &util = const_cast<zsp::parser::ScopeUtil &>(*it);
 
-        if ((*it)->getName() != "") {
-            ret += (*it)->getName();
+        if (util.getName() != "") {
+            ret += util.getName();
             ret += "::";
         }
     }

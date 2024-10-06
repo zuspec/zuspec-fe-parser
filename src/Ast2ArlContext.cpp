@@ -49,13 +49,13 @@ Ast2ArlContext::~Ast2ArlContext() {
 
 }
 
-void Ast2ArlContext::pushSymScope(ast::ISymbolChildrenScope *s) {
+void Ast2ArlContext::pushSymScope(ast::IScopeChild *s) {
     DEBUG_ENTER("pushSymScope %s -> %d", 
-        s->getName().c_str(),
+        zsp::parser::ScopeUtil(s).getName().c_str(),
         (m_scope_s.size())?m_scope_s.back().size()+1:1);
 
     if (!m_scope_s.size()) {
-        m_scope_s.push_back({s});
+        m_scope_s.push_back({zsp::parser::ScopeUtil(s)});
         m_type_s_idx_s.push_back(-1);
     } else {
         m_scope_s.back().push_back(s);
@@ -72,7 +72,7 @@ void Ast2ArlContext::pushSymScope(ast::ISymbolChildrenScope *s) {
 
 void Ast2ArlContext::popSymScope() {
     DEBUG_ENTER("popSymScope %s -> %d", 
-        (m_scope_s.back().size())?m_scope_s.back().back()->getName().c_str():"<empty>",
+        (m_scope_s.back().size())?m_scope_s.back().back().getName().c_str():"<empty>",
         (m_scope_s.size())?m_scope_s.back().size()-1:0);
 
     if (m_scope_s.back().size() == 0) {
@@ -101,21 +101,22 @@ void Ast2ArlContext::popSymScope() {
 void Ast2ArlContext::pushSymScopeStack(ast::ISymbolChildrenScope *s) {
     DEBUG_ENTER("pushSymScopeStack %s", (s)?s->getName().c_str():"<null>");
     if (s) {
-        std::vector<ast::ISymbolChildrenScope *> elems;
+        std::vector<zsp::parser::ScopeUtil> elems;
         ast::ISymbolChildrenScope *ss = s;
         while (ss) {
-            elems.push_back(ss);
+            elems.push_back(zsp::parser::ScopeUtil(ss));
             ss = ss->getUpper();
         }
-        m_scope_s.push_back(std::vector<ast::ISymbolChildrenScope *>());
-        for (std::vector<ast::ISymbolChildrenScope *>::const_reverse_iterator
+        m_scope_s.push_back(std::vector<zsp::parser::ScopeUtil>());
+        for (std::vector<zsp::parser::ScopeUtil>::const_reverse_iterator
             it=elems.rbegin();
             it!=elems.rend(); it++) {
-            DEBUG("Push scope %s", (*it)->getName().c_str());
+            zsp::parser::ScopeUtil &util = const_cast<zsp::parser::ScopeUtil &>(*it);
+            DEBUG("Push scope %s", util.getName().c_str());
             m_scope_s.back().push_back(*it);
         }
         m_type_s_idx_s.push_back(m_scope_s.back().size()-1);
-        DEBUG("Full-push with root scope %s", elems.front()->getName().c_str());
+        DEBUG("Full-push with root scope %s", elems.front().getName().c_str());
     } else {
         m_scope_s.push_back({m_scope_s.back().front()});
         m_type_s_idx_s.push_back(-1);
@@ -141,19 +142,19 @@ ast::IScopeChild *Ast2ArlContext::resolveRefPath(const ast::ISymbolRefPath *ref)
 
     ast::IScopeChild *ret = zsp::parser::TaskResolveSymbolPathRef(
         m_factory->getDebugMgr(),
-        m_scope_s.back().front()).resolve(ref);
+        m_scope_s.back().front().getT<ast::ISymbolScope>()).resolve(ref);
     DEBUG_ENTER("resolveRefPath");
     return ret;
 }
 
-int32_t Ast2ArlContext::findBottomUpScope(ast::ISymbolScope *scope) {
+int32_t Ast2ArlContext::findBottomUpScope(ast::IScopeChild *scope) {
     DEBUG_ENTER("findBottomUpScope %p", scope);
     int32_t ret = -1;
     if (m_type_s_idx_s.back() != -1) {
         DEBUG("search: %d %d", m_scope_s.back().size(), m_type_s_idx_s.back());
         for (int32_t i=m_scope_s.back().size()-1; i>m_type_s_idx_s.back(); i--) {
             DEBUG("  Scope[%d] %p", i, m_scope_s.back().at(i));
-            if (m_scope_s.back().at(i) == scope) {
+            if (m_scope_s.back().at(i).get() == scope) {
                 DEBUG("Found @ %d", i);
                 ret = m_scope_s.back().size()-i-1;
                 break;
@@ -168,11 +169,14 @@ int32_t Ast2ArlContext::findBottomUpScope(ast::ISymbolScope *scope) {
 ast::ISymbolScope *Ast2ArlContext::typeScope() const {
     DEBUG_ENTER("typeScope m_type_s_idx=%d size=%d", 
         m_type_s_idx_s.back(), m_scope_s.back().size());
-    ast::ISymbolChildrenScope *ret = 
-        (m_type_s_idx_s.back() >= 0 && m_type_s_idx_s.back() < m_scope_s.back().size())?
-            m_scope_s.back().at(m_type_s_idx_s.back()):0;
+    ast::ISymbolScope *ret = 0;
+
+    if (m_type_s_idx_s.back() >= 0 && m_type_s_idx_s.back() < m_scope_s.back().size()) {
+        ret = m_scope_s.back().at(m_type_s_idx_s.back()).getT<ast::ISymbolScope>();
+    }
+
     DEBUG_LEAVE("typeScope %p", ret);
-    return dynamic_cast<ast::ISymbolScope *>(ret);
+    return ret;
 }
 
 vsc::dm::IDataType *Ast2ArlContext::findType(ast::IScopeChild *t) {
@@ -217,7 +221,7 @@ std::string Ast2ArlContext::getQName(const std::string &name) {
         if (i > 2) {
             qname += "::";
         }
-        qname += m_scope_s.back().at(i)->getName();
+        qname += m_scope_s.back().at(i).getName();
     }
     if (m_scope_s.back().size() > 2) {
         qname += "::";

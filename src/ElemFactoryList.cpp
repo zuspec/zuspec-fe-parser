@@ -26,6 +26,7 @@
 #include "ElemFactoryPyObj.h"
 #include "ElemFactoryList.h"
 #include "TaskBuildDataType.h"
+#include "TaskBuildTypeFunctions.h"
 #include "TaskGetDataTypeAssocData.h"
 
 
@@ -58,8 +59,12 @@ vsc::dm::IDataType *ElemFactoryList::mkDataType(
     } else {
         elem_t = TaskBuildDataType(ctx).build(Tp.second);
     }
-    
+
     vsc::dm::IDataTypeList *ret = ctx->ctxt()->findDataTypeList(elem_t);
+
+    // While we're here, define functions
+    ast::ISymbolTypeScope *ss = dynamic_cast<ast::ISymbolTypeScope *>(ctx->symScope()); 
+    TaskBuildTypeFunctions(ctx, 0).build(ss);
 
     DEBUG_LEAVE("mkDataType %p", ret);
     return ret;
