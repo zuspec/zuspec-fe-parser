@@ -675,6 +675,7 @@ TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *
         if (bup_scope_idx != -1) {
             // First, keep going along the path to find the last
             // bottom-up scope on the path
+            DEBUG("Further-refining bottom-up reference");
             for (; ii<i->getTarget()->getPath().size()-1; ii++) {
                 int32_t t_bup_scope_idx;
                 int32_t idx = i->getTarget()->getPath().at(ii).idx;

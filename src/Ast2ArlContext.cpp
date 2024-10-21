@@ -50,15 +50,24 @@ Ast2ArlContext::~Ast2ArlContext() {
 }
 
 void Ast2ArlContext::pushSymScope(ast::IScopeChild *s) {
-    DEBUG_ENTER("pushSymScope %s -> %d", 
+    DEBUG_ENTER("pushSymScope %s -> %d (%p)", 
         zsp::parser::ScopeUtil(s).getName().c_str(),
-        (m_scope_s.size())?m_scope_s.back().size()+1:1);
+        (m_scope_s.size())?m_scope_s.back().size()+1:1,
+        s);
 
     if (!m_scope_s.size()) {
         m_scope_s.push_back({zsp::parser::ScopeUtil(s)});
         m_type_s_idx_s.push_back(-1);
     } else {
         m_scope_s.back().push_back(s);
+    }
+
+    if (DEBUG_EN) {
+        for (int32_t i=m_scope_s.back().size()-1; i>0; i--) {
+            DEBUG("  Scope[%d] %p (%s)", i, 
+                m_scope_s.back().at(i).get(),
+                m_scope_s.back().at(i).getName().c_str());
+        }
     }
 
     if (TaskIsTopDownScope().check(s)) {
@@ -153,7 +162,9 @@ int32_t Ast2ArlContext::findBottomUpScope(ast::IScopeChild *scope) {
     if (m_type_s_idx_s.back() != -1) {
         DEBUG("search: %d %d", m_scope_s.back().size(), m_type_s_idx_s.back());
         for (int32_t i=m_scope_s.back().size()-1; i>m_type_s_idx_s.back(); i--) {
-            DEBUG("  Scope[%d] %p", i, m_scope_s.back().at(i));
+            DEBUG("  Scope[%d] %p (%s)", i, 
+            m_scope_s.back().at(i).get(),
+            m_scope_s.back().at(i).getName().c_str());
             if (m_scope_s.back().at(i).get() == scope) {
                 DEBUG("Found @ %d", i);
                 ret = m_scope_s.back().size()-i-1;
