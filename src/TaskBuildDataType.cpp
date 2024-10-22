@@ -327,6 +327,10 @@ void TaskBuildDataType::visitDataTypeUserDefined(ast::IDataTypeUserDefined *i) {
         case zsp::parser::TaskResolveSymbolPathRefResult::SymbolTypeScope:
             result.val.ts->accept(m_this);
             break;
+        case zsp::parser::TaskResolveSymbolPathRefResult::SymbolScope:
+            DEBUG("SymbolScope: %s", result.val.ss->getName().c_str());
+            result.val.ss->accept(m_this);
+            break;
         case zsp::parser::TaskResolveSymbolPathRefResult::DataType:
             result.val.dt->accept(m_this);
             break;

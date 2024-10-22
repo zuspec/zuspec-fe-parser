@@ -24,6 +24,7 @@
 #include "TaskGetDataTypeAssocData.h"
 #include "dmgr/impl/DebugMacros.h"
 #include "zsp/fe/parser/IElemFactoryAssocData.h"
+#include "zsp/parser/impl/TaskGetName.h"
 
 
 namespace zsp {
@@ -43,6 +44,9 @@ vsc::dm::ITypeField *TaskBuildField::build(ast::IScopeChild *f) {
     DEBUG_ENTER("build");
     m_ret = 0;
     f->accept(m_this);
+    if (!m_ret) {
+        DEBUG_ERROR("Failed to build field %s", zsp::parser::TaskGetName().get(f).c_str());
+    }
     DEBUG_LEAVE("build");
     return m_ret;
 }
@@ -93,7 +97,32 @@ void TaskBuildField::visitField(ast::IField *i) {
     
 void TaskBuildField::visitFieldCompRef(ast::IFieldCompRef *i) { 
     DEBUG_ENTER("visitFieldCompRef");
+    zsp::ast::IDataType *adt = i->getType();
+    zsp::ast::IAssocData *assoc_d = TaskGetDataTypeAssocData(m_ctxt).get(adt);
+    vsc::dm::IDataType *dt = TaskBuildDataType(m_ctxt).build(i->getType());
+    vsc::dm::TypeFieldAttr attr = vsc::dm::TypeFieldAttr::NoAttr;
+    vsc::dm::ITypeExpr *init = 0; // Default is Void
 
+    m_ret = 0;
+/*
+    if (assoc_d) {
+        IElemFactoryAssocData *elem_f = 
+            dynamic_cast<IElemFactoryAssocData *>(assoc_d);
+        m_ret = elem_f->mkTypeFieldPhy(
+            m_ctxt,
+            i->getName()->getId(),
+            i->getType(),
+            attr,
+            init);
+    }
+ */
+
+    if (!m_ret) {
+        m_ret = m_ctxt->ctxt()->mkTypeFieldRef(
+            i->getName()->getId(),
+            dt,
+            attr);
+    }
     DEBUG_LEAVE("visitFieldCompRef");
 }
     
