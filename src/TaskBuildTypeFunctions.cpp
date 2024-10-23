@@ -77,6 +77,7 @@ void TaskBuildTypeFunctions::visitSymbolFunctionScope(ast::ISymbolFunctionScope 
 }
 
 void TaskBuildTypeFunctions::visitConstraintBlock(ast::IConstraintBlock *i) {
+#ifdef UNDEFINED
     DEBUG_ENTER("visitConstraintBlock %s (%d)", 
         i->getName().c_str(), i->getConstraints().size());
 
@@ -102,6 +103,7 @@ void TaskBuildTypeFunctions::visitConstraintBlock(ast::IConstraintBlock *i) {
     m_arl_type->addConstraint(cb, true);
 
     DEBUG_LEAVE("visitConstraintBlock %s", i->getName().c_str());
+#endif // UNDEFINED
 }
 
 void TaskBuildTypeFunctions::visitConstraintScope(ast::IConstraintScope *i) {

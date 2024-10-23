@@ -40,9 +40,18 @@ TaskBuildTypeConstraints::~TaskBuildTypeConstraints() {
 }
 
 void TaskBuildTypeConstraints::build(ast::ISymbolTypeScope *ast_type) {
+    DEBUG_ENTER("build (%d children)", ast_type->getChildren().size());
     m_subtype_c.clear();
-    m_depth = 0;
-    ast_type->accept(m_this);
+    m_depth = 1;
+    for (std::vector<ast::IScopeChildUP>::const_iterator
+        it=ast_type->getChildren().begin();
+        it!=ast_type->getChildren().end(); it++) {
+        DEBUG_ENTER("accept %d", (it-ast_type->getChildren().begin()));
+        (*it)->accept(m_this);
+        DEBUG_LEAVE("accept %d", (it-ast_type->getChildren().begin()));
+    }
+//    ast_type->accept(m_this);
+    DEBUG_LEAVE("build");
 }
 
 void TaskBuildTypeConstraints::visitAction(ast::IAction *i) {
