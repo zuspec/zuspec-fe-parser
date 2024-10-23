@@ -478,6 +478,7 @@ void TaskBuildDataType::visitField(ast::IField *i) {
 void TaskBuildDataType::visitFieldCompRef(ast::IFieldCompRef *i) {
     DEBUG_ENTER("visitFieldCompRef");
 
+    /*
     if (m_depth) {
         // Note: we want to control when fields are built, so
         // we sequence that
@@ -486,6 +487,7 @@ void TaskBuildDataType::visitFieldCompRef(ast::IFieldCompRef *i) {
             m_type_s.back()->addField(field, true);
         }
     }
+     */
 
     DEBUG_LEAVE("visitFieldCompRef");
 }

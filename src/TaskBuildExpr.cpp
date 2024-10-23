@@ -624,6 +624,11 @@ TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *
         }
         if (ii+1 < i->getTarget()->getPath().size()) {
 
+            // Update to the scope corresponding to this element
+            if (!scope.init(c)) {
+                DEBUG_ERROR("Failed to convert c to scope");
+            }
+
             // Search for bottom-up scopes until the penultimate
             // item. For a bottom-up reference, the last item
             // will always be a variable reference within the scope
@@ -633,11 +638,8 @@ TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *
                 // that matches a bottom-up scope.
                 DEBUG("bottom-up scope %d", bup_scope_idx_t);
                 bup_scope_idx = bup_scope_idx_t;
+                ii++;
                 break;
-            }
-
-            if (!scope.init(c)) {
-                DEBUG_ERROR("Failed to convert c to scope");
             }
         }
     }
@@ -680,7 +682,14 @@ TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *
                 int32_t t_bup_scope_idx;
                 int32_t idx = i->getTarget()->getPath().at(ii).idx;
                 ast::IScopeChild *c = scope.getChild(idx);
-                scope.init(c);
+
+                if (!c) {
+                    DEBUG_ERROR("Failed to get child in scope %s @ %d", scope.getName().c_str(), idx);
+                }
+                
+                if (!scope.init(c)) {
+                    DEBUG_ERROR("Failed to initialize scope");
+                }
 
                 if ((t_bup_scope_idx=m_ctxt->findBottomUpScope(scope.get())) != -1) {
                     DEBUG("Found bottom-up scope %d @ path index %d", t_bup_scope_idx, ii);
