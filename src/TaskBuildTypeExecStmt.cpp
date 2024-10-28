@@ -47,6 +47,29 @@ arl::dm::ITypeProcStmt *TaskBuildTypeExecStmt::build(ast::IScopeChild *stmt) {
     return m_stmt;
 }
 
+void TaskBuildTypeExecStmt::build(
+        ast::IExecScope                 *ast_scope,
+        arl::dm::ITypeProcStmtScope     *arl_scope) {
+    DEBUG_ENTER("build(scope)");
+    m_ctxt->pushSymScope(ast_scope);
+    for (std::vector<ast::IScopeChildUP>::const_iterator
+        it=ast_scope->getChildren().begin();
+        it!=ast_scope->getChildren().end(); it++) {
+        m_stmt = 0;
+        (*it)->accept(m_this);
+        if (m_stmt) {
+            if (dynamic_cast<arl::dm::ITypeProcStmtVarDecl *>(m_stmt)) {
+                arl_scope->addVariable(dynamic_cast<arl::dm::ITypeProcStmtVarDecl *>(m_stmt));
+            } else {
+                arl_scope->addStatement(m_stmt);
+            }
+        }
+    }
+
+    m_ctxt->popSymScope();
+    DEBUG_LEAVE("build(scope)");
+}
+
 static std::map<ast::AssignOp, arl::dm::TypeProcStmtAssignOp> assign_op_m = {
     { ast::AssignOp::AssignOp_Eq, arl::dm::TypeProcStmtAssignOp::Eq }
 };
@@ -75,6 +98,10 @@ void TaskBuildTypeExecStmt::visitProceduralStmtAssignment(ast::IProceduralStmtAs
 void TaskBuildTypeExecStmt::visitProceduralStmtExpr(ast::IProceduralStmtExpr *i) { 
     DEBUG_ENTER("visitProceduralStmtExpr");
     vsc::dm::ITypeExpr *expr = TaskBuildExpr(m_ctxt).build(i->getExpr());
+
+    if (!expr) {
+        DEBUG_ERROR("Failed to build target for StmtExpr");
+    }
 
     m_stmt = m_ctxt->ctxt()->mkTypeProcStmtExpr(expr);
 

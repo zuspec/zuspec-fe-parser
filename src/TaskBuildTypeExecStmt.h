@@ -41,6 +41,10 @@ public:
 
     virtual arl::dm::ITypeProcStmt *build(ast::IScopeChild *stmt);
 
+    virtual void build(
+        ast::IExecScope                 *ast_scope,
+        arl::dm::ITypeProcStmtScope     *arl_scope);
+
     virtual void visitProceduralStmtAssignment(ast::IProceduralStmtAssignment *i) override;
     
     virtual void visitProceduralStmtExpr(ast::IProceduralStmtExpr *i) override;

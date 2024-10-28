@@ -128,21 +128,23 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
         m_ctxt->pushSymScope(i);
 
 
-        m_ctxt->pushSymScope(i);
-        for (std::vector<ast::IScopeChildUP>::const_iterator
-            it=i->getChildren().begin();
-            it!= i->getChildren().end(); it++) {
-            arl::dm::ITypeProcStmt *stmt = TaskBuildTypeExecStmt(m_ctxt).build(it->get());
+        TaskBuildTypeExecStmt(m_ctxt).build(
+            i->getBody(),
+            func->getBody());
 
-            if (dynamic_cast<arl::dm::ITypeProcStmtVarDecl *>(stmt)) {
-                func->getBody()->addVariable(
-                    dynamic_cast<arl::dm::ITypeProcStmtVarDecl *>(stmt));
-            } else if (stmt) {
-                func->getBody()->addStatement(stmt);
-            }
-        }
+        // for (std::vector<ast::IScopeChildUP>::const_iterator
+        //     it=i->getChildren().begin();
+        //     it!= i->getChildren().end(); it++) {
+        //     arl::dm::ITypeProcStmt *stmt = TaskBuildTypeExecStmt(m_ctxt).build(it->get());
 
-        m_ctxt->popSymScope();
+        //     if (dynamic_cast<arl::dm::ITypeProcStmtVarDecl *>(stmt)) {
+        //         func->getBody()->addVariable(
+        //             dynamic_cast<arl::dm::ITypeProcStmtVarDecl *>(stmt));
+        //     } else if (stmt) {
+        //         func->getBody()->addStatement(stmt);
+        //     }
+        // }
+
         m_ctxt->popSymScope();
     } else {
         DEBUG("Import function");
