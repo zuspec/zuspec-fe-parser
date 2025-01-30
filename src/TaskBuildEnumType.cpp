@@ -19,6 +19,7 @@
  *     Author:
  */
 #include "dmgr/impl/DebugMacros.h"
+#include "vsc/dm/impl/ValRefInt.h"
 #include "zsp/ast/IEnumDecl.h"
 #include "TaskBuildEnumType.h"
 
@@ -37,7 +38,7 @@ TaskBuildEnumType::~TaskBuildEnumType() {
 }
 
 vsc::dm::IDataTypeEnum *TaskBuildEnumType::build(
-    std::string             &ns_prefix,
+    const std::string       &ns_prefix,
     ast::ISymbolEnumScope   *ast_enum) {
     DEBUG_ENTER("build");
     m_ns_prefix = ns_prefix;
@@ -56,7 +57,7 @@ void TaskBuildEnumType::visitEnumItem(ast::IEnumItem *i) {
     DEBUG_ENTER("visitEnumItem");
     m_dt_enum->addEnumerator(
         i->getName()->getId(),
-        0 // TODO: must support value
+        m_ctxt->ctxt()->mkValRefInt(0, true, 32) // TODO
     );
     DEBUG_LEAVE("visitEnumItem");
 }

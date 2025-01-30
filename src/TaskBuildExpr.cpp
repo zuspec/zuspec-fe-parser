@@ -29,6 +29,7 @@
 #include "zsp/parser/impl/TaskResolveSymbolPathRef.h"
 #include "TaskBuildDataTypeFunction.h"
 #include "TaskBuildExpr.h"
+#include "TaskBuildExprStatic.h"
 #include "TaskCalculateFieldOffset.h"
 #include "TaskResolveGlobalRef.h"
 
@@ -742,12 +743,14 @@ TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *
     //                i->getTarget()->getPath().size());
     //        }
         } else { // Neither top-down nor bottom-up context based
+
+            zsp::parser::TaskResolveSymbolPathRef resolver(
+                m_ctxt->getDebugMgr(),
+                m_ctxt->getRoot());
+            ast::IScopeChild *ast_scope = resolver.resolve(i->getTarget());
+
             if (i->getHier_id()->getElems().at(0)->getParams()) {
                 DEBUG("Global function call");
-                zsp::parser::TaskResolveSymbolPathRef resolver(
-                    m_ctxt->getDebugMgr(),
-                    m_ctxt->getRoot());
-                ast::IScopeChild *ast_scope = resolver.resolve(i->getTarget());
 
                 field_ref = buildRefExpr(
                     0,
@@ -757,7 +760,9 @@ TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *
                 );
                 ii = 1;
             } else {
-                DEBUG_ERROR("Neither bottom-up or top-down");
+                // TODO: Check if this is a static (ie type) reference
+                DEBUG("Neither bottom-up or top-down: likely static ref");
+                field_ref = TaskBuildExprStatic(m_ctxt).build(ast_scope);
             }
         }
     } // end !inline

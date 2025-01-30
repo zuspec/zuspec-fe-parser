@@ -1,7 +1,7 @@
 /**
- * TaskBuildEnumType.h
+ * TaskBuildExprStatic.h
  *
- * Copyright 2022 Matthew Ballance and Contributors
+ * Copyright 2023 Matthew Ballance and Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may 
  * not use this file except in compliance with the License.  
@@ -19,8 +19,6 @@
  *     Author: 
  */
 #pragma once
-#include "dmgr/IDebug.h"
-#include "zsp/arl/dm/IContext.h"
 #include "zsp/ast/impl/VisitorBase.h"
 #include "zsp/fe/parser/IAst2ArlContext.h"
 
@@ -30,24 +28,20 @@ namespace parser {
 
 
 
-class TaskBuildEnumType : public ast::VisitorBase {
+class TaskBuildExprStatic : public ast::VisitorBase {
 public:
-    TaskBuildEnumType(IAst2ArlContext *ctxt);
+    TaskBuildExprStatic(IAst2ArlContext *ctxt);
 
-    virtual ~TaskBuildEnumType();
+    virtual ~TaskBuildExprStatic();
 
-    vsc::dm::IDataTypeEnum *build(
-        const std::string       &ns_prefix,
-        ast::ISymbolEnumScope   *ast_enum);
+    vsc::dm::ITypeExpr *build(ast::IScopeChild *item);
 
     virtual void visitEnumItem(ast::IEnumItem *i) override;
 
 private:
     static dmgr::IDebug         *m_dbg;
     IAst2ArlContext             *m_ctxt;
-    std::string                 m_ns_prefix;
-    vsc::dm::IDataTypeEnum      *m_dt_enum;
-
+    vsc::dm::ITypeExpr          *m_ret;
 };
 
 }
