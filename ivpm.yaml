@@ -2,39 +2,42 @@
 #* ivpm.yaml
 #*****************************************************************************
 package:
-   name: zuspec-fe-parser
-   version: 0.0.1
+  name: zuspec-fe-parser
+  version: 0.0.1
 
-   setup-deps:
-   - ninja
-   - cython
+#   setup-deps:
+#   - ninja
+#   - cython
+
+  dep-sets:
+  - name: default
+    deps: 
+    - name: zuspec-parser
+      url: https://github.com/zuspec/zuspec-parser.git
+    - name: zuspec-arl-dm
+      url: https://github.com/zuspec/zuspec-arl-dm.git
+    - name: ciostream
+      url: https://github.com/mballance-utils/ciostream.git
+    - name: gtest
+      url: https://github.com/google/googletest/archive/release-1.10.0.tar.gz
+    - name: ninja
+      src: pypi
+    - name: cython
+      src: pypi
    
-   deps: 
-     - name: zuspec-parser
-       url: https://github.com/zuspec/zuspec-parser.git
-     - name: zuspec-arl-dm
-       url: https://github.com/zuspec/zuspec-arl-dm.git
-     - name: ciostream
-       url: https://github.com/mballance-utils/ciostream.git
-     - name: gtest
-       url: https://github.com/google/googletest/archive/release-1.10.0.tar.gz
-     - name: ninja
-       src: pypi
-     - name: cython
-       src: pypi
-   
-   dev-deps:
-     - name: zuspec-parser
-       url: https://github.com/zuspec/zuspec-parser.git
-     - name: zuspec-arl-dm
-       url: https://github.com/zuspec/zuspec-arl-dm.git
-     - name: ciostream
-       url: https://github.com/mballance-utils/ciostream.git
-     - name: gtest
-       url: https://github.com/google/googletest/archive/release-1.10.0.tar.gz
-     - name: ninja
-       src: pypi
-     - name: cython
-       src: pypi
+  - name: default-dev
+    deps:
+    - name: zuspec-parser
+      url: https://github.com/zuspec/zuspec-parser.git
+    - name: zuspec-arl-dm
+      url: https://github.com/zuspec/zuspec-arl-dm.git
+    - name: ciostream
+      url: https://github.com/mballance-utils/ciostream.git
+    - name: gtest
+      url: https://github.com/google/googletest/archive/release-1.10.0.tar.gz
+    - name: ninja
+      src: pypi
+    - name: cython
+      src: pypi
 
   
