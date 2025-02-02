@@ -8,24 +8,16 @@ import sys
 import platform
 from setuptools import Extension, find_namespace_packages
 
-if "IVPM_PYTHONPATH" in os.environ.keys():
-    ps = ";" if platform.system() == "Windows" else ":"
-    for i,p in enumerate(os.environ["IVPM_PYTHONPATH"].split(ps)):
-        sys.path.insert(i, p)
-    print("Updated PYTHONPATH: %s" % str(sys.path))
-else:
-    print("No IVPM_PYTHONPATH: %s" % str(sys.path))
-
-version="0.0.1"
 
 proj_dir = os.path.dirname(os.path.abspath(__file__))
 
 try:
     sys.path.insert(0, os.path.join(proj_dir, "python/zsp_fe_parser"))
-    from __build_num__ import BUILD_NUM
-    version += ".%s" % str(BUILD_NUM)
+    from __version__ import VERSION
+    version = VERSION
 except ImportError as e:
     print("No build_num: %s" % str(e))
+    version="0.0.1"
 
 isSrcBuild = False
 
