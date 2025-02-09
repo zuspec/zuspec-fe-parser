@@ -13,7 +13,8 @@ proj_dir = os.path.dirname(os.path.abspath(__file__))
 
 try:
     sys.path.insert(0, os.path.join(proj_dir, "python/zsp_fe_parser"))
-    from __version__ import VERSION
+    from __version__ import VERSION, BASE
+    base = BASE
     version = VERSION
 except ImportError as e:
     print("No build_num: %s" % str(e))
@@ -72,7 +73,9 @@ setup_args = dict(
         'cython', 'ciostream'
     ],
     install_requires=[
-        'ciostream', 'zuspec-arl-dm', 'zuspec-parser'
+        'ciostream', 
+        'zuspec-arl-dm>=%s' % base, 
+        'zuspec-parser>=%s' % base
     ],
     entry_points={
         "ivpm.pkginfo": {
