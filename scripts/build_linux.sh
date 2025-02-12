@@ -13,6 +13,6 @@ ${PYTHON} -m pip install twine auditwheel ninja wheel cython
 ${PYTHON} setup.py bdist_wheel
 
 for whl in dist/*.whl; do
-    ${PYTHON} -m auditwheel repair $whl
+    ${PYTHON} -m auditwheel repair --only-plat $whl
     rm $whl
 done
