@@ -20,6 +20,7 @@
  */
 #pragma once
 #include "zsp/fe/parser/IAst2ArlContext.h"
+#include "zsp/arl/dm/IDataTypeArlStruct.h"
 
 namespace zsp {
 namespace fe {
@@ -29,7 +30,9 @@ namespace parser {
 
 class TaskBuildDataTypeFunction {
 public:
-    TaskBuildDataTypeFunction(IAst2ArlContext *ctxt);
+    TaskBuildDataTypeFunction(
+        IAst2ArlContext             *ctxt, 
+        arl::dm::IDataTypeArlStruct *type=0);
 
     virtual ~TaskBuildDataTypeFunction();
 
@@ -40,6 +43,8 @@ public:
 private:
     static dmgr::IDebug                 *m_dbg;
     IAst2ArlContext                     *m_ctxt;
+    arl::dm::IDataTypeArlStruct         *m_type;
+
 
 };
 

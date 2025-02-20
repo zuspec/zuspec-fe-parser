@@ -38,8 +38,9 @@ static std::map<ast::ParamDir, arl::dm::ParamDir> param_dir_m = {
 };
 
 
-TaskBuildDataTypeFunction::TaskBuildDataTypeFunction(IAst2ArlContext *ctxt) 
-    : m_ctxt(ctxt) {
+TaskBuildDataTypeFunction::TaskBuildDataTypeFunction(
+    IAst2ArlContext                 *ctxt,
+    arl::dm::IDataTypeArlStruct     *type) : m_ctxt(ctxt), m_type(type) {
     DEBUG_INIT("zsp::fe::parser::TaskBuildDataTypeFunction", ctxt->getDebugMgr());
 }
 
@@ -99,7 +100,8 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
         fname,
         rtype?TaskBuildDataType(m_ctxt).build(rtype):0,
         false,
-        flags);
+        flags,
+        m_type);
 
     // Bring across the function parameters
     for (std::vector<ast::IFunctionParamDeclUP>::const_iterator
@@ -120,6 +122,10 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
         func->addParameter(param);
     }
     m_ctxt->ctxt()->addDataTypeFunction(func);
+
+    if (m_type) {
+        m_type->addFunction(func, false);
+    }
 
     if (i->getBody()) {
         // Local implementation

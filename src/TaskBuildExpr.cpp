@@ -409,12 +409,18 @@ void TaskBuildExpr::visitExprRefPathElem(ast::IExprRefPathElem *i) {
     
 void TaskBuildExpr::visitExprRefPathStaticRooted(ast::IExprRefPathStaticRooted *i) { 
     DEBUG_ENTER("visitExprRefPathStaticRooted");
-    
-    // First, build the root-reference expression
-    m_expr = 0;
-    m_ctxt->pushBaseExpr(m_expr);
-    i->getRoot()->accept(m_this);
-    m_ctxt->popBaseExpr();
+
+    std::vector<ast::IExprMemberPathElemUP>::const_iterator leaf_it;
+    leaf_it = i->getLeaf()->getElems().begin();
+
+    if (i->getRoot()->getIs_global() && i->getRoot()->getBase().size() == 0) {
+    } else {
+        // First, build the root-reference expression
+        m_expr = 0;
+        m_ctxt->pushBaseExpr(m_expr);
+        i->getRoot()->accept(m_this);
+        m_ctxt->popBaseExpr();
+    }
 
     if (!m_expr) {
         DEBUG_ERROR("Building root expression failed");
@@ -423,13 +429,11 @@ void TaskBuildExpr::visitExprRefPathStaticRooted(ast::IExprRefPathStaticRooted *
     }
 
     m_ctxt->pushIsPyRef(i->getRoot()->getTarget()->getPyref_idx() != -1);
-    for (std::vector<ast::IExprMemberPathElemUP>::const_iterator
-        it=i->getLeaf()->getElems().begin();
-        it!=i->getLeaf()->getElems().end(); it++) {
+    for (; leaf_it!=i->getLeaf()->getElems().end(); leaf_it++) {
         DEBUG("Push BaseExpr %p", m_expr);
         m_ctxt->pushBaseExpr(m_expr);
         DEBUG("BaseExpr %p", m_ctxt->baseExpr());
-        (*it)->accept(m_this);
+        (*leaf_it)->accept(m_this);
         m_ctxt->popBaseExpr();
         DEBUG("Post Pop BaseExpr expr=%p", m_expr);
     }

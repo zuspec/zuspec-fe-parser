@@ -72,7 +72,9 @@ void TaskBuildTypeFunctions::visitStruct(ast::IStruct *i) {
 
 void TaskBuildTypeFunctions::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
     DEBUG_ENTER("visitSymbolFunctionScope");
-    TaskBuildDataTypeFunction(m_ctxt).build(i, true);
+    TaskBuildDataTypeFunction(
+        m_ctxt, 
+        dynamic_cast<arl::dm::IDataTypeArlStruct *>(m_arl_type)).build(i, true);
     DEBUG_LEAVE("visitSymbolFunctionScope");
 }
 
