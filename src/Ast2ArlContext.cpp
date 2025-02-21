@@ -190,23 +190,23 @@ ast::ISymbolScope *Ast2ArlContext::typeScope() const {
     return ret;
 }
 
-vsc::dm::IDataType *Ast2ArlContext::findType(ast::IScopeChild *t) {
-    std::map<ast::IScopeChild *, vsc::dm::IDataType *>::const_iterator it;
+vsc::dm::IAccept *Ast2ArlContext::findType(ast::IScopeChild *t) {
+    std::map<ast::IScopeChild *, vsc::dm::IAccept *>::const_iterator it;
     
     if ((it=m_type_m.find(t)) != m_type_m.end()) {
-        return it->second;
+        return dynamic_cast<vsc::dm::IDataType *>(it->second);
     } else {
         return 0;
     }
 }
 
-void Ast2ArlContext::addType(ast::IScopeChild *t, vsc::dm::IDataType *dmt) {
+void Ast2ArlContext::addType(ast::IScopeChild *t, vsc::dm::IAccept *dmt) {
     m_type_m.insert({t, dmt});
 }
 
-vsc::dm::IDataType *Ast2ArlContext::getType(ast::IScopeChild *t) {
-    std::map<ast::IScopeChild *, vsc::dm::IDataType *>::const_iterator it;
-    vsc::dm::IDataType *ret = 0;
+vsc::dm::IAccept *Ast2ArlContext::getType(ast::IScopeChild *t) {
+    std::map<ast::IScopeChild *, vsc::dm::IAccept *>::const_iterator it;
+    vsc::dm::IAccept *ret = 0;
     it = m_type_m.find(t);
 
     if (it == m_type_m.end()) {

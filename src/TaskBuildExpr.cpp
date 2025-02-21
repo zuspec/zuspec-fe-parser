@@ -410,10 +410,43 @@ void TaskBuildExpr::visitExprRefPathElem(ast::IExprRefPathElem *i) {
 void TaskBuildExpr::visitExprRefPathStaticRooted(ast::IExprRefPathStaticRooted *i) { 
     DEBUG_ENTER("visitExprRefPathStaticRooted");
 
-    std::vector<ast::IExprMemberPathElemUP>::const_iterator leaf_it;
-    leaf_it = i->getLeaf()->getElems().begin();
+
+    if (i->getRoot()->getBase().size() == 0 &&
+        i->getLeaf()->getElems().size() == 1 &&
+        i->getLeaf()->getElems().back()->getParams()) {
+        // Unqualified leaf function
+
+        ast::IScopeChild *target_c = zsp::parser::TaskResolveSymbolPathRef(
+            m_ctxt->getDebugMgr(),
+            m_ctxt->getRoot()).resolve(i->getRoot()->getTarget());
+        arl::dm::IDataTypeFunction *func = m_ctxt->getTypeT<arl::dm::IDataTypeFunction>(target_c);
+
+        DEBUG("Function call");
+        std::vector<vsc::dm::ITypeExpr *> params;
+        for (std::vector<ast::IExprUP>::const_iterator
+                it=i->getLeaf()->getElems().front()->getParams()->getParameters().begin();
+                it!=i->getLeaf()->getElems().front()->getParams()->getParameters().end(); it++) {
+            params.push_back(TaskBuildExpr(m_ctxt).build(it->get()));
+        }
+
+        m_expr = m_ctxt->ctxt()->mkTypeExprMethodCallStatic(
+            func,
+            params,
+            true);
+    }
+
+#ifdef UNDEFINED
 
     if (i->getRoot()->getIs_global() && i->getRoot()->getBase().size() == 0) {
+        // Root points the static bit, while leaf holds non-static elements
+
+        if (i->getLeaf()->getElems().size()) {
+            if (i->getLeaf()->getElems())
+        }
+        vsc::dm::IAccept *type = m_ctxt->getType(target_c);
+        DEBUG("Target: %p %p", target_c, type);
+
+        leaf_it++;
     } else {
         // First, build the root-reference expression
         m_expr = 0;
@@ -438,8 +471,9 @@ void TaskBuildExpr::visitExprRefPathStaticRooted(ast::IExprRefPathStaticRooted *
         DEBUG("Post Pop BaseExpr expr=%p", m_expr);
     }
     m_ctxt->popIsPyRef();
-
     DEBUG("root=%p leaf=%p", i->getRoot(), i->getLeaf());
+#endif // UNDEFINED
+
 
     DEBUG_LEAVE("visitExprRefPathStaticRooted");
 }

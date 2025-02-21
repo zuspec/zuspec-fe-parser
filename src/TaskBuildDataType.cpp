@@ -47,7 +47,7 @@ TaskBuildDataType::~TaskBuildDataType() {
 
 }
 
-vsc::dm::IDataType *TaskBuildDataType::build(ast::IScopeChild *type) {
+vsc::dm::IAccept *TaskBuildDataType::build(ast::IScopeChild *type) {
     DEBUG_ENTER("build");
     m_type = 0;
     m_depth = 0;
@@ -63,7 +63,7 @@ vsc::dm::IDataType *TaskBuildDataType::build(ast::IScopeChild *type) {
     return m_type;
 }
 
-vsc::dm::IDataType *TaskBuildDataType::build(ast::IExpr *type) {
+vsc::dm::IAccept *TaskBuildDataType::build(ast::IExpr *type) {
     DEBUG_ENTER("build(expr)");
     m_type = 0;
     m_depth = 0;
@@ -79,7 +79,7 @@ vsc::dm::IDataType *TaskBuildDataType::build(ast::IExpr *type) {
     return m_type;
 }
 
-vsc::dm::IDataType *TaskBuildDataType::build(ast::ITypeIdentifier *type) {
+vsc::dm::IAccept *TaskBuildDataType::build(ast::ITypeIdentifier *type) {
     DEBUG_ENTER("build(type-id)");
     ast::IScopeChild *ref_t = zsp::parser::TaskResolveSymbolPathRef(
         m_ctxt->getDebugMgr(),
@@ -158,7 +158,7 @@ void TaskBuildDataType::visitAction(ast::IAction *i) {
 
         if (i->getSuper_t()) {
             DEBUG("Has a super type");
-            vsc::dm::IDataType *super_t = TaskBuildDataType(m_ctxt).build(i->getSuper_t());
+            vsc::dm::IDataType *super_t = TaskBuildDataType(m_ctxt).buildT<vsc::dm::IDataType>(i->getSuper_t());
             action_t->setSuper(dynamic_cast<vsc::dm::IDataTypeStruct *>(super_t));
         }
 
@@ -219,7 +219,7 @@ void TaskBuildDataType::visitComponent(ast::IComponent *i) {
 
         if (i->getSuper_t()) {
             DEBUG("Has a super type");
-            vsc::dm::IDataType *super_t = TaskBuildDataType(m_ctxt).build(i->getSuper_t());
+            vsc::dm::IDataType *super_t = TaskBuildDataType(m_ctxt).buildT<vsc::dm::IDataType>(i->getSuper_t());
             comp_t->setSuper(dynamic_cast<vsc::dm::IDataTypeStruct *>(super_t));
         }
 
@@ -408,7 +408,7 @@ void TaskBuildDataType::visitStruct(ast::IStruct *i) {
 
         if (i->getSuper_t()) {
             DEBUG("Has a super type");
-            vsc::dm::IDataType *super_t = TaskBuildDataType(m_ctxt).build(i->getSuper_t());
+            vsc::dm::IDataType *super_t = TaskBuildDataType(m_ctxt).buildT<vsc::dm::IDataType>(i->getSuper_t());
             struct_t->setSuper(dynamic_cast<vsc::dm::IDataTypeStruct *>(super_t));
         }
         m_type = type_t;
@@ -630,7 +630,7 @@ std::string TaskBuildDataType::getNamespacePrefix() {
     return ret;
 }
 
-vsc::dm::IDataType *TaskBuildDataType::findType(ast::IScopeChild *ast_t) {
+vsc::dm::IAccept *TaskBuildDataType::findType(ast::IScopeChild *ast_t) {
     return m_ctxt->findType(ast_t);
 }
 

@@ -98,7 +98,7 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
     ast::IScopeChild *rtype = proto->getRtype();
     arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->mkDataTypeFunction(
         fname,
-        rtype?TaskBuildDataType(m_ctxt).build(rtype):0,
+        rtype?TaskBuildDataType(m_ctxt).buildT<vsc::dm::IDataType>(rtype):0,
         false,
         flags,
         m_type);
@@ -109,7 +109,7 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
         it!=proto->getParameters().end(); it++) {
         std::string name = (*it)->getName()->getId();
         arl::dm::ParamDir dir = param_dir_m.find((*it)->getDir())->second;
-        vsc::dm::IDataType *type = TaskBuildDataType(m_ctxt).build((*it)->getType());
+        vsc::dm::IDataType *type = TaskBuildDataType(m_ctxt).buildT<vsc::dm::IDataType>((*it)->getType());
         vsc::dm::ITypeExpr *dflt = ((*it)->getDflt())?TaskBuildExpr(m_ctxt).build((*it)->getDflt()):0;
         arl::dm::IDataTypeFunctionParamDecl *param = 
         m_ctxt->ctxt()->mkDataTypeFunctionParamDecl(
@@ -125,6 +125,8 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
 
     if (m_type) {
         m_type->addFunction(func, false);
+    } else {
+        m_ctxt->addType(i, func);
     }
 
     if (i->getBody()) {

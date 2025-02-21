@@ -82,7 +82,7 @@ void Ast2ArlBuilder::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
         if (!m_ctxt->findType(i->getTarget())) {
             DEBUG("Need to build type");
             // We haven't defined this type yet, so go build it
-            vsc::dm::IDataType *type = TaskBuildDataType(m_ctxt).build(i);
+            vsc::dm::IDataType *type = TaskBuildDataType(m_ctxt).buildT<vsc::dm::IDataType>(i);
         }
     }
     DEBUG_LEAVE("visitSymbolTypeScope %s", i->getName().c_str());

@@ -47,7 +47,7 @@ vsc::dm::ITypeField *ElemFactoryRegGroup::mkTypeFieldPhy(
     DEBUG_ENTER("mkTypeFieldPhy %s", name.c_str());
 
     // Build field in terms of specified target type
-    vsc::dm::IDataType *dt = TaskBuildDataType(ctx).build(type);
+    vsc::dm::IDataType *dt = TaskBuildDataType(ctx).buildT<vsc::dm::IDataType>(type);
 
     vsc::dm::ITypeField *ret = ctx->ctxt()->mkTypeFieldRegGroup(
             name,
@@ -80,9 +80,9 @@ vsc::dm::ITypeField *ElemFactoryRegGroup::mkTypeFieldArr(
 
     vsc::dm::ITypeField *ret = ctx->ctxt()->mkTypeFieldRegGroupArr(
         name,
-        TaskBuildDataType(ctx).build(type),
+        TaskBuildDataType(ctx).buildT<vsc::dm::IDataType>(type),
         false,
-        TaskBuildDataType(ctx).build(elem_type),
+        TaskBuildDataType(ctx).buildT<vsc::dm::IDataType>(elem_type),
         false,
         size_i);
 

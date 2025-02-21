@@ -43,11 +43,23 @@ public:
 
     virtual ~TaskBuildDataType();
 
-    vsc::dm::IDataType *build(ast::IScopeChild *type);
+    vsc::dm::IAccept *build(ast::IScopeChild *type);
 
-    vsc::dm::IDataType *build(ast::IExpr *type);
+    template <class T> T *buildT(ast::IScopeChild *type) {
+        return dynamic_cast<T *>(build(type));
+    }
 
-    vsc::dm::IDataType *build(ast::ITypeIdentifier *type);
+    vsc::dm::IAccept *build(ast::IExpr *type);
+
+    template <class T> T *buildT(ast::IExpr *type) {
+        return dynamic_cast<T *>(build(type));
+    }
+
+    vsc::dm::IAccept *build(ast::ITypeIdentifier *type);
+
+    template <class T> T *buildT(ast::ITypeIdentifier *type) {
+        return dynamic_cast<T *>(build(type));
+    }
 
     virtual void visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) override;
 
@@ -123,7 +135,7 @@ protected:
 
     std::string getNamespacePrefix();
 
-    vsc::dm::IDataType *findType(ast::IScopeChild *ast_t);
+    vsc::dm::IAccept *findType(ast::IScopeChild *ast_t);
 
     template <class T> T *findTypeT(ast::IScopeChild *ast_t) {
         return dynamic_cast<T *>(findType(ast_t));
@@ -137,7 +149,7 @@ protected:
     static dmgr::IDebug                                         *m_dbg;
     IAst2ArlContext                                             *m_ctxt;
     uint32_t                                                    m_depth;
-    vsc::dm::IDataType                                          *m_type;
+    vsc::dm::IAccept                                            *m_type;
     std::vector<vsc::dm::IDataTypeStruct *>                     m_type_s;
     uint32_t                                                    m_field_off;
     std::vector<std::map<std::string,ast::IConstraintScope *>>  m_constraint_m;

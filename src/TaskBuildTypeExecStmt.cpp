@@ -255,7 +255,7 @@ void TaskBuildTypeExecStmt::visitProceduralStmtDataDeclaration(ast::IProceduralS
     vsc::dm::IDataType *dm_dt;
 
     if (ast_dt) {
-        dm_dt = TaskBuildDataType(m_ctxt).build(ast_dt);
+        dm_dt = TaskBuildDataType(m_ctxt).buildT<vsc::dm::IDataType>(ast_dt);
     } else {
         // TODO:
         dm_dt = m_ctxt->ctxt()->findDataTypeInt(true, 32);

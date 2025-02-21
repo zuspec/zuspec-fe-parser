@@ -54,7 +54,7 @@ void TaskBuildExprStatic::visitEnumItem(ast::IEnumItem *i) {
     ast::IScopeChild *enum_t = enum_s->getTarget();
     vsc::dm::IDataType *enum_dt;
 
-    if (!(enum_dt=m_ctxt->findType(enum_t))) {
+    if (!(enum_dt=m_ctxt->findTypeT<vsc::dm::IDataType>(enum_t))) {
         enum_dt = TaskBuildEnumType(m_ctxt).build("", enum_s);
         m_ctxt->addType(enum_s, enum_dt);
     }
