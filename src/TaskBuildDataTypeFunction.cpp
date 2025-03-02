@@ -64,6 +64,8 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
     bool is_target = proto->getIs_target();
     bool is_solve  = proto->getIs_solve();
 
+    DEBUG("is_target=%d is_solve=%d", is_target, is_solve);
+
     if (!i->getBody()) {
         for (std::vector<ast::IFunctionImportUP>::const_iterator
             it=i->getImport_specs().begin();
@@ -93,7 +95,17 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
                 flags = flags | arl::dm::DataTypeFunctionFlags::Solve;
             }
         }
+    } else {
+        if (is_target) {
+            flags = flags | arl::dm::DataTypeFunctionFlags::Target;
+        }
+        if (is_solve) {
+            flags = flags | arl::dm::DataTypeFunctionFlags::Solve;
+        }
     }
+
+    DEBUG("flags: 0x%08x", flags);
+
 //    ast::IScopeChild *rtype = i->getDefinition()->getProto()->getRtype();
     ast::IScopeChild *rtype = proto->getRtype();
     arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->mkDataTypeFunction(
