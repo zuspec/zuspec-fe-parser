@@ -70,7 +70,8 @@ setup_args = dict(
     Zuspec front-end to bring in parsed PSS
     """,
     setup_requires=[
-        'cython', 'ciostream'
+        'cython', 'ciostream', 'ivpm', 'zuspec-arl-dm',
+        'zuspec-parser',
     ],
     install_requires=[
         'ciostream', 
