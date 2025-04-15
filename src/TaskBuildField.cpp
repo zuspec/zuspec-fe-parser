@@ -149,10 +149,10 @@ void TaskBuildField::visitFieldRef(ast::IFieldRef *i) {
  */
 
     if (!m_ret) {
-        m_ret = m_ctxt->ctxt()->mkTypeFieldRef(
+        m_ret = m_ctxt->ctxt()->mkTypeFieldInOut(
             i->getName()->getId(),
             dt,
-            attr);
+            i->getIs_input());
     }
     DEBUG_LEAVE("visitFieldRef");
 }
