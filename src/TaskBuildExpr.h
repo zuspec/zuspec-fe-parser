@@ -121,6 +121,12 @@ private:
         int32_t                         idx,
         ast::IScopeChild                *ast_scope);
 
+    vsc::dm::ITypeExpr *buildCall(
+        vsc::dm::ITypeExpr              *root,
+        ast::IExprMemberPathElem        *elem,
+        int32_t                         idx,
+        ast::IScopeChild                *ast_scope);
+
 private:
     static dmgr::IDebug             *m_dbg;
     IAst2ArlContext                 *m_ctxt;

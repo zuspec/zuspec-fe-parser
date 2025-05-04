@@ -97,8 +97,22 @@ vsc::dm::IAccept *TaskBuildDataType::build(ast::ITypeIdentifier *type) {
 }
 
 void TaskBuildDataType::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
-    DEBUG_ENTER("visitSymbolFunctionScope %s", i->getName().c_str());
+    DEBUG_ENTER("visitSymbolFunctionScope %s (%d)", i->getName().c_str(), m_depth);
+    if (!m_depth) {
+    char tmp[128];
+    sprintf(tmp, "__xyz_%p", i);
+    vsc::dm::ITypeField *field = m_ctxt->ctxt()->mkTypeFieldPhy(tmp,
+        m_ctxt->ctxt()->getDataTypeCore(vsc::dm::DataTypeCoreE::Bool),
+        false,
+        vsc::dm::TypeFieldAttr::NoAttr,
+        0);
+    m_type_s.back()->addField(field);
+    }
+#ifdef UNDEFINED
+
+
 //    TaskBuildDataTypeFunction(m_ctxt).build(i, true);
+#endif // UNDEFINED
     DEBUG_LEAVE("visitSymbolFunctionScope");
 }
 

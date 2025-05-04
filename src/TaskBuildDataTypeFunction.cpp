@@ -64,6 +64,10 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
     bool is_target = proto->getIs_target();
     bool is_solve  = proto->getIs_solve();
 
+    if (proto->getIs_core()) {
+        flags = (flags | arl::dm::DataTypeFunctionFlags::Core);
+    }
+
     DEBUG("is_target=%d is_solve=%d", is_target, is_solve);
 
     if (!i->getBody()) {
@@ -105,6 +109,7 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
     }
 
     DEBUG("flags: 0x%08x", flags);
+    DEBUG("m_type: %p", m_type);
 
 //    ast::IScopeChild *rtype = i->getDefinition()->getProto()->getRtype();
     ast::IScopeChild *rtype = proto->getRtype();
