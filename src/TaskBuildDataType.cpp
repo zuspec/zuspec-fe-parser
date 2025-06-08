@@ -185,11 +185,23 @@ void TaskBuildDataType::visitAction(ast::IAction *i) {
 
 void TaskBuildDataType::visitActivityDecl(ast::IActivityDecl *i) {
     DEBUG_ENTER("visitActivityDecl");
-    arl::dm::IDataTypeAction *action = dynamic_cast<arl::dm::IDataTypeAction *>(m_type_s.back());
-    action->addActivity(m_ctxt->ctxt()->mkTypeFieldActivity(
-        "activity",
-        TaskBuildActivity(m_ctxt).build(i),
-        true));
+    arl::dm::IDataTypeAction *action;
+    arl::dm::IDataTypeComponent *comp = dynamic_cast<arl::dm::IDataTypeComponent *>(m_type_s.back());
+
+    if ((action=dynamic_cast<arl::dm::IDataTypeAction *>(m_type_s.back()))) {
+        action->addActivity(m_ctxt->ctxt()->mkTypeFieldActivity(
+            "activity",
+            TaskBuildActivity(m_ctxt).build(i),
+            true));
+    } else if ((comp=dynamic_cast<arl::dm::IDataTypeComponent *>(m_type_s.back()))) {
+        comp->addActivity(m_ctxt->ctxt()->mkTypeFieldActivity(
+            "activity",
+            TaskBuildActivity(m_ctxt).build(i),
+            true));
+    } else {
+        DEBUG_ERROR("Expected component or action type, but got %p", m_type_s.back());
+        return;
+    }
     DEBUG_LEAVE("visitActivityDecl");
 }
 
