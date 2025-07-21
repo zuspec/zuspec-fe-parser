@@ -101,6 +101,8 @@ public:
     virtual void addType(ast::IScopeChild *t, vsc::dm::IAccept *dmt) override;
 
     vsc::dm::IAccept *getType(ast::IScopeChild *t);
+
+    ast::IScopeChild *getTypeAst(vsc::dm::IAccept *dmt) override;
     
     virtual ast::ISymbolScope *getRoot() override {
         return m_root;
@@ -135,6 +137,7 @@ private:
     zsp::parser::IMarkerUP                                          m_marker;
     std::vector<std::vector<zsp::parser::ScopeUtil>>                m_scope_s;
     std::map<ast::IScopeChild *, vsc::dm::IAccept *>                m_type_m;
+    std::map<vsc::dm::IAccept *, ast::IScopeChild *>                m_type_ast_m;
     std::vector<int32_t>                                            m_type_s_idx_s;
     std::vector<ast::ISymbolScope *>                                m_inline_ctxt_s;
     std::vector<bool>                                               m_pyref_s;

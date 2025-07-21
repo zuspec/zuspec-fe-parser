@@ -41,7 +41,7 @@ public:
 
     virtual ~TaskBuildTypeFunctions();
 
-    void build(ast::ISymbolTypeScope *ast_type);
+    void build(ast::IScopeChild *ast_type);
     
     virtual void visitAction(ast::IAction *i) override;
 

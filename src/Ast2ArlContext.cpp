@@ -202,6 +202,7 @@ vsc::dm::IAccept *Ast2ArlContext::findType(ast::IScopeChild *t) {
 
 void Ast2ArlContext::addType(ast::IScopeChild *t, vsc::dm::IAccept *dmt) {
     m_type_m.insert({t, dmt});
+    m_type_ast_m.insert({dmt, t});
 }
 
 vsc::dm::IAccept *Ast2ArlContext::getType(ast::IScopeChild *t) {
@@ -218,6 +219,27 @@ vsc::dm::IAccept *Ast2ArlContext::getType(ast::IScopeChild *t) {
                 dynamic_cast<vsc::dm::IDataTypeStruct *>(it->second)?
                     dynamic_cast<vsc::dm::IDataTypeStruct *>(it->second)->name().c_str():"<primitive>");
         }
+    } else {
+        ret = it->second;
+    }
+
+    return ret;
+}
+
+ast::IScopeChild *Ast2ArlContext::getTypeAst(vsc::dm::IAccept *dmt) {
+    std::map<vsc::dm::IAccept *, ast::IScopeChild *>::const_iterator it;
+    ast::IScopeChild *ret = 0;
+    it = m_type_ast_m.find(dmt);
+
+    if (it == m_type_ast_m.end()) {
+        // Failed to find
+        DEBUG_ERROR("Failed to find type %p", dmt);
+//        DEBUG("TODO: failed to find type %p (%s)", dmt, dmt->name().c_str());
+        // for (it=m_type_ast_m.begin(); it!=m_type_ast_m.end(); it++) {
+        //     DEBUG("  Type: %p %s", it->first, 
+        //         dynamic_cast<vsc::dm::IDataTypeStruct *>(it->second)?
+        //             dynamic_cast<vsc::dm::IDataTypeStruct *>(it->second)->name().c_str():"<primitive>");
+        // }
     } else {
         ret = it->second;
     }

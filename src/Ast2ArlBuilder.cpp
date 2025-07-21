@@ -25,6 +25,9 @@
 #include "TaskBuildEnumType.h"
 #include "TaskBuildExpr.h"
 #include "TaskBuildTypeExecStmt.h"
+#include "TaskDeclareTypes.h"
+#include "TaskDeclareTypeBodies.h"
+#include "TaskDeclareTypeFields.h"
 #include "TaskLinkBuiltinTypeElemFactories.h"
 
 namespace zsp {
@@ -53,6 +56,9 @@ void Ast2ArlBuilder::build(
     TaskLinkBuiltinTypeElemFactories(ctxt).link(root);
 
     m_ctxt->pushSymScopeStack(root);
+    TaskDeclareTypes(ctxt).build(root);
+    TaskDeclareTypeFields(ctxt).build(root);
+    TaskDeclareTypeBodies(ctxt).build(root);
     root->accept(this);
     m_ctxt->popSymScopeStack();
 

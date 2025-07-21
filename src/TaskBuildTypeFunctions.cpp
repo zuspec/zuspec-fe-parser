@@ -40,7 +40,7 @@ TaskBuildTypeFunctions::~TaskBuildTypeFunctions() {
 
 }
 
-void TaskBuildTypeFunctions::build(ast::ISymbolTypeScope *ast_type) {
+void TaskBuildTypeFunctions::build(ast::IScopeChild *ast_type) {
     m_subtype_c.clear();
     m_depth = 0;
     ast_type->accept(m_this);

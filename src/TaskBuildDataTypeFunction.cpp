@@ -20,6 +20,7 @@
  */
 #include "dmgr/impl/DebugMacros.h"
 #include "zsp/parser/impl/TaskGetName.h"
+#include "zsp/parser/impl/TaskResolveTypeRef.h"
 #include "TaskBuildDataType.h"
 #include "TaskBuildDataTypeFunction.h"
 #include "TaskBuildTypeExecStmt.h"
@@ -126,7 +127,11 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
         it!=proto->getParameters().end(); it++) {
         std::string name = (*it)->getName()->getId();
         arl::dm::ParamDir dir = param_dir_m.find((*it)->getDir())->second;
-        vsc::dm::IDataType *type = TaskBuildDataType(m_ctxt).buildT<vsc::dm::IDataType>((*it)->getType());
+        ast::IScopeChild *ast_t = zsp::parser::TaskResolveTypeRef(
+            m_ctxt->getDebugMgr(),
+            m_ctxt->getRoot()).resolve((*it)->getType());
+//        vsc::dm::IDataType *type = TaskBuildDataType(m_ctxt).buildT<vsc::dm::IDataType>((*it)->getType());
+        vsc::dm::IDataType *type = dynamic_cast<vsc::dm::IDataType *>(m_ctxt->getType(ast_t));
         vsc::dm::ITypeExpr *dflt = ((*it)->getDflt())?TaskBuildExpr(m_ctxt).build((*it)->getDflt()):0;
         arl::dm::IDataTypeFunctionParamDecl *param = 
         m_ctxt->ctxt()->mkDataTypeFunctionParamDecl(

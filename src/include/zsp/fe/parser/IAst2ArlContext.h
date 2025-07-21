@@ -89,6 +89,8 @@ public:
 
     virtual vsc::dm::IAccept *getType(ast::IScopeChild *t) = 0;
 
+    virtual ast::IScopeChild *getTypeAst(vsc::dm::IAccept *dmt) = 0;
+
     template <class T> T *getTypeT(ast::IScopeChild *t) {
         return dynamic_cast<T *>(getType(t));
     }
