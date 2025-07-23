@@ -50,11 +50,19 @@ TaskDeclareTypeBodies::~TaskDeclareTypeBodies() {
 void TaskDeclareTypeBodies::build(ast::ISymbolScope *root) {
     DEBUG_ENTER("build");
 
-    for (std::vector<vsc::dm::IDataTypeStructUP>::const_iterator
-        it=m_ctxt->ctxt()->getDataTypeStructs().begin();
-        it!=m_ctxt->ctxt()->getDataTypeStructs().end(); it++) {
-        m_type_s.push_back(it->get());
-        m_ast_type = m_ctxt->getTypeAst(it->get());
+    // for (std::vector<vsc::dm::IDataTypeStructUP>::const_iterator
+    //     it=m_ctxt->ctxt()->getDataTypeStructs().begin();
+    //     it!=m_ctxt->ctxt()->getDataTypeStructs().end(); it++) {
+    //     m_type_s.push_back(it->get());
+    //     m_ast_type = m_ctxt->getTypeAst(it->get());
+    //     m_ast_type->accept(m_this);
+    //     m_type_s.pop_back();
+    // }
+
+    for (uint32_t i=0; i<m_ctxt->ctxt()->getDataTypeStructs().size(); i++) {
+        m_type_s.push_back(m_ctxt->ctxt()->getDataTypeStructs().at(i).get());
+        m_ast_type = m_ctxt->getTypeAst(
+            m_ctxt->ctxt()->getDataTypeStructs().at(i).get());
         m_ast_type->accept(m_this);
         m_type_s.pop_back();
     }
@@ -160,16 +168,11 @@ void TaskDeclareTypeBodies::visitActivityDecl(ast::IActivityDecl *i) {
             TaskBuildActivity(m_ctxt).build(i),
             true));
     } else if ((comp=dynamic_cast<arl::dm::IDataTypeComponent *>(m_type_s.back()))) {
-        if (m_comp_activities.find(i) != m_comp_activities.end()) {
-            DEBUG("Building component activity");
-            comp->addActivity(m_ctxt->ctxt()->mkTypeFieldActivity(
-                "activity",
-                TaskBuildActivity(m_ctxt).build(i),
-                true));
-        } else {
-            DEBUG("Adding a component activity to build later");
-            m_comp_activities.insert(i);
-        }
+        DEBUG("Building component activity");
+        comp->addActivity(m_ctxt->ctxt()->mkTypeFieldActivity(
+            "activity", // TODO: number or otherwise uniquify?
+            TaskBuildActivity(m_ctxt).build(i),
+            true));
     } else {
         DEBUG_ERROR("Expected component or action type, but got %p", m_type_s.back());
         return;
@@ -415,9 +418,6 @@ void TaskDeclareTypeBodies::visitTypeScope(ast::ITypeScope *i) {
 void TaskDeclareTypeBodies::visitField(ast::IField *i) { 
     DEBUG_ENTER("visitField %s %d", i->getName()->getId().c_str(), m_depth);
 
-    vsc::dm::ITypeField *field = TaskBuildField(m_ctxt).build(i);
-    m_type_s.back()->addField(field, true);
-
     DEBUG_LEAVE("visitField %s %d", i->getName()->getId().c_str(), m_depth);
 }
 
@@ -487,13 +487,17 @@ void TaskDeclareTypeBodies::buildType(
         arl_type,
         ast_type);
 
-    m_type_s.pop_back();
-
     m_depth--;
 
     TaskBuildTypeExecs(m_ctxt).build(
         dynamic_cast<arl::dm::IDataTypeArlStruct *>(arl_type), 
         ast_type);
+
+    for (std::vector<ast::IScopeChildUP>::const_iterator
+        it=ast_type->getChildren().begin();
+        it!=ast_type->getChildren().end(); it++) {
+        (*it)->accept(m_this);
+    }
 
     DEBUG_LEAVE("buildType %s (%d)", arl_type->name().c_str(), m_depth);
 }

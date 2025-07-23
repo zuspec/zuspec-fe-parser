@@ -203,7 +203,7 @@ void TaskBuildTypeFunctions::visitConstraintStmtForall(ast::IConstraintStmtForal
 void TaskBuildTypeFunctions::visitConstraintStmtUnique(ast::IConstraintStmtUnique *i) { }
 
 void TaskBuildTypeFunctions::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
-    if (!m_depth) {
+    if (!m_depth && !i->getPlist()) {
         // TODO: consider super
         m_depth++;
         VisitorBase::visitSymbolScope(i);

@@ -43,7 +43,8 @@ namespace parser {
  * This class iterates through types and fills in the field declarations. 
  * It also populates the `super` field where applicable
  */
-
+class TaskDeclareTypeBodies;
+using TaskDeclareTypeBodiesUP=vsc::dm::UP<TaskDeclareTypeBodies>;
 class TaskDeclareTypeBodies : public ast::VisitorBase {
 public:
     TaskDeclareTypeBodies(IAst2ArlContext *ctxt);

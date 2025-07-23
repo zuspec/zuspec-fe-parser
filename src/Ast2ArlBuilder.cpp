@@ -58,7 +58,9 @@ void Ast2ArlBuilder::build(
     m_ctxt->pushSymScopeStack(root);
     TaskDeclareTypes(ctxt).build(root);
     TaskDeclareTypeFields(ctxt).build(root);
-    TaskDeclareTypeBodies(ctxt).build(root);
+//    TaskDeclareTypeBodies(ctxt).build(root);
+    TaskDeclareTypeBodiesUP bodies(new TaskDeclareTypeBodies(ctxt));
+    bodies->build(root);
     root->accept(this);
     m_ctxt->popSymScopeStack();
 

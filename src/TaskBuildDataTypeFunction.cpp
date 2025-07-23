@@ -130,8 +130,8 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
         ast::IScopeChild *ast_t = zsp::parser::TaskResolveTypeRef(
             m_ctxt->getDebugMgr(),
             m_ctxt->getRoot()).resolve((*it)->getType());
-//        vsc::dm::IDataType *type = TaskBuildDataType(m_ctxt).buildT<vsc::dm::IDataType>((*it)->getType());
-        vsc::dm::IDataType *type = dynamic_cast<vsc::dm::IDataType *>(m_ctxt->getType(ast_t));
+        vsc::dm::IDataType *type = TaskBuildDataType(m_ctxt).buildT<vsc::dm::IDataType>((*it)->getType());
+//        vsc::dm::IDataType *type = dynamic_cast<vsc::dm::IDataType *>(m_ctxt->getType(ast_t));
         vsc::dm::ITypeExpr *dflt = ((*it)->getDflt())?TaskBuildExpr(m_ctxt).build((*it)->getDflt()):0;
         arl::dm::IDataTypeFunctionParamDecl *param = 
         m_ctxt->ctxt()->mkDataTypeFunctionParamDecl(

@@ -38,7 +38,7 @@ namespace fe {
 namespace parser {
 
 
-TaskDeclareTypes::TaskDeclareTypes(IAst2ArlContext *ctxt) : m_ctxt(ctxt) {
+TaskDeclareTypes::TaskDeclareTypes(IAst2ArlContext *ctxt) : m_ctxt(ctxt), m_depth(0) {
     DEBUG_INIT("zsp::fe::parser::TaskDeclareTypes", ctxt->getDebugMgr());
 }
 
