@@ -61,7 +61,19 @@ void TaskBuildActivity::visitActivityDecl(ast::IActivityDecl *i) {
 
 void TaskBuildActivity::visitActivityBindStmt(ast::IActivityBindStmt *i) { 
     DEBUG_ENTER("visitActivityBindStmt");
-    DEBUG("TODO: visitActivityBindStmt");
+    arl::dm::IDataTypeActivityBind *stmt;
+    std::vector<vsc::dm::ITypeExprFieldRef *> targets;
+
+    targets.push_back(TaskBuildExpr(m_ctxt).buildT<vsc::dm::ITypeExprFieldRef>(i->getLhs()));
+
+    for (std::vector<ast::IExprHierarchicalIdUP>::const_iterator
+        it=i->getRhs().begin();
+        it!=i->getRhs().end(); it++) {
+        targets.push_back(TaskBuildExpr(m_ctxt).buildT<vsc::dm::ITypeExprFieldRef>(it->get()));
+    }
+
+    m_scope_s.back()->addBind(m_ctxt->ctxt()->mkDataTypeActivityBind(targets, true));
+    
     DEBUG_LEAVE("visitActivityBindStmt");
 }
 
@@ -147,8 +159,8 @@ void TaskBuildActivity::visitActivityActionTypeTraversal(ast::IActivityActionTyp
 void TaskBuildActivity::visitActivitySequence(ast::IActivitySequence *i) { 
     DEBUG_ENTER("visitActivitySequence");
     arl::dm::IDataTypeActivitySequence *seq = m_ctxt->ctxt()->mkDataTypeActivitySequence();
-    m_scope_s.push_back(seq);
     m_scope_s.back()->addActivity(m_ctxt->ctxt()->mkTypeFieldActivity("", seq, true));
+    m_scope_s.push_back(seq);
     for (std::vector<ast::IScopeChildUP>::const_iterator
         it=i->getChildren().begin();
         it!=i->getChildren().end(); it++) {

@@ -1,5 +1,5 @@
 /**
- * TaskBuildDataType.h
+ * TaskDeclareTypeBodies.h
  *
  * Copyright 2022 Matthew Ballance and Contributors
  *
@@ -36,31 +36,24 @@ namespace zsp {
 namespace fe {
 namespace parser {
 
-
-
-class TaskBuildDataType : public ast::VisitorBase {
+/**
+ * This class assumes that all types from the AST have been declared
+ * as vsc::dm types, but not yet populated (ie no fields, no constraints, etc)
+ * 
+ * This class iterates through types and fills in the field declarations. 
+ * It also populates the `super` field where applicable
+ */
+class TaskDeclareTypeBodies;
+using TaskDeclareTypeBodiesUP=vsc::dm::UP<TaskDeclareTypeBodies>;
+class TaskDeclareTypeBodies : public ast::VisitorBase {
 public:
-    TaskBuildDataType(IAst2ArlContext *ctxt);
+    TaskDeclareTypeBodies(IAst2ArlContext *ctxt);
 
-    virtual ~TaskBuildDataType();
+    virtual ~TaskDeclareTypeBodies();
 
-    vsc::dm::IAccept *build(ast::IScopeChild *type);
+    void build(ast::ISymbolScope *root);
 
-    template <class T> T *buildT(ast::IScopeChild *type) {
-        return dynamic_cast<T *>(build(type));
-    }
-
-    vsc::dm::IAccept *build(ast::IExpr *type);
-
-    template <class T> T *buildT(ast::IExpr *type) {
-        return dynamic_cast<T *>(build(type));
-    }
-
-    vsc::dm::IAccept *build(ast::ITypeIdentifier *type);
-
-    template <class T> T *buildT(ast::ITypeIdentifier *type) {
-        return dynamic_cast<T *>(build(type));
-    }
+    virtual void visitPackageImportStmt(ast::IPackageImportStmt *i) override;
 
     virtual void visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) override;
 
@@ -149,6 +142,7 @@ protected:
 protected:
     static dmgr::IDebug                                         *m_dbg;
     IAst2ArlContext                                             *m_ctxt;
+    ast::IScopeChild                                            *m_ast_type;
     uint32_t                                                    m_depth;
     vsc::dm::IAccept                                            *m_type;
     std::vector<vsc::dm::IDataTypeStruct *>                     m_type_s;

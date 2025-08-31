@@ -1,5 +1,5 @@
 /**
- * TaskBuildDataTypeFunction.h
+ * TaskBuildRootRefExpr.h
  *
  * Copyright 2023 Matthew Ballance and Contributors
  *
@@ -19,8 +19,10 @@
  *     Author: 
  */
 #pragma once
+#include "dmgr/IDebugMgr.h"
+#include "vsc/dm/ITypeExpr.h"
+#include "zsp/ast/impl/VisitorBase.h"
 #include "zsp/fe/parser/IAst2ArlContext.h"
-#include "zsp/arl/dm/IDataTypeArlStruct.h"
 
 namespace zsp {
 namespace fe {
@@ -28,23 +30,27 @@ namespace parser {
 
 
 
-class TaskBuildDataTypeFunction {
+class TaskBuildRootRefExpr :
+    public virtual ast::VisitorBase {
 public:
-    TaskBuildDataTypeFunction(
-        IAst2ArlContext             *ctxt, 
-        arl::dm::IDataTypeArlStruct *type=0);
+    TaskBuildRootRefExpr(IAst2ArlContext *ctxt);
 
-    virtual ~TaskBuildDataTypeFunction();
+    virtual ~TaskBuildRootRefExpr();
 
-    virtual zsp::arl::dm::IDataTypeFunction *build(
-        ast::ISymbolFunctionScope   *func,
-        bool                        ctxt_f=false);
+    vsc::dm::ITypeExpr *build(
+        ast::IExprMemberPathElem    *root,
+        ast::IScopeChild            *scope,
+        int32_t                     field_idx);
+
+    virtual void visitSymbolTypeScope(ast::ISymbolTypeScope *i) override;
+
+    virtual void visitComponent(ast::IComponent *i) override;
 
 private:
-    static dmgr::IDebug                 *m_dbg;
-    IAst2ArlContext                     *m_ctxt;
-    arl::dm::IDataTypeArlStruct         *m_type;
-
+    static dmgr::IDebug         *m_dbg;
+    IAst2ArlContext             *m_ctxt;
+    int32_t                     m_field_idx;    
+    vsc::dm::ITypeExpr          *m_ret;
 
 };
 

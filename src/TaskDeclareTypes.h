@@ -1,7 +1,7 @@
 /**
- * TaskBuildDataType.h
+ * TaskDeclareTypes.h
  *
- * Copyright 2022 Matthew Ballance and Contributors
+ * Copyright 2023 Matthew Ballance and Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may 
  * not use this file except in compliance with the License.  
@@ -38,29 +38,16 @@ namespace parser {
 
 
 
-class TaskBuildDataType : public ast::VisitorBase {
+class TaskDeclareTypes :
+    public virtual ast::VisitorBase {
 public:
-    TaskBuildDataType(IAst2ArlContext *ctxt);
+    TaskDeclareTypes(IAst2ArlContext *ctxt);
 
-    virtual ~TaskBuildDataType();
+    virtual ~TaskDeclareTypes();
 
-    vsc::dm::IAccept *build(ast::IScopeChild *type);
+    void build(ast::ISymbolScope *root);
 
-    template <class T> T *buildT(ast::IScopeChild *type) {
-        return dynamic_cast<T *>(build(type));
-    }
-
-    vsc::dm::IAccept *build(ast::IExpr *type);
-
-    template <class T> T *buildT(ast::IExpr *type) {
-        return dynamic_cast<T *>(build(type));
-    }
-
-    vsc::dm::IAccept *build(ast::ITypeIdentifier *type);
-
-    template <class T> T *buildT(ast::ITypeIdentifier *type) {
-        return dynamic_cast<T *>(build(type));
-    }
+    virtual void visitPackageImportStmt(ast::IPackageImportStmt *i) override;
 
     virtual void visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) override;
 
@@ -92,12 +79,16 @@ public:
 
     virtual void visitExecScope(ast::IExecScope *i) override;
 
+    virtual void visitRootSymbolScope(ast::IRootSymbolScope *i) override;
+
     virtual void visitStruct(ast::IStruct *i) override;
+
+    virtual void visitSymbolScope(ast::ISymbolScope *i) override;
 
     virtual void visitTypeIdentifier(ast::ITypeIdentifier *i) override;
 
-    virtual void visitTypeScope(ast::ITypeScope *i) override;
-
+    virtual void visitTypeScope(ast::ITypeScope *i) override;    
+    
     /**
      * Build body elements
      */
@@ -146,7 +137,7 @@ protected:
 
     zsp::parser::TaskResolveSymbolPathRefResult resolveTypePath(ast::ISymbolRefPath *ref);
 
-protected:
+private:
     static dmgr::IDebug                                         *m_dbg;
     IAst2ArlContext                                             *m_ctxt;
     uint32_t                                                    m_depth;
@@ -154,8 +145,7 @@ protected:
     std::vector<vsc::dm::IDataTypeStruct *>                     m_type_s;
     std::set<ast::IActivityDecl *>                              m_comp_activities;
     uint32_t                                                    m_field_off;
-    std::vector<std::map<std::string,ast::IConstraintScope *>>  m_constraint_m;
-
+    std::vector<std::map<std::string,ast::IConstraintScope *>>  m_constraint_m;    
 };
 
 }

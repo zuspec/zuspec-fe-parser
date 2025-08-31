@@ -79,11 +79,21 @@ public:
 
     virtual ast::ISymbolScope *typeScope() const = 0;
 
-    virtual vsc::dm::IDataType *findType(ast::IScopeChild *t) = 0;
+    virtual vsc::dm::IAccept *findType(ast::IScopeChild *t) = 0;
 
-    virtual void addType(ast::IScopeChild *t, vsc::dm::IDataType *dmt) = 0;
+    template <class T> T *findTypeT(ast::IScopeChild *t) {
+        return dynamic_cast<T *>(findType(t));
+    }
 
-    virtual vsc::dm::IDataType *getType(ast::IScopeChild *t) = 0;
+    virtual void addType(ast::IScopeChild *t, vsc::dm::IAccept *dmt) = 0;
+
+    virtual vsc::dm::IAccept *getType(ast::IScopeChild *t) = 0;
+
+    virtual ast::IScopeChild *getTypeAst(vsc::dm::IAccept *dmt) = 0;
+
+    template <class T> T *getTypeT(ast::IScopeChild *t) {
+        return dynamic_cast<T *>(getType(t));
+    }
 
     virtual std::string getQName(const std::string &name) = 0;
 

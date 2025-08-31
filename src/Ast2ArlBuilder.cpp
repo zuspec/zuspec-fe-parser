@@ -25,6 +25,9 @@
 #include "TaskBuildEnumType.h"
 #include "TaskBuildExpr.h"
 #include "TaskBuildTypeExecStmt.h"
+#include "TaskDeclareTypes.h"
+#include "TaskDeclareTypeBodies.h"
+#include "TaskDeclareTypeFields.h"
 #include "TaskLinkBuiltinTypeElemFactories.h"
 
 namespace zsp {
@@ -53,6 +56,11 @@ void Ast2ArlBuilder::build(
     TaskLinkBuiltinTypeElemFactories(ctxt).link(root);
 
     m_ctxt->pushSymScopeStack(root);
+    TaskDeclareTypes(ctxt).build(root);
+    TaskDeclareTypeFields(ctxt).build(root);
+//    TaskDeclareTypeBodies(ctxt).build(root);
+    TaskDeclareTypeBodiesUP bodies(new TaskDeclareTypeBodies(ctxt));
+    bodies->build(root);
     root->accept(this);
     m_ctxt->popSymScopeStack();
 
@@ -82,7 +90,7 @@ void Ast2ArlBuilder::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
         if (!m_ctxt->findType(i->getTarget())) {
             DEBUG("Need to build type");
             // We haven't defined this type yet, so go build it
-            vsc::dm::IDataType *type = TaskBuildDataType(m_ctxt).build(i);
+            vsc::dm::IDataType *type = TaskBuildDataType(m_ctxt).buildT<vsc::dm::IDataType>(i);
         }
     }
     DEBUG_LEAVE("visitSymbolTypeScope %s", i->getName().c_str());

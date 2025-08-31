@@ -40,7 +40,7 @@ TaskBuildTypeFunctions::~TaskBuildTypeFunctions() {
 
 }
 
-void TaskBuildTypeFunctions::build(ast::ISymbolTypeScope *ast_type) {
+void TaskBuildTypeFunctions::build(ast::IScopeChild *ast_type) {
     m_subtype_c.clear();
     m_depth = 0;
     ast_type->accept(m_this);
@@ -72,7 +72,9 @@ void TaskBuildTypeFunctions::visitStruct(ast::IStruct *i) {
 
 void TaskBuildTypeFunctions::visitSymbolFunctionScope(ast::ISymbolFunctionScope *i) {
     DEBUG_ENTER("visitSymbolFunctionScope");
-    TaskBuildDataTypeFunction(m_ctxt).build(i, true);
+    TaskBuildDataTypeFunction(
+        m_ctxt, 
+        dynamic_cast<arl::dm::IDataTypeArlStruct *>(m_arl_type)).build(i, true);
     DEBUG_LEAVE("visitSymbolFunctionScope");
 }
 
@@ -201,7 +203,7 @@ void TaskBuildTypeFunctions::visitConstraintStmtForall(ast::IConstraintStmtForal
 void TaskBuildTypeFunctions::visitConstraintStmtUnique(ast::IConstraintStmtUnique *i) { }
 
 void TaskBuildTypeFunctions::visitSymbolTypeScope(ast::ISymbolTypeScope *i) {
-    if (!m_depth) {
+    if (!m_depth && !i->getPlist()) {
         // TODO: consider super
         m_depth++;
         VisitorBase::visitSymbolScope(i);

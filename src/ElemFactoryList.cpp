@@ -55,9 +55,9 @@ vsc::dm::IDataType *ElemFactoryList::mkDataType(
 
     vsc::dm::IDataType *elem_t = 0;
     if (Tp.first) {
-        elem_t = TaskBuildDataType(ctx).build(Tp.first);
+        elem_t = TaskBuildDataType(ctx).buildT<vsc::dm::IDataType>(Tp.first);
     } else {
-        elem_t = TaskBuildDataType(ctx).build(Tp.second);
+        elem_t = TaskBuildDataType(ctx).buildT<vsc::dm::IDataType>(Tp.second);
     }
 
     vsc::dm::IDataTypeList *ret = ctx->ctxt()->findDataTypeList(elem_t);

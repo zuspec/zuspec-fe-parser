@@ -66,7 +66,7 @@ vsc::dm::IDataType *ElemFactoryTransparentAddrSpace::mkDataType(
     DEBUG_ENTER("mkDataTtype %s", name.c_str());
     ast::IScopeChild *trait_t = TaskGetAddrClaimTrait(
         ctx->getDebugMgr(), ctx->getRoot()).get(type);
-    vsc::dm::IDataType *trait_dt = TaskBuildDataType(ctx).build(trait_t);
+    vsc::dm::IDataType *trait_dt = TaskBuildDataType(ctx).buildT<vsc::dm::IDataType>(trait_t);
     arl::dm::IDataTypeAddrSpaceTransparentC *t = 
         ctx->ctxt()->mkDataTypeAddrSpaceTransparentC(
             name, 

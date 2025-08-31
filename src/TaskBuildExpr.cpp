@@ -30,6 +30,7 @@
 #include "TaskBuildDataTypeFunction.h"
 #include "TaskBuildExpr.h"
 #include "TaskBuildExprStatic.h"
+#include "TaskBuildRootRefExpr.h"
 #include "TaskCalculateFieldOffset.h"
 #include "TaskResolveGlobalRef.h"
 
@@ -363,17 +364,6 @@ void TaskBuildExpr::visitExprRefPathContext(ast::IExprRefPathContext *i) {
                 i,
                 root_ref.second, // idx
                 ast_scope);
-
-        /*
-        if (!has_nonterminal_fcall && !has_nonterminal_index) {
-            // Just a plain hierarchical path
-            DEBUG("Plain old hierarchical field path...");
-
-        } else {
-            // Something more complex
-            DEBUG("Something more complex...");
-        }
-         */
         } else {
             DEBUG("Using return of mkRootFieldRef");
             m_expr = root_ref.first;
@@ -409,12 +399,51 @@ void TaskBuildExpr::visitExprRefPathElem(ast::IExprRefPathElem *i) {
     
 void TaskBuildExpr::visitExprRefPathStaticRooted(ast::IExprRefPathStaticRooted *i) { 
     DEBUG_ENTER("visitExprRefPathStaticRooted");
-    
-    // First, build the root-reference expression
-    m_expr = 0;
-    m_ctxt->pushBaseExpr(m_expr);
-    i->getRoot()->accept(m_this);
-    m_ctxt->popBaseExpr();
+
+
+    if (i->getRoot()->getBase().size() == 0 &&
+        i->getLeaf()->getElems().size() == 1 &&
+        i->getLeaf()->getElems().back()->getParams()) {
+        // Unqualified leaf function
+
+        ast::IScopeChild *target_c = zsp::parser::TaskResolveSymbolPathRef(
+            m_ctxt->getDebugMgr(),
+            m_ctxt->getRoot()).resolve(i->getRoot()->getTarget());
+        arl::dm::IDataTypeFunction *func = m_ctxt->getTypeT<arl::dm::IDataTypeFunction>(target_c);
+
+        DEBUG("Function call");
+        std::vector<vsc::dm::ITypeExpr *> params;
+        for (std::vector<ast::IExprUP>::const_iterator
+                it=i->getLeaf()->getElems().front()->getParams()->getParameters().begin();
+                it!=i->getLeaf()->getElems().front()->getParams()->getParameters().end(); it++) {
+            params.push_back(TaskBuildExpr(m_ctxt).build(it->get()));
+        }
+
+        m_expr = m_ctxt->ctxt()->mkTypeExprMethodCallStatic(
+            func,
+            params,
+            true);
+    }
+
+#ifdef UNDEFINED
+
+    if (i->getRoot()->getIs_global() && i->getRoot()->getBase().size() == 0) {
+        // Root points the static bit, while leaf holds non-static elements
+
+        if (i->getLeaf()->getElems().size()) {
+            if (i->getLeaf()->getElems())
+        }
+        vsc::dm::IAccept *type = m_ctxt->getType(target_c);
+        DEBUG("Target: %p %p", target_c, type);
+
+        leaf_it++;
+    } else {
+        // First, build the root-reference expression
+        m_expr = 0;
+        m_ctxt->pushBaseExpr(m_expr);
+        i->getRoot()->accept(m_this);
+        m_ctxt->popBaseExpr();
+    }
 
     if (!m_expr) {
         DEBUG_ERROR("Building root expression failed");
@@ -423,19 +452,18 @@ void TaskBuildExpr::visitExprRefPathStaticRooted(ast::IExprRefPathStaticRooted *
     }
 
     m_ctxt->pushIsPyRef(i->getRoot()->getTarget()->getPyref_idx() != -1);
-    for (std::vector<ast::IExprMemberPathElemUP>::const_iterator
-        it=i->getLeaf()->getElems().begin();
-        it!=i->getLeaf()->getElems().end(); it++) {
+    for (; leaf_it!=i->getLeaf()->getElems().end(); leaf_it++) {
         DEBUG("Push BaseExpr %p", m_expr);
         m_ctxt->pushBaseExpr(m_expr);
         DEBUG("BaseExpr %p", m_ctxt->baseExpr());
-        (*it)->accept(m_this);
+        (*leaf_it)->accept(m_this);
         m_ctxt->popBaseExpr();
         DEBUG("Post Pop BaseExpr expr=%p", m_expr);
     }
     m_ctxt->popIsPyRef();
-
     DEBUG("root=%p leaf=%p", i->getRoot(), i->getLeaf());
+#endif // UNDEFINED
+
 
     DEBUG_LEAVE("visitExprRefPathStaticRooted");
 }
@@ -539,7 +567,7 @@ vsc::dm::ITypeExpr *TaskBuildExpr::expr(ast::IExpr *e) {
 }
 
 TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *i) {
-    DEBUG_ENTER("mkRootFieldRef");
+    DEBUG_ENTER("mkRootFieldRef %s", i->getHier_id()->getElems().at(0)->getId()->getId().c_str());
     vsc::dm::ITypeExpr *field_ref = 0;
 
     if (DEBUG_EN) {
@@ -730,10 +758,23 @@ TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *
     //        if (type_scope_idx == (i->getTarget()->getPath().size()-1)) {
                 // Reference is to a field within the active type
             DEBUG("Type-context reference");
-            field_ref = m_ctxt->ctxt()->mkTypeExprSubField(
-                m_ctxt->ctxt()->mkTypeExprRefTopDown(),
-                true,
-                i->getTarget()->getPath().back().idx);
+            // The reference is to a field within the active (type) scope
+            // Depending on what that type is, we may need to adjust the index. 
+
+            if (i->getHier_id()->getElems().front()->getParams()) {
+                ast::IScopeChild  *func = scope.getChild(i->getTarget()->getPath().back().idx);
+                field_ref = buildCall(
+                    m_ctxt->ctxt()->mkTypeExprRefTopDown(),
+                    i->getHier_id()->getElems().front().get(),
+                    0, // idx
+                    func);
+            } else {
+                field_ref = TaskBuildRootRefExpr(m_ctxt).build(
+                    i->getHier_id()->getElems().front().get(),
+                    scope.get(), 
+                    i->getTarget()->getPath().back().idx);
+            }
+
             ii = 1;
 
                 // TODO: determine if this is actually a static reference
@@ -750,7 +791,7 @@ TaskBuildExpr::RootRefT TaskBuildExpr::mkRootFieldRef(ast::IExprRefPathContext *
             ast::IScopeChild *ast_scope = resolver.resolve(i->getTarget());
 
             if (i->getHier_id()->getElems().at(0)->getParams()) {
-                DEBUG("Global function call");
+                DEBUG("Global function call (%s)", i->getHier_id()->getElems().front()->getId()->getId().c_str());
 
                 field_ref = buildRefExpr(
                     0,
@@ -938,51 +979,7 @@ vsc::dm::ITypeExpr *TaskBuildExpr::buildRefExpr(
 
     if (elem->getParams()) {
         // Function call
-        std::vector<vsc::dm::ITypeExpr *> params;
-
-        if (idx > 0) {
-            ast_scope = zsp::parser::TaskIndexField(
-                m_ctxt->getDebugMgr(),
-                m_ctxt->getRoot()).index(
-                    ast_scope,
-                    elem->getTarget(),
-                    elem->getSuper());
-        }
-
-        zsp::ast::IScopeChild *func_t = ast_scope;
-
-        for (std::vector<ast::IExprUP>::const_iterator
-            it=elem->getParams()->getParameters().begin();
-            it!=elem->getParams()->getParameters().end(); it++) {
-            params.push_back(TaskBuildExpr(m_ctxt).build(it->get()));
-        }
-
-        std::string fname = zsp::parser::TaskGetName().get(func_t, true);
-        arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->findDataTypeFunction(fname);
-
-        if (!func) {
-            DEBUG_ERROR("failed to find function %s", fname.c_str());
-        }
-
-        vsc::dm::ITypeExpr *ctxt = root;
-
-        if (!ctxt) {
-            // Static function call
-            DEBUG("Elem %d: Static function call", idx);
-
-            DEBUG("Function Name: %s", fname.c_str());
-            expr = m_ctxt->ctxt()->mkTypeExprMethodCallStatic(
-                func,
-                params);
-        } else {
-            DEBUG("Elem %d: Context function call", idx);
-
-            // Context method call
-            expr = m_ctxt->ctxt()->mkTypeExprMethodCallContext(
-                func,
-                ctxt,
-                params);
-        }
+        expr = buildCall(root, elem, idx, ast_scope);
     } else {
         // Just a regular subfield reference
         TaskCalculateFieldOffset::Res res = TaskCalculateFieldOffset(m_ctxt).calculate(
@@ -1044,6 +1041,61 @@ vsc::dm::ITypeExpr *TaskBuildExpr::buildRefExpr(
     }
 
     DEBUG_LEAVE("buildRefExpr idx=%d", idx);
+    return expr;
+}
+
+vsc::dm::ITypeExpr *TaskBuildExpr::buildCall(
+        vsc::dm::ITypeExpr              *root,
+        ast::IExprMemberPathElem        *elem,
+        int32_t                         idx,
+        ast::IScopeChild                *ast_scope) {
+        vsc::dm::ITypeExpr *expr = 0;
+    std::vector<vsc::dm::ITypeExpr *> params;
+
+    if (idx > 0) {
+        ast_scope = zsp::parser::TaskIndexField(
+            m_ctxt->getDebugMgr(),
+            m_ctxt->getRoot()).index(
+                ast_scope,
+                elem->getTarget(),
+                elem->getSuper());
+    }
+    
+    zsp::ast::IScopeChild *func_t = ast_scope;
+    
+    for (std::vector<ast::IExprUP>::const_iterator
+        it=elem->getParams()->getParameters().begin();
+        it!=elem->getParams()->getParameters().end(); it++) {
+        params.push_back(TaskBuildExpr(m_ctxt).build(it->get()));
+    }
+    
+    std::string fname = zsp::parser::TaskGetName().get(func_t, true);
+    arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->findDataTypeFunction(fname);
+    
+    if (!func) {
+        DEBUG_ERROR("failed to find function %s", fname.c_str());
+    }
+    
+    vsc::dm::ITypeExpr *ctxt = root;
+  
+    if (!ctxt) {
+        // Static function call
+        DEBUG("Elem %d: Static function call", idx);
+
+        DEBUG("Function Name: %s", fname.c_str());
+        expr = m_ctxt->ctxt()->mkTypeExprMethodCallStatic(
+            func,
+            params);
+    } else {
+        DEBUG("Elem %d: Context function call", idx);
+
+        // Context method call
+        expr = m_ctxt->ctxt()->mkTypeExprMethodCallContext(
+            func,
+            ctxt,
+            params);
+    }
+    
     return expr;
 }
 

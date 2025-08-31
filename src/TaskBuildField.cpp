@@ -57,7 +57,7 @@ void TaskBuildField::visitField(ast::IField *i) {
         i->getAttr());
     zsp::ast::IDataType *adt = i->getType();
     zsp::ast::IAssocData *assoc_d = TaskGetDataTypeAssocData(m_ctxt).get(adt);
-    vsc::dm::IDataType *dt = TaskBuildDataType(m_ctxt).build(i->getType());
+    vsc::dm::IDataType *dt = TaskBuildDataType(m_ctxt).buildT<vsc::dm::IDataType>(i->getType());
     vsc::dm::TypeFieldAttr attr = vsc::dm::TypeFieldAttr::NoAttr;
     vsc::dm::ITypeExpr *init = 0; // Default is Void
 
@@ -99,7 +99,7 @@ void TaskBuildField::visitFieldCompRef(ast::IFieldCompRef *i) {
     DEBUG_ENTER("visitFieldCompRef");
     zsp::ast::IDataType *adt = i->getType();
     zsp::ast::IAssocData *assoc_d = TaskGetDataTypeAssocData(m_ctxt).get(adt);
-    vsc::dm::IDataType *dt = TaskBuildDataType(m_ctxt).build(i->getType());
+    vsc::dm::IDataType *dt = TaskBuildDataType(m_ctxt).buildT<vsc::dm::IDataType>(i->getType());
     vsc::dm::TypeFieldAttr attr = vsc::dm::TypeFieldAttr::NoAttr;
     vsc::dm::ITypeExpr *init = 0; // Default is Void
 
@@ -130,7 +130,7 @@ void TaskBuildField::visitFieldRef(ast::IFieldRef *i) {
     DEBUG_ENTER("visitFieldRef");
     zsp::ast::IDataType *adt = i->getType();
     zsp::ast::IAssocData *assoc_d = TaskGetDataTypeAssocData(m_ctxt).get(adt);
-    vsc::dm::IDataType *dt = TaskBuildDataType(m_ctxt).build(i->getType());
+    vsc::dm::IDataType *dt = TaskBuildDataType(m_ctxt).buildT<vsc::dm::IDataType>(i->getType());
     vsc::dm::TypeFieldAttr attr = vsc::dm::TypeFieldAttr::NoAttr;
     vsc::dm::ITypeExpr *init = 0; // Default is Void
 
@@ -149,10 +149,10 @@ void TaskBuildField::visitFieldRef(ast::IFieldRef *i) {
  */
 
     if (!m_ret) {
-        m_ret = m_ctxt->ctxt()->mkTypeFieldRef(
+        m_ret = m_ctxt->ctxt()->mkTypeFieldInOut(
             i->getName()->getId(),
             dt,
-            attr);
+            i->getIs_input());
     }
     DEBUG_LEAVE("visitFieldRef");
 }

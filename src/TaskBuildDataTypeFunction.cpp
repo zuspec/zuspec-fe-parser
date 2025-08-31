@@ -20,6 +20,7 @@
  */
 #include "dmgr/impl/DebugMacros.h"
 #include "zsp/parser/impl/TaskGetName.h"
+#include "zsp/parser/impl/TaskResolveTypeRef.h"
 #include "TaskBuildDataType.h"
 #include "TaskBuildDataTypeFunction.h"
 #include "TaskBuildTypeExecStmt.h"
@@ -38,8 +39,9 @@ static std::map<ast::ParamDir, arl::dm::ParamDir> param_dir_m = {
 };
 
 
-TaskBuildDataTypeFunction::TaskBuildDataTypeFunction(IAst2ArlContext *ctxt) 
-    : m_ctxt(ctxt) {
+TaskBuildDataTypeFunction::TaskBuildDataTypeFunction(
+    IAst2ArlContext                 *ctxt,
+    arl::dm::IDataTypeArlStruct     *type) : m_ctxt(ctxt), m_type(type) {
     DEBUG_INIT("zsp::fe::parser::TaskBuildDataTypeFunction", ctxt->getDebugMgr());
 }
 
@@ -62,6 +64,12 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
 
     bool is_target = proto->getIs_target();
     bool is_solve  = proto->getIs_solve();
+
+    if (proto->getIs_core()) {
+        flags = (flags | arl::dm::DataTypeFunctionFlags::Core);
+    }
+
+    DEBUG("is_target=%d is_solve=%d", is_target, is_solve);
 
     if (!i->getBody()) {
         for (std::vector<ast::IFunctionImportUP>::const_iterator
@@ -92,14 +100,26 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
                 flags = flags | arl::dm::DataTypeFunctionFlags::Solve;
             }
         }
+    } else {
+        if (is_target) {
+            flags = flags | arl::dm::DataTypeFunctionFlags::Target;
+        }
+        if (is_solve) {
+            flags = flags | arl::dm::DataTypeFunctionFlags::Solve;
+        }
     }
+
+    DEBUG("flags: 0x%08x", flags);
+    DEBUG("m_type: %p", m_type);
+
 //    ast::IScopeChild *rtype = i->getDefinition()->getProto()->getRtype();
     ast::IScopeChild *rtype = proto->getRtype();
     arl::dm::IDataTypeFunction *func = m_ctxt->ctxt()->mkDataTypeFunction(
         fname,
-        rtype?TaskBuildDataType(m_ctxt).build(rtype):0,
+        rtype?TaskBuildDataType(m_ctxt).buildT<vsc::dm::IDataType>(rtype):0,
         false,
-        flags);
+        flags,
+        m_type);
 
     // Bring across the function parameters
     for (std::vector<ast::IFunctionParamDeclUP>::const_iterator
@@ -107,7 +127,11 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
         it!=proto->getParameters().end(); it++) {
         std::string name = (*it)->getName()->getId();
         arl::dm::ParamDir dir = param_dir_m.find((*it)->getDir())->second;
-        vsc::dm::IDataType *type = TaskBuildDataType(m_ctxt).build((*it)->getType());
+        ast::IScopeChild *ast_t = zsp::parser::TaskResolveTypeRef(
+            m_ctxt->getDebugMgr(),
+            m_ctxt->getRoot()).resolve((*it)->getType());
+        vsc::dm::IDataType *type = TaskBuildDataType(m_ctxt).buildT<vsc::dm::IDataType>((*it)->getType());
+//        vsc::dm::IDataType *type = dynamic_cast<vsc::dm::IDataType *>(m_ctxt->getType(ast_t));
         vsc::dm::ITypeExpr *dflt = ((*it)->getDflt())?TaskBuildExpr(m_ctxt).build((*it)->getDflt()):0;
         arl::dm::IDataTypeFunctionParamDecl *param = 
         m_ctxt->ctxt()->mkDataTypeFunctionParamDecl(
@@ -120,6 +144,12 @@ zsp::arl::dm::IDataTypeFunction *TaskBuildDataTypeFunction::build(
         func->addParameter(param);
     }
     m_ctxt->ctxt()->addDataTypeFunction(func);
+
+    if (m_type) {
+        m_type->addFunction(func, false);
+    } else {
+        m_ctxt->addType(i, func);
+    }
 
     if (i->getBody()) {
         // Local implementation

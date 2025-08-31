@@ -45,7 +45,7 @@ vsc::dm::ITypeField *ElemFactoryReg::mkTypeFieldPhy(
     ast::IDataTypeUserDefined *type_s = dynamic_cast<ast::IDataTypeUserDefined *>(type);
 //    DEBUG("type_s name=%s", type_s->getName()->getId().c_str());
 
-    vsc::dm::IDataType *dt = TaskBuildDataTypeReg(ctx).build(type);
+    vsc::dm::IDataType *dt = TaskBuildDataTypeReg(ctx).buildT<vsc::dm::IDataType>(type);
 
     vsc::dm::ITypeField *ret = ctx->ctxt()->mkTypeFieldReg(
         name,
